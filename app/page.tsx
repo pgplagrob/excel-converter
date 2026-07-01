@@ -13,6 +13,7 @@ interface MappingSuggestion {
 
 interface SheetData {
   sheetName: string;
+  headerRowIndex: number;
   headers: string[];
   rowCount: number;
   sampleRows: Record<string, any>[];
@@ -92,6 +93,7 @@ export default function Page() {
         setLoading(false);
         return;
       }
+      console.log("[DataSource] parsed workbook", data);
       setParsed(data);
       setActiveSheetIdx(0);
 
@@ -135,6 +137,7 @@ export default function Page() {
         setLoading(false);
         return;
       }
+      console.log("[Transform] template dataset", data.transformedSheets);
       setIssues(data.issues);
       setIssueSummary({
         errorCount: data.errorCount,
@@ -394,26 +397,11 @@ function PreviewStep({
   onNext,
 }: any) {
   const sheet: SheetData = parsed.sheets[activeSheetIdx];
-  const sheetMap: Record<string, string> = mappingState[sheet.sheetName] || {};
-
-  // สร้างแถวตัวอย่างโดยใช้ mapping → แสดงค่าจากคอลัมน์ต้นทางที่จับคู่ไว้
-  const previewRows = sheet.sampleRows.map((srcRow: Record<string, any>) => {
-    const out: Record<string, any> = {};
-    for (const col of TEMPLATE_COLS) {
-      const srcCol = sheetMap[col];
-      out[col] = srcCol ? (srcRow[srcCol] ?? "") : "";
-    }
-    return out;
-  });
-
-  // คอลัมน์ที่มีข้อมูลอย่างน้อยหนึ่งแถว (ซ่อนคอลัมน์ว่างทั้งหมดเพื่อไม่ให้ scroll ไกลเกิน)
-  const activeCols = TEMPLATE_COLS.filter((col) =>
-    previewRows.some((r) => r[col] !== "")
-  );
-  // ถ้าไม่มีคอลัมน์ active เลย ให้แสดงทั้งหมด
-  const displayCols = activeCols.length > 0 ? activeCols : TEMPLATE_COLS;
+  const previewRows = sheet.sampleRows;
+  const displayCols = sheet.headers;
 
   // นับคอลัมน์ที่จับคู่ได้ (มี source)
+  const sheetMap: Record<string, string> = mappingState[sheet.sheetName] || {};
   const mappedCount = Object.values(sheetMap).filter(Boolean).length;
 
   return (
@@ -426,9 +414,9 @@ function PreviewStep({
           ` (ข้าม ${parsed.skippedSheets.length} ชีตที่ไม่มีข้อมูล: ${parsed.skippedSheets.join(", ")})`}
         <br />
         <span style={{ color: "var(--tag-amber)", fontWeight: 600 }}>
-          หัวคอลัมน์ตรึงตามเทมเพลต 44 คอลัมน์
+          Data Source Phase: แสดง header และ value ตาม Excel ต้นทาง
         </span>{" "}
-        — ข้อมูลแสดงตามการจับคู่อัตโนมัติ (ปรับได้ในขั้นถัดไป)
+        — ยังไม่แปลงชื่อคอลัมน์และยังไม่ย้ายข้อมูลไปคอลัมน์เทมเพลต
       </p>
 
       <div className="sheet-tabs">
@@ -449,37 +437,20 @@ function PreviewStep({
 
       {/* legend: ต้นทาง */}
       <div style={{ marginBottom: 10, display: "flex", gap: 16, flexWrap: "wrap", fontSize: 12, color: "var(--ink-soft)" }}>
-        <span>📌 แสดง {displayCols.length} คอลัมน์ที่มีข้อมูล (จาก 44)</span>
+        <span>📌 แสดง {displayCols.length} คอลัมน์จาก Excel ต้นทาง</span>
+        <span>แถว header ในไฟล์: {sheet.headerRowIndex + 1}</span>
         <span>🔗 จับคู่อัตโนมัติ {mappedCount}/44 คอลัมน์สำหรับชีตนี้</span>
-        <span>
-          คอลัมน์ต้นทาง:{" "}
-          {sheet.headers
-            .filter(Boolean)
-            .slice(0, 6)
-            .join(", ")}
-          {sheet.headers.length > 6 ? ` ...+${sheet.headers.length - 6}` : ""}
-        </span>
       </div>
 
       <div className="table-wrap">
         <table>
           <thead>
             <tr>
-              {displayCols.map((col) => {
-                const srcCol = sheetMap[col];
-                return (
-                  <th key={col} title={srcCol ? `ต้นทาง: ${srcCol}` : "ยังไม่จับคู่"}>
-                    <div style={{ color: srcCol ? "var(--ink)" : "var(--error)", opacity: srcCol ? 1 : 0.6 }}>
-                      {col}
-                    </div>
-                    {srcCol && (
-                      <div style={{ fontWeight: 400, color: "var(--teal)", fontSize: 10, marginTop: 2 }}>
-                        ← {srcCol}
-                      </div>
-                    )}
-                  </th>
-                );
-              })}
+              {displayCols.map((col) => (
+                <th key={col}>
+                  <div>{col}</div>
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
@@ -495,7 +466,7 @@ function PreviewStep({
       </div>
       <p style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 8 }}>
         แสดงตัวอย่าง {sheet.sampleRows.length} แถวแรกจากทั้งหมด {sheet.rowCount} แถว
-        · คอลัมน์ที่ว่างทั้งหมดถูกซ่อน
+        · ข้อมูลชุดนี้คือ Data Source ก่อน Transform
       </p>
 
       <div className="actions">

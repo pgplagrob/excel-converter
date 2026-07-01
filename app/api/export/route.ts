@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 import { TEMPLATE_COLUMNS } from "@/lib/mapping";
+import { logTemplateDataset, transformRowsToTemplateDataset } from "@/lib/transform";
 import { validateMappedRows } from "@/lib/validate";
 
 export const runtime = "nodejs";
@@ -25,15 +26,19 @@ export async function POST(req: NextRequest) {
     const wb = XLSX.utils.book_new();
     const allIssues: any[] = [];
     const allMappedRows: Record<string, any>[] = [];
+    const transformedSheets: {
+      sheetName: string;
+      rowCount: number;
+      sampleRows: Record<string, any>[];
+    }[] = [];
 
     for (const sheet of sheetsInput) {
-      const mappedRows = sheet.rows.map((row) => {
-        const outRow: Record<string, any> = {};
-        for (const col of TEMPLATE_COLUMNS) {
-          const sourceCol = sheet.mapping[col];
-          outRow[col] = sourceCol ? row[sourceCol] ?? "" : "";
-        }
-        return outRow;
+      const mappedRows = transformRowsToTemplateDataset(sheet.rows, sheet.mapping);
+      logTemplateDataset(sheet.sheetName, mappedRows, sheet.mapping);
+      transformedSheets.push({
+        sheetName: sheet.sheetName,
+        rowCount: mappedRows.length,
+        sampleRows: mappedRows.slice(0, 5),
       });
 
       const issues = validateMappedRows(sheet.sheetName, mappedRows);
@@ -53,6 +58,7 @@ export async function POST(req: NextRequest) {
         totalRows: allMappedRows.length,
         errorCount: allIssues.filter((i) => i.severity === "error").length,
         warningCount: allIssues.filter((i) => i.severity === "warning").length,
+        transformedSheets,
       });
     }
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { parseWorkbookBuffer } from "@/lib/excel";
+import { createDataSourceWorkbook, logDataSourceWorkbook } from "@/lib/datasource";
+import { readWorkbookBuffer } from "@/lib/excel";
 import { suggestMapping } from "@/lib/mapping";
 
 export const runtime = "nodejs";
@@ -16,12 +17,15 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const parsed = parseWorkbookBuffer(buffer, file.name);
+    const rawWorkbook = readWorkbookBuffer(buffer, file.name);
+    const dataSource = createDataSourceWorkbook(rawWorkbook.fileName, rawWorkbook.sheets);
+    logDataSourceWorkbook(dataSource);
 
-    const sheets = parsed.sheets.map((sheet) => {
+    const sheets = dataSource.sheets.map((sheet) => {
       const mapping = suggestMapping(sheet.headers);
       return {
         sheetName: sheet.sheetName,
+        headerRowIndex: sheet.headerRowIndex,
         headers: sheet.headers,
         rowCount: sheet.rowCount,
         sampleRows: sheet.rows.slice(0, 10),
@@ -31,9 +35,9 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({
-      fileName: parsed.fileName,
+      fileName: dataSource.fileName,
       sheets,
-      skippedSheets: parsed.skippedSheets,
+      skippedSheets: dataSource.skippedSheets,
     });
   } catch (err: any) {
     console.error(err);

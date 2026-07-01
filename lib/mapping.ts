@@ -54,52 +54,77 @@ export const TEMPLATE_COLUMNS: string[] = [
 //   Pattern B (สำนักงาน, ยานพาหนะ ฯลฯ):  2 rows: row3="รายการ/รหัสครุภัณฑ์/..." row4=sub-header
 // ---------------------------------------------------------------------------
 const ALIASES: Record<string, string[]> = {
-  "RFID/QR CODE": ["rfid", "qr code", "qrcode", "rfid/qr", "บาร์โค้ด", "บาร์โค๊ด"],
-
-  "รหัสสินทรัพย์ Elaas": [
-    "รหัส elaas", "elaas", "รหัสสินทรัพย์(elaas)", "เลขครุภัณฑ์ elaas",
-    // Pattern B
-    "รหัสครุภัณฑ์", "รหัสพัสดุ", "เลขครุภัณฑ์",
+  "RFID/QR CODE": [
+    "rfid",
+    "qr code",
+    "qrcode",
+    "rfid/qr",
+    "บาร์โค้ด",
+    "บาร์โค๊ด",
   ],
 
-  "รหัสสินทรัพย์": [
-    "asset code", "asset id",
+  "รหัสสินทรัพย์ Elaas": [
+    "รหัส elaas",
+    "elaas",
+    "รหัสสินทรัพย์(elaas)",
+    "เลขครุภัณฑ์ elaas",
+    // Pattern B
+    "รหัสครุภัณฑ์",
+    "รหัสพัสดุ",
+    "เลขครุภัณฑ์",
+  ],
+
+  รหัสสินทรัพย์: [
+    "asset code",
+    "asset id",
     // Pattern A  — "รหัสสินทรัพย์" อาจตรงกันตรงๆ แต่เผื่อมี suffix
     "รหัสสินทรัพย์2",
   ],
 
   "รหัสสินทรัพย์ (ส่วนประกอบ)": [
-    "รหัสสินทรัพย์ส่วนประกอบ", "รหัสครุภัณฑ์ย่อย", "รหัสส่วนประกอบ",
+    "รหัสสินทรัพย์ส่วนประกอบ",
+    "รหัสครุภัณฑ์ย่อย",
+    "รหัสส่วนประกอบ",
   ],
 
-  "ชื่อสินทรัพย์": [
-    "ชื่อครุภัณฑ์", "asset name", "ชื่อทรัพย์สิน",
-    // Pattern B — คอลัมน์ "รายการ" คือชื่อสินทรัพย์
-    "รายการ", "รายการครุภัณฑ์",
+  ชื่อสินทรัพย์: [
+    "ชื่อครุภัณฑ์",
+    "asset name",
+    "ชื่อทรัพย์สิน",
+      "รายการสินทรัพย์",
+
   ],
 
-  "รายละเอียด": [
-    "description", "spec", "สเปค",
+  รายละเอียด: [
+    "description",
+    "spec",
+    "สเปค",
     // Pattern A
-    "รายละเอียดสินทรัพย์", "รายละเอียดครุภัณฑ์",
+    "รายละเอียดสินทรัพย์",
+    "รายละเอียดครุภัณฑ์",
   ],
 
   "ระบุอื่น ๆ": ["ระบุอื่นๆ", "อื่นๆ", "other", "หมายเหตุอื่นๆ", "หมายเหตุ"],
 
-  "ประเภทสินทรัพย์": ["asset type", "ประเภท", "ประเภทครุภัณฑ์"],
+  ประเภทสินทรัพย์: ["asset type", "ประเภท", "ประเภทครุภัณฑ์"],
 
-  "ชนิดสินทรัพย์": [
-    "asset category", "ชนิด", "หมวดสินทรัพย์",
+  ชนิดสินทรัพย์: [
+    "asset category",
+    "ชนิด",
+    "หมวดสินทรัพย์",
     // Pattern A — "*ชนิดสินทรัพย์" (มี * นำหน้า)
-    "*ชนิดสินทรัพย์", "ชนิดครุภัณฑ์", "หมวดครุภัณฑ์",
+    "*ชนิดสินทรัพย์",
+    "ชนิดครุภัณฑ์",
+    "หมวดครุภัณฑ์",
   ],
 
-  "รายการสินทรัพย์": ["asset item"],
+  รายการสินทรัพย์: ["asset item"],
 
-  "หน่วยนับ": ["unit", "หน่วย"],
+  หน่วยนับ: ["unit", "หน่วย"],
 
-  "อาคาร": [
-    "building", "ตึก",
+  อาคาร: [
+    "building",
+    "ตึก",
     // Pattern A
     "สถานที่ตั้ง",
     // Pattern B sub-header row
@@ -107,82 +132,97 @@ const ALIASES: Record<string, string[]> = {
     "หน่วยงาน",
   ],
 
-  "ห้อง": ["room", "ห้องที่ตั้ง"],
+  ห้อง: ["room", "ห้องที่ตั้ง"],
 
-  "ได้มาโดย": [
-    "acquired by", "วิธีได้มา",
+  ได้มาโดย: [
+    "acquired by",
+    "วิธีได้มา",
     // Pattern A — "*ได้มาโดย"
     "*ได้มาโดย",
   ],
 
-  "ได้มาจาก": ["acquired from", "ผู้ขาย", "supplier", "ได้มาจาก"],
+  ได้มาจาก: ["acquired from", "ผู้ขาย", "supplier", "ได้มาจาก"],
 
-  "แหล่งงบประมาณ": [
-    "budget source", "งบประมาณ",
+  แหล่งงบประมาณ: [
+    "budget source",
+    "งบประมาณ",
     // โอน2567 มีคอลัมน์ "แหล่งที่มา"
     "แหล่งที่มา",
   ],
 
-  "มูลค่า": [
-    "value", "ราคา", "มูลค่าสินทรัพย์", "amount",
+  มูลค่า: [
+    "value",
+    "ราคา",
+    "มูลค่าสินทรัพย์",
+    "amount",
     // Pattern A
-    "*ราคาสินทรัพย์ (ราคาทุน) (บาท)", "ราคาสินทรัพย์", "ราคาทุน",
+    "*ราคาสินทรัพย์ (ราคาทุน) (บาท)",
+    "ราคาสินทรัพย์",
+    "ราคาทุน",
     // Pattern B
     "ราคาที่ได้มา",
   ],
 
-  "วันที่ได้รับ": [
-    "received date", "วันรับ",
+  วันที่ได้รับ: [
+    "received date",
+    "วันรับ",
     // Pattern A — "*วันที่ได้มา\n(วว/ดด/ปปปป)"  (merged 3 sub-cols วัน/เดือน/ปี)
-    "*วันที่ได้มา", "วันที่ได้มา", "วันที่ได้มา(วว/ดด/ปปปป)",
+    "*วันที่ได้มา",
+    "วันที่ได้มา",
+    "วันที่ได้มา(วว/ดด/ปปปป)",
     // Pattern B header row3
-    "วัน เดือน ปี", "วันเดือนปี",
+    "วัน เดือน ปี",
+    "วันเดือนปี",
   ],
 
-  "วันที่ได้รับโอน": ["transfer date", "วันโอน", "วัน เดือน ปีที่โอน"],
-  "วันที่ออกจำหน่าย": ["disposal date", "วันจำหน่าย"],
-  "วันที่เริ่มรับประกัน": ["warranty start", "วันเริ่มประกัน"],
-  "วันที่หมดประกัน": ["warranty end", "วันหมดประกัน", "วันสิ้นสุดประกัน"],
-  "อายุการรับประกัน": ["warranty period", "ระยะเวลาประกัน"],
-  "อายุการใช้งาน": ["useful life", "อายุใช้งาน"],
+  วันที่ได้รับโอน: ["transfer date", "วันโอน", "วัน เดือน ปีที่โอน"],
+  วันที่ออกจำหน่าย: ["disposal date", "วันจำหน่าย"],
+  วันที่เริ่มรับประกัน: ["warranty start", "วันเริ่มประกัน"],
+  วันที่หมดประกัน: ["warranty end", "วันหมดประกัน", "วันสิ้นสุดประกัน"],
+  อายุการรับประกัน: ["warranty period", "ระยะเวลาประกัน"],
+  อายุการใช้งาน: ["useful life", "อายุใช้งาน"],
 
-  "ผู้ถือครอง": ["holder", "ผู้ครอบครอง", "ผู้ดูแล"],
+  ผู้ถือครอง: ["holder", "ผู้ครอบครอง", "ผู้ดูแล"],
 
-  "สำนัก": ["office", "สำนักงาน"],
-  "ฝ่าย": ["division", "department"],
-  "งาน": ["section"],
+  สำนัก: ["office", "สำนักงาน"],
+  ฝ่าย: ["division", "department"],
+  งาน: [""],
 
-  "งานที่รับผิดชอบ": [
-    "responsible unit", "ผู้รับผิดชอบ",
+  งานที่รับผิดชอบ: [
+    "responsible unit",
+    "ผู้รับผิดชอบ",
     // Pattern A มีตรงๆ
     "งานที่รับผิดชอบ",
   ],
 
-  "สถานะ": ["status", "สภาพ", "สภาพครุภัณฑ์"],
+  สถานะ: ["status", "สภาพ", "สภาพครุภัณฑ์"],
 
-  "ต้องตรวจนับ": ["need count", "ตรวจนับ"],
-  "คิดค่าเสื่อม": ["depreciation flag", "ค่าเสื่อม"],
-  "ของสำคัญ": ["important item", "สำคัญ"],
-  "ค่าเสื่อมสะสมยกมา": ["accumulated depreciation brought forward", "ค่าเสื่อมยกมา"],
+  ต้องตรวจนับ: ["need count", "ตรวจนับ"],
+  คิดค่าเสื่อม: ["depreciation flag", "ค่าเสื่อม"],
+  ของสำคัญ: ["important item", "สำคัญ"],
+  ค่าเสื่อมสะสมยกมา: [
+    "accumulated depreciation brought forward",
+    "ค่าเสื่อมยกมา",
+  ],
   "ณ วันที่ (ค่าเสื่อมยกมา)": ["as of date", "ณ วันที่"],
-  "ส่งคืนสินทรัพย์": ["return asset", "คืนสินทรัพย์"],
+  ส่งคืนสินทรัพย์: ["return asset", "คืนสินทรัพย์"],
 
-  "เงินงบประมาณ": ["budget fund", "เงินงบ"],
+  เงินงบประมาณ: ["budget fund", "เงินงบ"],
   "เงินสะสม/เงินทุนสำรองเงินสะสม": ["เงินสะสม", "เงินทุนสำรองเงินสะสม"],
   "เงินอุดหนุนระบุวัตถุประสงค์/เฉพาะกิจ": ["เงินอุดหนุน", "เฉพาะกิจ"],
-  "เงินรับฝาก": ["deposit fund"],
+  เงินรับฝาก: ["deposit fund"],
   "รับโอน/รับบริจาค": ["รับโอน", "รับบริจาค", "donation"],
-  "เงินกู้": ["loan fund"],
-  "รายได้สะสม": ["accumulated income"],
-  "ทุนดำเนินการ": ["operating capital"],
+  เงินกู้: ["loan fund"],
+  รายได้สะสม: ["accumulated income"],
+  ทุนดำเนินการ: ["operating capital"],
 };
 
 function normalizeText(s: string): string {
   return (s || "")
     .toString()
     .toLowerCase()
-    .replace(/\*/g, "")       // ลบ * นำหน้า (Pattern A)
-    .replace(/\n/g, "")       // ลบ newline ในหัวตาราง
+    .replace(/\*/g, "") // ลบ * นำหน้า (Pattern A)
+    .replace(/\n/g, "") // ลบ newline ในหัวตาราง
     .replace(/\s+/g, "")
     .replace(/[()/.\-_,]/g, "");
 }
@@ -205,13 +245,19 @@ export function getAllKeywords(): string[] {
 function levenshtein(a: string, b: string): number {
   const m = a.length;
   const n = b.length;
-  const dp: number[][] = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  const dp: number[][] = Array.from({ length: m + 1 }, () =>
+    new Array(n + 1).fill(0),
+  );
   for (let i = 0; i <= m; i++) dp[i][0] = i;
   for (let j = 0; j <= n; j++) dp[0][j] = j;
   for (let i = 1; i <= m; i++) {
     for (let j = 1; j <= n; j++) {
       const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-      dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost);
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,
+        dp[i][j - 1] + 1,
+        dp[i - 1][j - 1] + cost,
+      );
     }
   }
   return dp[m][n];
@@ -245,7 +291,10 @@ export function suggestMapping(sourceHeaders: string[]): MappingSuggestion[] {
       method: "none",
     };
 
-    const candidates = [normalizeText(templateCol), ...(ALIASES[templateCol] || []).map(normalizeText)];
+    const candidates = [
+      normalizeText(templateCol),
+      ...(ALIASES[templateCol] || []).map(normalizeText),
+    ];
 
     for (const src of sourceHeaders) {
       if (usedSources.has(src)) continue;
@@ -254,15 +303,28 @@ export function suggestMapping(sourceHeaders: string[]): MappingSuggestion[] {
 
       // exact match
       if (candidates.includes(normSrc)) {
-        best = { templateColumn: templateCol, sourceColumn: src, confidence: 100, method: "exact" };
+        best = {
+          templateColumn: templateCol,
+          sourceColumn: src,
+          confidence: 100,
+          method: "exact",
+        };
         break;
       }
       // substring match
       const containsMatch = candidates.some(
-        (c) => c.length >= 3 && normSrc.length >= 3 && (normSrc.includes(c) || c.includes(normSrc))
+        (c) =>
+          c.length >= 3 &&
+          normSrc.length >= 3 &&
+          (normSrc.includes(c) || c.includes(normSrc)),
       );
       if (containsMatch && best.confidence < 85) {
-        best = { templateColumn: templateCol, sourceColumn: src, confidence: 85, method: "alias" };
+        best = {
+          templateColumn: templateCol,
+          sourceColumn: src,
+          confidence: 85,
+          method: "alias",
+        };
         continue;
       }
       // fuzzy match via levenshtein
@@ -271,7 +333,12 @@ export function suggestMapping(sourceHeaders: string[]): MappingSuggestion[] {
       const ratio = 1 - dist / maxLen;
       const score = Math.round(ratio * 100);
       if (score > 60 && score > best.confidence) {
-        best = { templateColumn: templateCol, sourceColumn: src, confidence: score, method: "fuzzy" };
+        best = {
+          templateColumn: templateCol,
+          sourceColumn: src,
+          confidence: score,
+          method: "fuzzy",
+        };
       }
     }
 
