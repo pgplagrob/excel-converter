@@ -1,4 +1,5 @@
 import { TEMPLATE_COLUMNS } from "./mapping";
+import { SOURCE_ASSET_NAME_COLUMN, SOURCE_ASSET_TYPE_COLUMN } from "./datasource";
 
 export type TemplateMapping = Record<string, string | null | undefined>;
 
@@ -70,25 +71,50 @@ function buildDateFromSourceColumns(sourceRow: Record<string, any>, sourceColumn
   return formatDateParts(day, month, year);
 }
 
+function resolveTemplateValue(
+  sourceRow: Record<string, any>,
+  templateColumn: string,
+  templateIndex: number,
+  sourceColumn: string | null | undefined,
+): any {
+  if (templateColumn === "ชื่อสินทรัพย์") {
+    const groupedAssetName = cellText(sourceRow[SOURCE_ASSET_NAME_COLUMN]);
+    if (groupedAssetName) return groupedAssetName;
+  }
+  if (templateColumn === "ชนิดสินทรัพย์") {
+    const groupedAssetType = cellText(sourceRow[SOURCE_ASSET_TYPE_COLUMN]);
+    if (groupedAssetType) return groupedAssetType;
+  }
+
+  if (!sourceColumn) return "";
+
+  return DATE_COLUMN_INDEXES.has(templateIndex)
+    ? buildDateFromSourceColumns(sourceRow, sourceColumn)
+    : sourceRow[sourceColumn] ?? "";
+}
+
 export function transformRowsToTemplateDataset(
   rows: Record<string, any>[],
   mapping: TemplateMapping,
 ): Record<string, any>[] {
-  return rows.map((sourceRow) => {
+  return rows.map((sourceRow, rowIndex) => {
     const templateRow: Record<string, any> = {};
 
     TEMPLATE_COLUMNS.forEach((templateColumn, templateIndex) => {
       const sourceColumn = mapping[templateColumn];
-      if (!sourceColumn) {
-        templateRow[templateColumn] = "";
-        return;
-      }
-
-      templateRow[templateColumn] = DATE_COLUMN_INDEXES.has(templateIndex)
-        ? buildDateFromSourceColumns(sourceRow, sourceColumn)
-        : sourceRow[sourceColumn] ?? "";
+      templateRow[templateColumn] = resolveTemplateValue(
+        sourceRow,
+        templateColumn,
+        templateIndex,
+        sourceColumn,
+      );
     });
 
+    console.log("[TRANSFORMED ROW]", {
+      rowIndex,
+      assetName: templateRow["ชื่อสินทรัพย์"],
+      assetType: templateRow["ชนิดสินทรัพย์"],
+    });
     return templateRow;
   });
 }
@@ -98,7 +124,7 @@ export function logTemplateDataset(
   rows: Record<string, any>[],
   mapping: TemplateMapping,
 ): void {
-  console.log("[Transform] template dataset", {
+  console.log("[TRANSFORM] templateDataset", {
     sheetName,
     rowCount: rows.length,
     mappedColumns: Object.entries(mapping)

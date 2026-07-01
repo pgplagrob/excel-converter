@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as XLSX from "xlsx";
+import * as XLSX from "xlsx-js-style";
 import { TEMPLATE_COLUMNS } from "@/lib/mapping";
 import { logTemplateDataset, transformRowsToTemplateDataset } from "@/lib/transform";
 import { validateMappedRows } from "@/lib/validate";
@@ -11,6 +11,50 @@ interface ExportSheetInput {
   rows: Record<string, any>[];
   // mapping: templateColumn -> sourceColumn (or null/empty if unmapped)
   mapping: Record<string, string | null>;
+}
+
+function applyTableStyle(ws: XLSX.WorkSheet, columns: string[], rowCount: number) {
+  const borderStyle = {
+    style: "thin",
+    color: { rgb: "B7C9D6" },
+  };
+  const border = {
+    top: borderStyle,
+    right: borderStyle,
+    bottom: borderStyle,
+    left: borderStyle,
+  };
+  const headerStyle = {
+    fill: {
+      patternType: "solid",
+      fgColor: { rgb: "D9EAF7" },
+    },
+    font: {
+      bold: true,
+      color: { rgb: "1F2937" },
+    },
+    alignment: {
+      horizontal: "center",
+      vertical: "center",
+    },
+    border,
+  };
+  const bodyStyle = {
+    border,
+    alignment: {
+      vertical: "center",
+    },
+  };
+
+  for (let rowIndex = 0; rowIndex <= rowCount; rowIndex += 1) {
+    for (let colIndex = 0; colIndex < columns.length; colIndex += 1) {
+      const cellAddress = XLSX.utils.encode_cell({ r: rowIndex, c: colIndex });
+      if (!ws[cellAddress]) {
+        ws[cellAddress] = { t: "s", v: rowIndex === 0 ? columns[colIndex] : "" };
+      }
+      ws[cellAddress].s = rowIndex === 0 ? headerStyle : bodyStyle;
+    }
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -47,6 +91,7 @@ export async function POST(req: NextRequest) {
 
       if (mode === "download") {
         const ws = XLSX.utils.json_to_sheet(mappedRows, { header: TEMPLATE_COLUMNS });
+        applyTableStyle(ws, TEMPLATE_COLUMNS, mappedRows.length);
         const safeName = sheet.sheetName.substring(0, 31) || "Sheet";
         XLSX.utils.book_append_sheet(wb, ws, safeName);
       }

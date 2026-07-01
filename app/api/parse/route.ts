@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
     const rawWorkbook = readWorkbookBuffer(buffer, file.name);
     const dataSource = createDataSourceWorkbook(rawWorkbook.fileName, rawWorkbook.sheets);
-    logDataSourceWorkbook(dataSource);
+    logDataSourceWorkbook(dataSource, rawWorkbook.sheets);
 
     const sheets = dataSource.sheets.map((sheet) => {
       const mapping = suggestMapping(sheet.headers);

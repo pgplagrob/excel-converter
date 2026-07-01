@@ -8,8 +8,8 @@ export interface ValidationIssue {
   severity: "error" | "warning";
 }
 
-// Columns that should not be left blank for a usable asset record
-const REQUIRED_COLUMNS = ["ชื่อสินทรัพย์", "ประเภทสินทรัพย์", "สถานะ"];
+// Columns that should not be left blank for a usable asset record after transform.
+const REQUIRED_COLUMNS = ["ชื่อสินทรัพย์", "รหัสสินทรัพย์"];
 
 // Columns expected to look like dates (loose check, not strict)
 const DATE_COLUMNS = [

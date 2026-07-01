@@ -87,17 +87,17 @@ const ALIASES: Record<string, string[]> = {
   ],
 
   ชื่อสินทรัพย์: [
+    "sourceAssetName",
     "ชื่อครุภัณฑ์",
     "asset name",
     "ชื่อทรัพย์สิน",
-      "รายการสินทรัพย์",
-
   ],
 
   รายละเอียด: [
     "description",
     "spec",
     "สเปค",
+    "รายการ",
     // Pattern A
     "รายละเอียดสินทรัพย์",
     "รายละเอียดครุภัณฑ์",
@@ -108,6 +108,7 @@ const ALIASES: Record<string, string[]> = {
   ประเภทสินทรัพย์: ["asset type", "ประเภท", "ประเภทครุภัณฑ์"],
 
   ชนิดสินทรัพย์: [
+    "sourceAssetType",
     "asset category",
     "ชนิด",
     "หมวดสินทรัพย์",
@@ -318,8 +319,10 @@ export function suggestMapping(sourceHeaders: string[]): MappingSuggestion[] {
         break;
       }
       // substring match
+      const isSyntheticGroupSource = src === "sourceAssetName" || src === "sourceAssetType";
       const allowsPartialMatch = !EXACT_ONLY_TEMPLATE_COLUMNS.has(templateCol);
       const containsMatch =
+        !isSyntheticGroupSource &&
         allowsPartialMatch &&
         candidates.some(
           (c) => c.length >= 3 && normSrc.length >= 3 && normSrc.includes(c),
@@ -338,7 +341,7 @@ export function suggestMapping(sourceHeaders: string[]): MappingSuggestion[] {
       const maxLen = Math.max(normSrc.length, templateCol.length, 1);
       const ratio = 1 - dist / maxLen;
       const score = Math.round(ratio * 100);
-      if (allowsPartialMatch && score > 60 && score > best.confidence) {
+      if (!isSyntheticGroupSource && allowsPartialMatch && score > 60 && score > best.confidence) {
         best = {
           templateColumn: templateCol,
           sourceColumn: src,

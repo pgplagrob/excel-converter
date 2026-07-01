@@ -1,4 +1,5 @@
 import { getAllKeywords } from "./mapping";
+import type { WorkbookRowMeta } from "./excel";
 
 export interface DataSourceSheet {
   sheetName: string;
@@ -6,6 +7,7 @@ export interface DataSourceSheet {
   headers: string[];
   rows: Record<string, any>[];
   rowCount: number;
+  groupedAssets: GroupedAssetDebug[];
 }
 
 export interface DataSourceWorkbook {
@@ -15,7 +17,23 @@ export interface DataSourceWorkbook {
 }
 
 const ALL_KEYWORDS: string[] = getAllKeywords();
-const ASSET_GROUP_NAME_COLUMN = "ชื่อสินทรัพย์";
+export const SOURCE_ASSET_NAME_COLUMN = "sourceAssetName";
+export const SOURCE_ASSET_TYPE_COLUMN = "sourceAssetType";
+const LIGHT_BLUE_FILL_COLORS = new Set(["DCE6F2", "D9EAF7", "DAEEF3", "B7DEE8"]);
+
+interface GroupedAssetDebug {
+  sourceRowIndex: number;
+  excelRow: number;
+  sourceAssetName: string;
+  sourceAssetType: string;
+  firstAssetCode?: string;
+  firstSequence?: string;
+}
+
+interface GroupHeaderDetection {
+  assetName?: string;
+  assetType?: string;
+}
 
 function normalizeForScore(s: string): string {
   return (s || "")
@@ -76,6 +94,32 @@ function isRowEmpty(row: any[]): boolean {
   );
 }
 
+function nonEmptyCells(row: any[]): { index: number; text: string }[] {
+  return row
+    .map((cell, index) => ({ index, text: cellText(cell) }))
+    .filter((cell) => Boolean(cell.text));
+}
+
+function hasLightBlueFill(rowMeta?: WorkbookRowMeta): boolean {
+  return Boolean(
+    rowMeta?.fillColors?.some((color) => LIGHT_BLUE_FILL_COLORS.has(color.replace(/^FF/, ""))),
+  );
+}
+
+function looksLikeAssetType(text: string): boolean {
+  return /ครุภัณฑ์|สินทรัพย์|สิ่งปลูกสร้าง|อาคาร/.test(text) && !/\(\d+\)/.test(text);
+}
+
+function isNumericOnlyText(text: string): boolean {
+  return /^[\d\s,.\-฿]+$/.test(text);
+}
+
+function isNormalDataRow(sourceRow: any[], sequenceIndex: number, assetCodeIndex: number): boolean {
+  const sequence = sequenceIndex >= 0 ? cellText(sourceRow[sequenceIndex]) : "";
+  const assetCode = assetCodeIndex >= 0 ? cellText(sourceRow[assetCodeIndex]) : "";
+  return Boolean(sequence || assetCode);
+}
+
 function cellText(value: any): string {
   return value === undefined || value === null ? "" : value.toString().trim();
 }
@@ -108,20 +152,32 @@ function findHeaderIndex(headers: string[], candidates: string[]): number {
   return headers.findIndex((header) => normalizedCandidates.has(normalizeForScore(header)));
 }
 
-function isAssetGroupHeaderRow(
+export function detectGroupHeaderRow(
   sourceRow: any[],
   sequenceIndex: number,
   assetCodeIndex: number,
-  assetTypeIndex: number,
-): boolean {
-  if (assetTypeIndex < 0) return false;
+  rowMeta?: WorkbookRowMeta,
+): GroupHeaderDetection | null {
+  if (isRowEmpty(sourceRow) || isNormalDataRow(sourceRow, sequenceIndex, assetCodeIndex)) {
+    return null;
+  }
 
-  const assetGroupName = cellText(sourceRow[assetTypeIndex]);
-  if (!assetGroupName) return false;
+  const cells = nonEmptyCells(sourceRow);
+  if (cells.length === 0) return null;
 
-  const sequence = sequenceIndex >= 0 ? cellText(sourceRow[sequenceIndex]) : "";
-  const assetCode = assetCodeIndex >= 0 ? cellText(sourceRow[assetCodeIndex]) : "";
-  return !sequence && !assetCode;
+  const lightBlue = hasLightBlueFill(rowMeta);
+  const sparseHeaderShape = cells.length <= 2;
+  if (!lightBlue && !sparseHeaderShape) return null;
+
+  const text = cells.map((cell) => cell.text).join(" ").trim();
+  if (!text) return null;
+  if (isNumericOnlyText(text)) return null;
+
+  if (looksLikeAssetType(text)) {
+    return { assetType: text };
+  }
+
+  return { assetName: text };
 }
 
 function buildRow(headers: string[], sourceRow: any[]): Record<string, any> {
@@ -132,30 +188,63 @@ function buildRow(headers: string[], sourceRow: any[]): Record<string, any> {
   return row;
 }
 
-function applyAssetGroupNames(headers: string[], dataRows: any[][]): Record<string, any>[] {
-  const sequenceIndex = findHeaderIndex(headers, ["ลำดับ", "ลำดับที่"]);
+export function buildDatasourceRows(
+  headers: string[],
+  dataRows: any[][],
+  headerRowIndex: number,
+  rowMeta: WorkbookRowMeta[] = [],
+): { rows: Record<string, any>[]; groupedAssets: GroupedAssetDebug[] } {
+  return applyGroupHeaderCarryForward(headers, dataRows, headerRowIndex, rowMeta);
+}
+
+export function applyGroupHeaderCarryForward(
+  headers: string[],
+  dataRows: any[][],
+  headerRowIndex: number,
+  rowMeta: WorkbookRowMeta[] = [],
+): { rows: Record<string, any>[]; groupedAssets: GroupedAssetDebug[] } {
+  const sequenceIndex = findHeaderIndex(headers, ["ลำดับ", "ลำดับที่", "ที่"]);
   const assetCodeIndex = findHeaderIndex(headers, [
     "รหัสสินทรัพย์",
     "รหัสครุภัณฑ์",
     "รหัสพัสดุ",
     "เลขครุภัณฑ์",
   ]);
-  const assetTypeIndex = findHeaderIndex(headers, [
-    "*ชนิดสินทรัพย์",
-    "ชนิดสินทรัพย์",
-    "หมวดสินทรัพย์",
-    "หมวดครุภัณฑ์",
-  ]);
 
-  const hasAssetGroupColumns = sequenceIndex >= 0 && assetCodeIndex >= 0 && assetTypeIndex >= 0;
   let currentAssetName = "";
+  let currentAssetType = "";
   const rows: Record<string, any>[] = [];
+  const groupedAssets: GroupedAssetDebug[] = [];
 
-  for (const sourceRow of dataRows) {
+  for (let index = 0; index < dataRows.length; index++) {
+    const sourceRow = dataRows[index];
     if (isRowEmpty(sourceRow)) continue;
 
-    if (hasAssetGroupColumns && isAssetGroupHeaderRow(sourceRow, sequenceIndex, assetCodeIndex, assetTypeIndex)) {
-      currentAssetName = cellText(sourceRow[assetTypeIndex]);
+    const groupHeader = detectGroupHeaderRow(
+      sourceRow,
+      sequenceIndex,
+      assetCodeIndex,
+      rowMeta[headerRowIndex + index + 1],
+    );
+    if (groupHeader) {
+      if (groupHeader.assetType) {
+        currentAssetType = groupHeader.assetType;
+        currentAssetName = "";
+      }
+      if (groupHeader.assetName) {
+        currentAssetName = groupHeader.assetName;
+      }
+      groupedAssets.push({
+        sourceRowIndex: index,
+        excelRow: headerRowIndex + index + 2,
+        sourceAssetName: currentAssetName || currentAssetType,
+        sourceAssetType: currentAssetType,
+      });
+      console.log("[GROUP HEADER]", {
+        excelRow: headerRowIndex + index + 2,
+        currentAssetName,
+        currentAssetType,
+      });
       continue;
     }
 
@@ -163,40 +252,50 @@ function applyAssetGroupNames(headers: string[], dataRows: any[][]): Record<stri
     const sequence = sequenceIndex >= 0 ? cellText(sourceRow[sequenceIndex]) : "";
     const assetCode = assetCodeIndex >= 0 ? cellText(sourceRow[assetCodeIndex]) : "";
 
-    if (currentAssetName && sequence && assetCode && !cellText(row[ASSET_GROUP_NAME_COLUMN])) {
-      row[ASSET_GROUP_NAME_COLUMN] = currentAssetName;
+    if (sequence || assetCode) {
+      row[SOURCE_ASSET_NAME_COLUMN] = currentAssetName || currentAssetType;
+      row[SOURCE_ASSET_TYPE_COLUMN] = currentAssetType;
+      const currentGroup = groupedAssets[groupedAssets.length - 1];
+      if (currentGroup && !currentGroup.firstAssetCode) {
+        currentGroup.firstAssetCode = assetCode;
+        currentGroup.firstSequence = sequence;
+      }
     }
 
+    console.log("[DATASOURCE ROW]", {
+      excelRow: headerRowIndex + index + 2,
+      sourceAssetName: row[SOURCE_ASSET_NAME_COLUMN],
+      sourceAssetType: row[SOURCE_ASSET_TYPE_COLUMN],
+    });
     rows.push(row);
   }
 
-  return rows;
+  return { rows, groupedAssets };
 }
 
-function hasAssetGroupHeaderRows(headers: string[], dataRows: any[][]): boolean {
-  const sequenceIndex = findHeaderIndex(headers, ["ลำดับ", "ลำดับที่"]);
+function hasAssetGroupHeaderRows(
+  headers: string[],
+  dataRows: any[][],
+  headerRowIndex: number,
+  rowMeta: WorkbookRowMeta[] = [],
+): boolean {
+  const sequenceIndex = findHeaderIndex(headers, ["ลำดับ", "ลำดับที่", "ที่"]);
   const assetCodeIndex = findHeaderIndex(headers, [
     "รหัสสินทรัพย์",
     "รหัสครุภัณฑ์",
     "รหัสพัสดุ",
     "เลขครุภัณฑ์",
   ]);
-  const assetTypeIndex = findHeaderIndex(headers, [
-    "*ชนิดสินทรัพย์",
-    "ชนิดสินทรัพย์",
-    "หมวดสินทรัพย์",
-    "หมวดครุภัณฑ์",
-  ]);
 
-  if (sequenceIndex < 0 || assetCodeIndex < 0 || assetTypeIndex < 0) return false;
-  return dataRows.some((sourceRow) =>
-    isAssetGroupHeaderRow(sourceRow, sequenceIndex, assetCodeIndex, assetTypeIndex),
+  if (sequenceIndex < 0 && assetCodeIndex < 0) return false;
+  return dataRows.some((sourceRow, index) =>
+    Boolean(detectGroupHeaderRow(sourceRow, sequenceIndex, assetCodeIndex, rowMeta[headerRowIndex + index + 1])),
   );
 }
 
 export function createDataSourceWorkbook(
   fileName: string,
-  workbookSheets: { sheetName: string; matrix: any[][] }[],
+  workbookSheets: { sheetName: string; matrix: any[][]; rowMeta?: WorkbookRowMeta[] }[],
 ): DataSourceWorkbook {
   const sheets: DataSourceSheet[] = [];
   const skippedSheets: string[] = [];
@@ -212,10 +311,18 @@ export function createDataSourceWorkbook(
     const headerRowIndex = detectHeaderRow(matrix);
     const headers = buildHeaderKeys(matrix[headerRowIndex] || []);
     const dataRows = matrix.slice(headerRowIndex + 1);
-    if (!headers.includes(ASSET_GROUP_NAME_COLUMN) && hasAssetGroupHeaderRows(headers, dataRows)) {
-      headers.push(ASSET_GROUP_NAME_COLUMN);
+    if (!headers.includes(SOURCE_ASSET_NAME_COLUMN) && hasAssetGroupHeaderRows(headers, dataRows, headerRowIndex, workbookSheet.rowMeta)) {
+      headers.push(SOURCE_ASSET_NAME_COLUMN);
     }
-    const rows = applyAssetGroupNames(headers, dataRows);
+    if (!headers.includes(SOURCE_ASSET_TYPE_COLUMN) && hasAssetGroupHeaderRows(headers, dataRows, headerRowIndex, workbookSheet.rowMeta)) {
+      headers.push(SOURCE_ASSET_TYPE_COLUMN);
+    }
+    const { rows, groupedAssets } = buildDatasourceRows(
+      headers,
+      dataRows,
+      headerRowIndex,
+      workbookSheet.rowMeta,
+    );
 
     if (rows.length === 0) {
       skippedSheets.push(sheetName);
@@ -228,26 +335,46 @@ export function createDataSourceWorkbook(
       headers,
       rows,
       rowCount: rows.length,
+      groupedAssets,
     });
   }
 
   return { fileName, sheets, skippedSheets };
 }
 
-export function logDataSourceWorkbook(workbook: DataSourceWorkbook): void {
-  console.log("[DataSource] workbook", {
+export function logDataSourceWorkbook(
+  workbook: DataSourceWorkbook,
+  rawSheets: { sheetName: string; matrix: any[][] }[] = [],
+): void {
+  console.log("[PARSE] workbook", {
     fileName: workbook.fileName,
     sheetCount: workbook.sheets.length,
     skippedSheets: workbook.skippedSheets,
   });
 
   for (const sheet of workbook.sheets) {
-    console.log("[DataSource] sheet", {
+    const rawSheet = rawSheets.find((item) => item.sheetName === sheet.sheetName);
+    console.log("[PARSE] detectedHeaderRow", {
       sheetName: sheet.sheetName,
-      headerRowIndex: sheet.headerRowIndex,
+      zeroBased: sheet.headerRowIndex,
+      excelRow: sheet.headerRowIndex + 1,
+    });
+    console.log("[SOURCE] headers", {
+      sheetName: sheet.sheetName,
       headers: sheet.headers,
+    });
+    console.log("[SOURCE] firstRows", {
+      sheetName: sheet.sheetName,
+      rows: rawSheet?.matrix.slice(0, 10) ?? [],
+    });
+    console.log("[DATASOURCE] normalizedRows", {
+      sheetName: sheet.sheetName,
       rowCount: sheet.rowCount,
-      sampleRows: sheet.rows.slice(0, 5),
+      rows: sheet.rows.slice(0, 10),
+    });
+    console.log("[DATASOURCE] groupedAssetResult", {
+      sheetName: sheet.sheetName,
+      groups: sheet.groupedAssets,
     });
   }
 }
