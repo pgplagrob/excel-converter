@@ -15,6 +15,7 @@ export interface DataSourceWorkbook {
 }
 
 const ALL_KEYWORDS: string[] = getAllKeywords();
+const ASSET_GROUP_NAME_COLUMN = "ชื่อสินทรัพย์";
 
 function normalizeForScore(s: string): string {
   return (s || "")
@@ -75,13 +76,17 @@ function isRowEmpty(row: any[]): boolean {
   );
 }
 
+function cellText(value: any): string {
+  return value === undefined || value === null ? "" : value.toString().trim();
+}
+
 function normalizeCell(value: any): any {
   if (value === undefined || value === null) return "";
   if (value instanceof Date) {
     const yyyy = value.getFullYear();
     const mm = String(value.getMonth() + 1).padStart(2, "0");
     const dd = String(value.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
+    return `${dd}/${mm}/${yyyy}`;
   }
   return value;
 }
@@ -96,6 +101,97 @@ function buildHeaderKeys(rawHeaders: any[]): string[] {
     seen.set(baseKey, count + 1);
     return count === 0 ? baseKey : `${baseKey}__DUPLICATE_${count + 1}`;
   });
+}
+
+function findHeaderIndex(headers: string[], candidates: string[]): number {
+  const normalizedCandidates = new Set(candidates.map(normalizeForScore));
+  return headers.findIndex((header) => normalizedCandidates.has(normalizeForScore(header)));
+}
+
+function isAssetGroupHeaderRow(
+  sourceRow: any[],
+  sequenceIndex: number,
+  assetCodeIndex: number,
+  assetTypeIndex: number,
+): boolean {
+  if (assetTypeIndex < 0) return false;
+
+  const assetGroupName = cellText(sourceRow[assetTypeIndex]);
+  if (!assetGroupName) return false;
+
+  const sequence = sequenceIndex >= 0 ? cellText(sourceRow[sequenceIndex]) : "";
+  const assetCode = assetCodeIndex >= 0 ? cellText(sourceRow[assetCodeIndex]) : "";
+  return !sequence && !assetCode;
+}
+
+function buildRow(headers: string[], sourceRow: any[]): Record<string, any> {
+  const row: Record<string, any> = {};
+  headers.forEach((header, idx) => {
+    row[header] = normalizeCell(sourceRow[idx]);
+  });
+  return row;
+}
+
+function applyAssetGroupNames(headers: string[], dataRows: any[][]): Record<string, any>[] {
+  const sequenceIndex = findHeaderIndex(headers, ["ลำดับ", "ลำดับที่"]);
+  const assetCodeIndex = findHeaderIndex(headers, [
+    "รหัสสินทรัพย์",
+    "รหัสครุภัณฑ์",
+    "รหัสพัสดุ",
+    "เลขครุภัณฑ์",
+  ]);
+  const assetTypeIndex = findHeaderIndex(headers, [
+    "*ชนิดสินทรัพย์",
+    "ชนิดสินทรัพย์",
+    "หมวดสินทรัพย์",
+    "หมวดครุภัณฑ์",
+  ]);
+
+  const hasAssetGroupColumns = sequenceIndex >= 0 && assetCodeIndex >= 0 && assetTypeIndex >= 0;
+  let currentAssetName = "";
+  const rows: Record<string, any>[] = [];
+
+  for (const sourceRow of dataRows) {
+    if (isRowEmpty(sourceRow)) continue;
+
+    if (hasAssetGroupColumns && isAssetGroupHeaderRow(sourceRow, sequenceIndex, assetCodeIndex, assetTypeIndex)) {
+      currentAssetName = cellText(sourceRow[assetTypeIndex]);
+      continue;
+    }
+
+    const row = buildRow(headers, sourceRow);
+    const sequence = sequenceIndex >= 0 ? cellText(sourceRow[sequenceIndex]) : "";
+    const assetCode = assetCodeIndex >= 0 ? cellText(sourceRow[assetCodeIndex]) : "";
+
+    if (currentAssetName && sequence && assetCode && !cellText(row[ASSET_GROUP_NAME_COLUMN])) {
+      row[ASSET_GROUP_NAME_COLUMN] = currentAssetName;
+    }
+
+    rows.push(row);
+  }
+
+  return rows;
+}
+
+function hasAssetGroupHeaderRows(headers: string[], dataRows: any[][]): boolean {
+  const sequenceIndex = findHeaderIndex(headers, ["ลำดับ", "ลำดับที่"]);
+  const assetCodeIndex = findHeaderIndex(headers, [
+    "รหัสสินทรัพย์",
+    "รหัสครุภัณฑ์",
+    "รหัสพัสดุ",
+    "เลขครุภัณฑ์",
+  ]);
+  const assetTypeIndex = findHeaderIndex(headers, [
+    "*ชนิดสินทรัพย์",
+    "ชนิดสินทรัพย์",
+    "หมวดสินทรัพย์",
+    "หมวดครุภัณฑ์",
+  ]);
+
+  if (sequenceIndex < 0 || assetCodeIndex < 0 || assetTypeIndex < 0) return false;
+  return dataRows.some((sourceRow) =>
+    isAssetGroupHeaderRow(sourceRow, sequenceIndex, assetCodeIndex, assetTypeIndex),
+  );
 }
 
 export function createDataSourceWorkbook(
@@ -116,17 +212,10 @@ export function createDataSourceWorkbook(
     const headerRowIndex = detectHeaderRow(matrix);
     const headers = buildHeaderKeys(matrix[headerRowIndex] || []);
     const dataRows = matrix.slice(headerRowIndex + 1);
-    const rows: Record<string, any>[] = [];
-
-    for (const sourceRow of dataRows) {
-      if (isRowEmpty(sourceRow)) continue;
-
-      const row: Record<string, any> = {};
-      headers.forEach((header, idx) => {
-        row[header] = normalizeCell(sourceRow[idx]);
-      });
-      rows.push(row);
+    if (!headers.includes(ASSET_GROUP_NAME_COLUMN) && hasAssetGroupHeaderRows(headers, dataRows)) {
+      headers.push(ASSET_GROUP_NAME_COLUMN);
     }
+    const rows = applyAssetGroupNames(headers, dataRows);
 
     if (rows.length === 0) {
       skippedSheets.push(sheetName);

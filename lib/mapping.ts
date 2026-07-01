@@ -68,15 +68,14 @@ const ALIASES: Record<string, string[]> = {
     "elaas",
     "รหัสสินทรัพย์(elaas)",
     "เลขครุภัณฑ์ elaas",
-    // Pattern B
-    "รหัสครุภัณฑ์",
-    "รหัสพัสดุ",
-    "เลขครุภัณฑ์",
   ],
 
   รหัสสินทรัพย์: [
     "asset code",
     "asset id",
+    "รหัสครุภัณฑ์",
+    "รหัสพัสดุ",
+    "เลขครุภัณฑ์",
     // Pattern A  — "รหัสสินทรัพย์" อาจตรงกันตรงๆ แต่เผื่อมี suffix
     "รหัสสินทรัพย์2",
   ],
@@ -186,7 +185,7 @@ const ALIASES: Record<string, string[]> = {
 
   สำนัก: ["office", "สำนักงาน"],
   ฝ่าย: ["division", "department"],
-  งาน: [""],
+  งาน: [],
 
   งานที่รับผิดชอบ: [
     "responsible unit",
@@ -271,6 +270,13 @@ export interface MappingSuggestion {
 }
 
 // Build a lookup of normalized template/alias strings -> template column
+const EXACT_ONLY_TEMPLATE_COLUMNS = new Set([
+  "รหัสสินทรัพย์ Elaas",
+  "รหัสสินทรัพย์ (ส่วนประกอบ)",
+  "ชื่อสินทรัพย์",
+  "งาน",
+]);
+
 const LOOKUP: Map<string, string> = new Map();
 for (const col of TEMPLATE_COLUMNS) {
   LOOKUP.set(normalizeText(col), col);
@@ -312,12 +318,12 @@ export function suggestMapping(sourceHeaders: string[]): MappingSuggestion[] {
         break;
       }
       // substring match
-      const containsMatch = candidates.some(
-        (c) =>
-          c.length >= 3 &&
-          normSrc.length >= 3 &&
-          (normSrc.includes(c) || c.includes(normSrc)),
-      );
+      const allowsPartialMatch = !EXACT_ONLY_TEMPLATE_COLUMNS.has(templateCol);
+      const containsMatch =
+        allowsPartialMatch &&
+        candidates.some(
+          (c) => c.length >= 3 && normSrc.length >= 3 && normSrc.includes(c),
+        );
       if (containsMatch && best.confidence < 85) {
         best = {
           templateColumn: templateCol,
@@ -332,7 +338,7 @@ export function suggestMapping(sourceHeaders: string[]): MappingSuggestion[] {
       const maxLen = Math.max(normSrc.length, templateCol.length, 1);
       const ratio = 1 - dist / maxLen;
       const score = Math.round(ratio * 100);
-      if (score > 60 && score > best.confidence) {
+      if (allowsPartialMatch && score > 60 && score > best.confidence) {
         best = {
           templateColumn: templateCol,
           sourceColumn: src,
