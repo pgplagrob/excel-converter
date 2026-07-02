@@ -60,9 +60,19 @@ function applyTableStyle(ws: XLSX.WorkSheet, columns: string[], rowCount: number
   }
 }
 
+function buildExportFileName(sourceFileName?: string) {
+  const baseName = sourceFileName
+    ? sourceFileName.replace(/\.[^/.]+$/, "")
+    : "output";
+
+  return `converted_template_${baseName}.xlsx`;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    const sourceFileName = body.sourceFileName || "output.xlsx";
+    const baseName = sourceFileName.replace(".xlsx", "");
     const sheetsInput: ExportSheetInput[] = body.sheets || [];
     const mode: string = body.mode || "download"; // "download" | "validate"
 
@@ -134,8 +144,10 @@ export async function POST(req: NextRequest) {
       status: 200,
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "Content-Disposition": `attachment; filename="converted_template.xlsx"`,
-      },
+        "Content-Disposition": `attachment; filename*=UTF-8''${encodeURIComponent(
+  `converted_template_${baseName}.xlsx` 
+  )}`,
+}
     });
   } catch (err: any) {
     console.error(err);

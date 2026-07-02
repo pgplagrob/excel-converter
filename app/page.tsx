@@ -96,6 +96,7 @@ export default function Page() {
     mode: "validate" | "download",
   ) => ({
     mode,
+    sourceFileName: parsedData.fileName,
     sheets: parsedData.sheets.map((s) => ({
       sheetName: s.sheetName,
       rows: s.rows,
@@ -198,7 +199,8 @@ export default function Page() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "converted_template.xlsx";
+      const baseName = parsed.fileName.replace(/\.[^/.]+$/, "");
+      a.download = `converted_template_${baseName}.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (e: any) {
@@ -608,8 +610,8 @@ function PreviewStep({
         </table>
       </div>
 
-      <div className="advanced-box">
-        <button className="btn secondary" onClick={() => setAdvancedOpen(!advancedOpen)}>
+      <div className="advanced-box mt-6 rounded-lg border p-4">
+        <button className="btn secondary " onClick={() => setAdvancedOpen(!advancedOpen)}>
           {advancedOpen ? "ซ่อน Advanced Mapping" : "แก้ไขการจับคู่คอลัมน์"}
         </button>
         {advancedOpen && (
