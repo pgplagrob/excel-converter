@@ -154,11 +154,28 @@ const EXACT_ONLY_TEMPLATE_COLUMNS = new Set([
   "งาน",
 ]);
 
+const AUTHORITATIVE_TEMPLATE_COLUMNS = new Set([
+  "ชื่อสินทรัพย์",
+  "รายละเอียด",
+  "ชนิดสินทรัพย์",
+  "รายการสินทรัพย์",
+]);
+
 export function suggestMapping(sourceHeaders: string[]): MappingSuggestion[] {
   const usedSources = new Set<string>();
   const results: MappingSuggestion[] = [];
 
   for (const templateCol of TEMPLATE_COLUMNS) {
+    if (AUTHORITATIVE_TEMPLATE_COLUMNS.has(templateCol)) {
+      results.push({
+        templateColumn: templateCol,
+        sourceColumn: null,
+        confidence: 0,
+        method: "none",
+      });
+      continue;
+    }
+
     let best: MappingSuggestion = {
       templateColumn: templateCol,
       sourceColumn: null,

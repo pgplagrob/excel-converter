@@ -72,7 +72,7 @@ function printSheet(sheet: any): {
   validationWarnings: number;
 } {
   const exportedRows = transformRowsToTemplateDataset(sheet.rows, mappingForHeaders(sheet.headers));
-  const issues = validateMappedRows(sheet.sheetName, exportedRows);
+  const issues = validateMappedRows(sheet.sheetName, exportedRows, sheet.rows);
 
   const counters = {
     rows: exportedRows.length,

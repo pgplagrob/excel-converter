@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
         sampleRows: mappedRows.slice(0, 5),
       });
 
-      const issues = validateMappedRows(sheet.sheetName, mappedRows);
+      const issues = validateMappedRows(sheet.sheetName, mappedRows, sheet.rows);
       allIssues.push(...issues);
       allMappedRows.push(...mappedRows.map((r) => ({ __sheet: sheet.sheetName, ...r })));
 

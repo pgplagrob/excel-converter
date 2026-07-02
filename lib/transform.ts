@@ -6,6 +6,8 @@ import {
   SOURCE_ASSET_TYPE_COLUMN,
   SOURCE_PROFILE_COLUMN,
   type SourceProfile,
+  looksLikeAssetItemGroup,
+  looksLikeAssetTypeGroup,
   normalizeThaiDate,
 } from "./datasource";
 
@@ -20,6 +22,17 @@ export interface TransformSheetInput {
 function cellText(value: any): string {
   return value === undefined || value === null ? "" : value.toString().trim();
 }
+
+const ASSET_NAME_COLUMN = "ชื่อสินทรัพย์";
+const ASSET_DETAIL_COLUMN = "รายละเอียด";
+const ASSET_TYPE_COLUMN = "ชนิดสินทรัพย์";
+const ASSET_ITEM_COLUMN = "รายการสินทรัพย์";
+const AUTHORITATIVE_TEMPLATE_COLUMNS = new Set([
+  ASSET_NAME_COLUMN,
+  ASSET_DETAIL_COLUMN,
+  ASSET_TYPE_COLUMN,
+  ASSET_ITEM_COLUMN,
+]);
 
 function emptyTemplateRow(): Record<string, any> {
   const row: Record<string, any> = {};
@@ -51,6 +64,58 @@ function sourceValue(sourceRow: Record<string, any>, publicField: string, intern
   return cellText(publicValue) ? publicValue : sourceRow[internalField];
 }
 
+function startsWithMainAssetType(value: any): boolean {
+  const text = cellText(value);
+  return (
+    looksLikeAssetTypeGroup(text) ||
+    text.startsWith("สินทรัพย์") ||
+    text.startsWith("à¸„à¸£à¸¸à¸ à¸±à¸“à¸‘à¹Œ") ||
+    text.startsWith("à¸­à¸ªà¸±à¸‡à¸«à¸²à¸£à¸´à¸¡à¸—à¸£à¸±à¸žà¸¢à¹Œ")
+  );
+}
+
+function normalizedAssetFields(sourceRow: Record<string, any>): {
+  assetName: string;
+  assetDetail: string;
+  sourceAssetType: string;
+  sourceAssetItem: string;
+} {
+  let sourceAssetType = cellText(sourceRow[SOURCE_ASSET_TYPE_COLUMN]);
+  let sourceAssetItem = cellText(sourceRow[SOURCE_ASSET_ITEM_COLUMN]);
+  let assetName = firstText(sourceRow[SOURCE_ASSET_NAME_COLUMN], sourceRow.assetName, sourceRow[INTERNAL.assetName]);
+  let assetDetail = firstText(sourceRow.assetDetail, sourceRow[INTERNAL.detail], assetName);
+
+  if (looksLikeAssetItemGroup(assetName)) {
+    if (!sourceAssetItem) {
+      sourceAssetItem = assetName;
+      sourceRow[SOURCE_ASSET_ITEM_COLUMN] = sourceAssetItem;
+    }
+    assetName = "";
+    if (looksLikeAssetItemGroup(assetDetail)) assetDetail = "";
+  }
+
+  if (startsWithMainAssetType(assetName)) {
+    if (!sourceAssetType) {
+      sourceAssetType = assetName;
+      sourceRow[SOURCE_ASSET_TYPE_COLUMN] = sourceAssetType;
+    }
+    assetName = "";
+    if (startsWithMainAssetType(assetDetail)) assetDetail = "";
+  }
+
+  if (assetName && sourceAssetItem && assetName === sourceAssetItem) {
+    assetName = "";
+    if (assetDetail === sourceAssetItem) assetDetail = "";
+  }
+
+  return {
+    assetName,
+    assetDetail: assetDetail || assetName || "",
+    sourceAssetType,
+    sourceAssetItem,
+  };
+}
+
 function deriveAssetCategory(sourceRow: Record<string, any>, sourceAssetType: string): string {
   const explicitCategory = cellText(sourceRow[INTERNAL.assetCategory]);
   if (explicitCategory) return explicitCategory;
@@ -59,20 +124,54 @@ function deriveAssetCategory(sourceRow: Record<string, any>, sourceAssetType: st
     : "ครุภัณฑ์";
 }
 
+function validateAuthoritativeAssetFields(templateRow: Record<string, any>, sourceRow: Record<string, any>): void {
+  const assetName = cellText(templateRow[ASSET_NAME_COLUMN]);
+  const assetItem = cellText(templateRow[ASSET_ITEM_COLUMN]);
+  const sourceAssetItem = cellText(sourceRow[SOURCE_ASSET_ITEM_COLUMN]);
+  const problems: string[] = [];
+
+  if (looksLikeAssetItemGroup(assetName)) problems.push("ชื่อสินทรัพย์ matches item-group pattern");
+  if (assetName && assetItem && assetName === assetItem) problems.push("ชื่อสินทรัพย์ equals รายการสินทรัพย์");
+  if (startsWithMainAssetType(assetName)) problems.push("ชื่อสินทรัพย์ starts with main asset type");
+  if (!assetItem && sourceAssetItem) problems.push("รายการสินทรัพย์ is empty while sourceAssetItem exists");
+
+  if (problems.length) {
+    console.warn("[TRANSFORM] asset field validation", {
+      sourceProfile: sourceRow[SOURCE_PROFILE_COLUMN],
+      sheetName: sourceRow.__sheetName,
+      excelRow: sourceRow.__excelRow,
+      problems,
+      assetName,
+      assetItem,
+      sourceAssetItem,
+    });
+  }
+}
+
+function applyAuthoritativeAssetFields(templateRow: Record<string, any>, sourceRow: Record<string, any>): void {
+  const normalized = normalizedAssetFields(sourceRow);
+  templateRow[ASSET_NAME_COLUMN] = normalized.assetName || "";
+  templateRow[ASSET_DETAIL_COLUMN] = normalized.assetDetail || normalized.assetName || "";
+  templateRow[ASSET_TYPE_COLUMN] = normalized.sourceAssetType || "";
+  templateRow[ASSET_ITEM_COLUMN] = normalized.sourceAssetItem || "";
+  validateAuthoritativeAssetFields(templateRow, sourceRow);
+}
+
 function mapProfileRow(sourceRow: Record<string, any>, profile: SourceProfile): Record<string, any> {
   const row = emptyTemplateRow();
-  const sourceAssetType = cellText(sourceRow[SOURCE_ASSET_TYPE_COLUMN]);
-  const sourceAssetItem = cellText(sourceRow[SOURCE_ASSET_ITEM_COLUMN]);
+  const normalized = normalizedAssetFields(sourceRow);
+  const sourceAssetType = normalized.sourceAssetType;
+  const sourceAssetItem = normalized.sourceAssetItem;
   const assetCode = sourceValue(sourceRow, "assetCode", INTERNAL.assetCode) ?? "";
-  const assetName = firstText(sourceRow.assetName, sourceRow[INTERNAL.assetName]);
-  const assetDetail = firstText(sourceRow.assetDetail, sourceRow[INTERNAL.detail], assetName);
+  const assetName = normalized.assetName;
+  const assetDetail = normalized.assetDetail;
 
   row["รหัสสินทรัพย์"] = assetCode;
-  row["ชื่อสินทรัพย์"] = assetName;
-  row["รายละเอียด"] = assetDetail || assetName;
+  row[ASSET_NAME_COLUMN] = assetName;
+  row[ASSET_DETAIL_COLUMN] = assetDetail || assetName;
   row["ประเภทสินทรัพย์"] = deriveAssetCategory(sourceRow, sourceAssetType);
-  row["ชนิดสินทรัพย์"] = sourceAssetType;
-  row["รายการสินทรัพย์"] = sourceAssetItem;
+  row[ASSET_TYPE_COLUMN] = sourceAssetType;
+  row[ASSET_ITEM_COLUMN] = sourceAssetItem;
   row["มูลค่า"] = cleanMoneyValue(sourceValue(sourceRow, "value", INTERNAL.value));
   row["วันที่ได้รับ"] = sourceValue(sourceRow, "receivedDate", INTERNAL.receivedDate) ?? "";
   row["งานที่รับผิดชอบ"] = sourceValue(sourceRow, "responsibleUnit", INTERNAL.responsibleUnit) ?? "";
@@ -97,12 +196,13 @@ function mapProfileRow(sourceRow: Record<string, any>, profile: SourceProfile): 
   }
 
   if (profile === "TRANSFER_2567") {
-    row["รายละเอียด"] = assetDetail || assetName;
+    row[ASSET_DETAIL_COLUMN] = assetDetail || assetName;
     row["ได้มาจาก"] = sourceValue(sourceRow, "acquiredFrom", INTERNAL.acquiredFrom) ?? "";
     row["แหล่งงบประมาณ"] = sourceValue(sourceRow, "budgetSource", INTERNAL.budgetSource) ?? "";
     row["สถานะ"] = "ปกติ";
   }
 
+  applyAuthoritativeAssetFields(row, sourceRow);
   return row;
 }
 
@@ -151,6 +251,7 @@ function resolveFallbackValue(
 function mapFallbackRow(sourceRow: Record<string, any>, mapping: TemplateMapping): Record<string, any> {
   const templateRow = emptyTemplateRow();
   for (const templateColumn of TEMPLATE_COLUMNS) {
+    if (AUTHORITATIVE_TEMPLATE_COLUMNS.has(templateColumn)) continue;
     templateRow[templateColumn] = resolveFallbackValue(
       sourceRow,
       templateColumn,
@@ -158,30 +259,21 @@ function mapFallbackRow(sourceRow: Record<string, any>, mapping: TemplateMapping
     );
   }
 
-  const sourceAssetType = cellText(sourceRow[SOURCE_ASSET_TYPE_COLUMN]);
-  if (!cellText(templateRow["ชนิดสินทรัพย์"]) && sourceAssetType) {
-    templateRow["ชนิดสินทรัพย์"] = sourceAssetType;
-  }
-
-  const sourceAssetItem = cellText(sourceRow[SOURCE_ASSET_ITEM_COLUMN]);
-  if (!cellText(templateRow["รายการสินทรัพย์"]) && sourceAssetItem) {
-    templateRow["รายการสินทรัพย์"] = sourceAssetItem;
-  }
+  const normalized = normalizedAssetFields(sourceRow);
+  const sourceAssetType = normalized.sourceAssetType;
+  const sourceAssetItem = normalized.sourceAssetItem;
 
   const assetCode = cellText(sourceRow.assetCode);
-  const assetName = cellText(sourceRow.assetName);
-  const assetDetail = firstText(sourceRow.assetDetail, assetName);
+  const assetName = normalized.assetName;
+  const assetDetail = normalized.assetDetail;
   if (assetCode || assetName || assetDetail || sourceAssetType || sourceAssetItem) {
     templateRow["รหัสสินทรัพย์"] = assetCode || templateRow["รหัสสินทรัพย์"] || "";
-    templateRow["ชื่อสินทรัพย์"] = assetName || "";
-    templateRow["รายละเอียด"] = assetDetail || assetName || "";
     templateRow["ประเภทสินทรัพย์"] = deriveAssetCategory(sourceRow, sourceAssetType);
-    templateRow["ชนิดสินทรัพย์"] = sourceAssetType;
-    templateRow["รายการสินทรัพย์"] = sourceAssetItem;
     templateRow["มูลค่า"] = cleanMoneyValue(sourceRow.value ?? templateRow["มูลค่า"]);
     templateRow["วันที่ได้รับ"] = sourceRow.receivedDate ?? templateRow["วันที่ได้รับ"] ?? "";
   }
 
+  applyAuthoritativeAssetFields(templateRow, sourceRow);
   return templateRow;
 }
 

@@ -171,13 +171,27 @@ function looksLikeAssetCode(value: any): boolean {
 
 function looksLikeAssetType(text: string): boolean {
   return (
-    /(ครุภัณฑ์|อสังหาริมทรัพย์|สิ่งปลูกสร้าง|อาคาร|สินทรัพย์)/.test(text) &&
-    !/\(\d+\)/.test(text)
+    (looksLikeAssetTypeGroup(text) || /^สินทรัพย์/.test(text)) &&
+    !looksLikeAssetItemGroup(text)
   );
 }
 
+export function looksLikeAssetItemGroup(value: unknown): boolean {
+  const text = String(value ?? "").trim();
+  return /\(\d{2,4}\)$/.test(text);
+}
+
+export function looksLikeAssetTypeGroup(value: unknown): boolean {
+  const text = String(value ?? "").trim();
+  return /^(ครุภัณฑ์|อสังหาริมทรัพย์|อาคาร|สิ่งปลูกสร้าง)/.test(text);
+}
+
 function looksLikeAssetItem(text: string): boolean {
-  return /\(\d+\)/.test(text);
+  return looksLikeAssetItemGroup(text);
+}
+
+function assetNameFromGroup(value: unknown): string {
+  return cellText(value).replace(/\s*\(\d{2,4}\)\s*$/, "").trim();
 }
 
 function hasStatusMark(value: any): boolean {
@@ -404,9 +418,24 @@ function setNormalizedFields(
     assetName: string;
   },
 ): Record<string, any> {
+  let assetName = cellText(values.assetName);
+  let assetDetail = cellText(values.assetDetail) || assetName;
+
+  if (looksLikeAssetItemGroup(assetName)) {
+    if (!cellText(row[SOURCE_ASSET_ITEM_COLUMN])) row[SOURCE_ASSET_ITEM_COLUMN] = assetName;
+    assetName = "";
+    if (looksLikeAssetItemGroup(assetDetail)) assetDetail = "";
+  }
+
+  if (looksLikeAssetType(assetName)) {
+    if (!cellText(row[SOURCE_ASSET_TYPE_COLUMN])) row[SOURCE_ASSET_TYPE_COLUMN] = assetName;
+    assetName = "";
+    if (looksLikeAssetType(assetDetail)) assetDetail = "";
+  }
+
   row.assetCode = values.assetCode || "";
-  row.assetName = values.assetName || "";
-  row.assetDetail = values.assetDetail || values.assetName || "";
+  row.assetName = assetName;
+  row.assetDetail = assetDetail || assetName || "";
   row.receivedDate = values.receivedDate ?? "";
   row.value = values.value ?? "";
   row.responsibleUnit = values.responsibleUnit || "";
@@ -536,10 +565,13 @@ function parseNewAssetSheet(sheetName: string, matrix: any[][]): DataSourceSheet
     const sequence = cellText(sourceRow[0]);
     const assetCode = cellText(sourceRow[1]);
     const columnC = cellText(sourceRow[2]);
-    const assetName = cellText(sourceRow[3]);
+    const assetDetail = cellText(sourceRow[3]);
 
     if (!sequence && !assetCode && columnC) {
-      if (looksLikeAssetType(columnC)) currentAssetType = columnC;
+      if (looksLikeAssetType(columnC)) {
+        currentAssetType = columnC;
+        currentAssetItem = "";
+      } else if (looksLikeAssetItemGroup(columnC)) currentAssetItem = columnC;
       else currentAssetItem = columnC;
       groupedAssets.push({
         sourceRowIndex: index,
@@ -550,23 +582,25 @@ function parseNewAssetSheet(sheetName: string, matrix: any[][]): DataSourceSheet
       continue;
     }
 
-    if (!(isNumericSequence(sequence) && assetCode && assetName)) continue;
+    if (!(isNumericSequence(sequence) && assetCode && assetDetail)) continue;
 
-    const sourceAssetType = columnC || currentAssetType;
+    const sourceAssetType = looksLikeAssetItemGroup(columnC) ? currentAssetType : columnC || currentAssetType;
+    const sourceAssetItem = looksLikeAssetItemGroup(columnC) ? columnC : currentAssetItem;
+    const sourceAssetName = assetNameFromGroup(sourceAssetItem);
     const row = withCommonMeta(
       buildRawRow(headers, sourceRow),
       "NEW_ASSET_2567",
       sheetName,
       index + 1,
       sourceAssetType,
-      currentAssetItem,
-      assetName,
+      sourceAssetItem,
+      sourceAssetName,
     );
     row[INTERNAL.seq] = sequence;
     setNormalizedFields(row, {
       assetCode,
-      assetName,
-      assetDetail: assetName,
+      assetName: sourceAssetName,
+      assetDetail,
       receivedDate: normalizeThaiDate(sourceRow[4], sourceRow[5], sourceRow[6]),
       value: sourceRow[7] ?? "",
       acquiredBy: sourceRow[8] ?? "",

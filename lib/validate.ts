@@ -1,3 +1,4 @@
+import { SOURCE_ASSET_ITEM_COLUMN, looksLikeAssetItemGroup, looksLikeAssetTypeGroup } from "./datasource";
 import { TEMPLATE_COLUMNS } from "./mapping";
 
 export interface ValidationIssue {
@@ -94,11 +95,13 @@ function looksLikeLongDetailInsteadOfGroup(value: string): boolean {
 export function validateMappedRows(
   sheetName: string,
   rows: Record<string, any>[],
+  sourceRows: Record<string, any>[] = [],
 ): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   const seenAssetCodes = new Map<string, number>();
 
   rows.forEach((row, idx) => {
+    const sourceRow = sourceRows[idx] || {};
     for (const col of REQUIRED_COLUMNS) {
       if (!text(row[col])) {
         addIssue(
@@ -117,6 +120,7 @@ export function validateMappedRows(
     const assetDetail = compact(row["รายละเอียด"]);
     const assetType = compact(row["ชนิดสินทรัพย์"]);
     const assetItem = compact(row["รายการสินทรัพย์"]);
+    const sourceAssetItem = compact(sourceRow[SOURCE_ASSET_ITEM_COLUMN]);
     const rowValues = TEMPLATE_COLUMNS.map((column) => compact(row[column])).filter(Boolean);
     if (HEADER_VALUES.has(assetName)) {
       addIssue(
@@ -125,6 +129,28 @@ export function validateMappedRows(
         idx,
         "ชื่อสินทรัพย์",
         `ชื่อสินทรัพย์ดูเหมือนหัวตารางหรือแถวรวม (${row["ชื่อสินทรัพย์"]})`,
+        "error",
+      );
+    }
+
+    if (looksLikeAssetItemGroup(row["ชื่อสินทรัพย์"])) {
+      addIssue(
+        issues,
+        sheetName,
+        idx,
+        "ชื่อสินทรัพย์",
+        "ชื่อสินทรัพย์ดูเหมือนกลุ่มรายการสินทรัพย์ที่ลงท้ายด้วยรหัสในวงเล็บ",
+        "error",
+      );
+    }
+
+    if (looksLikeAssetTypeGroup(row["ชื่อสินทรัพย์"])) {
+      addIssue(
+        issues,
+        sheetName,
+        idx,
+        "ชื่อสินทรัพย์",
+        "ชื่อสินทรัพย์ดูเหมือนชนิดสินทรัพย์/กลุ่มหลัก ไม่ใช่ชื่อสินทรัพย์รายตัว",
         "error",
       );
     }
@@ -159,6 +185,17 @@ export function validateMappedRows(
         "รายการสินทรัพย์",
         "รายการสินทรัพย์เท่ากับชื่อสินทรัพย์ ซึ่งควรเป็นกลุ่มรายการ เช่น โต๊ะ (400)",
         "error",
+      );
+    }
+
+    if (!assetItem && sourceAssetItem) {
+      addIssue(
+        issues,
+        sheetName,
+        idx,
+        "รายการสินทรัพย์",
+        "รายการสินทรัพย์ว่าง ทั้งที่ข้อมูลต้นทางมีกลุ่มรายการที่ถูก carry-forward",
+        "warning",
       );
     }
 
