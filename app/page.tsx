@@ -3,17 +3,33 @@
 import { useState, useRef, useCallback, useMemo } from "react";
 
 type MappingMethod = "exact" | "alias" | "fuzzy" | "none";
+type MappingConfidence = "high" | "medium" | "low" | "none";
+type MappingStatus = "matched" | "guessed" | "missing" | "manual";
+type SheetStatus = "success" | "warning" | "error" | "skipped";
 
 interface MappingSuggestion {
   templateColumn: string;
   sourceColumn: string | null;
-  confidence: number;
+  confidence: MappingConfidence;
+  confidenceScore: number;
+  status: MappingStatus;
   method: MappingMethod;
+}
+
+interface SheetSummary {
+  sheetName: string;
+  status: SheetStatus;
+  rowCount: number;
+  headerRow?: number;
+  errorCount: number;
+  warningCount: number;
+  reason?: string;
 }
 
 interface SheetData {
   sheetName: string;
   headerRowIndex: number;
+  summary: SheetSummary;
   headers: string[];
   rowCount: number;
   sampleRows: Record<string, any>[];
@@ -25,6 +41,7 @@ interface ParseResponse {
   fileName: string;
   sheets: SheetData[];
   skippedSheets: string[];
+  skippedSheetSummaries: SheetSummary[];
   error?: string;
 }
 
@@ -38,9 +55,9 @@ interface ValidationIssue {
 
 const STEP_LABELS = [
   "① อัปโหลดไฟล์",
-  "② ตรวจสอบข้อมูล",
-  "③ จับคู่คอลัมน์",
-  "④ ดาวน์โหลดเทมเพลต",
+  "② Sheet overview",
+  "③ Preview + validate",
+  "④ Export",
 ];
 
 export default function Page() {
@@ -57,6 +74,7 @@ export default function Page() {
   const [mappingState, setMappingState] = useState<
     Record<string, Record<string, string>>
   >({});
+  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   const [issues, setIssues] = useState<ValidationIssue[] | null>(null);
   const [issueSummary, setIssueSummary] = useState<{
@@ -71,6 +89,41 @@ export default function Page() {
     setError(null);
     setFile(f);
   }, []);
+
+  const buildExportPayload = (
+    parsedData: ParseResponse,
+    manualMappingState: Record<string, Record<string, string>>,
+    mode: "validate" | "download",
+  ) => ({
+    mode,
+    sheets: parsedData.sheets.map((s) => ({
+      sheetName: s.sheetName,
+      rows: s.rows,
+      headerRow: s.headerRowIndex + 1,
+      autoMapping: s.mapping,
+      manualMapping: manualMappingState[s.sheetName] || {},
+    })),
+  });
+
+  const validateWorkbook = async (
+    parsedData: ParseResponse,
+    manualMappingState: Record<string, Record<string, string>>,
+  ) => {
+    const res = await fetch("/api/export", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(buildExportPayload(parsedData, manualMappingState, "validate")),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "ตรวจสอบข้อมูลไม่สำเร็จ");
+    console.log("[Transform] template dataset", data.transformedSheets);
+    setIssues(data.issues);
+    setIssueSummary({
+      errorCount: data.errorCount,
+      warningCount: data.warningCount,
+      totalRows: data.totalRows,
+    });
+  };
 
   const onDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -100,11 +153,9 @@ export default function Page() {
       const initMapping: Record<string, Record<string, string>> = {};
       for (const sheet of data.sheets) {
         initMapping[sheet.sheetName] = {};
-        for (const m of sheet.mapping) {
-          initMapping[sheet.sheetName][m.templateColumn] = m.sourceColumn || "";
-        }
       }
       setMappingState(initMapping);
+      await validateWorkbook(data, initMapping);
       setStep(1);
     } catch (e: any) {
       setError("เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ: " + e.message);
@@ -118,35 +169,10 @@ export default function Page() {
     setLoading(true);
     setError(null);
     try {
-      const payload = {
-        mode: "validate",
-        sheets: parsed.sheets.map((s) => ({
-          sheetName: s.sheetName,
-          rows: s.rows,
-          mapping: mappingState[s.sheetName],
-        })),
-      };
-      const res = await fetch("/api/export", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "ตรวจสอบข้อมูลไม่สำเร็จ");
-        setLoading(false);
-        return;
-      }
-      console.log("[Transform] template dataset", data.transformedSheets);
-      setIssues(data.issues);
-      setIssueSummary({
-        errorCount: data.errorCount,
-        warningCount: data.warningCount,
-        totalRows: data.totalRows,
-      });
+      await validateWorkbook(parsed, mappingState);
       setStep(3);
     } catch (e: any) {
-      setError("เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ: " + e.message);
+      setError(e.message || "เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ");
     } finally {
       setLoading(false);
     }
@@ -157,18 +183,10 @@ export default function Page() {
     setLoading(true);
     setError(null);
     try {
-      const payload = {
-        mode: "download",
-        sheets: parsed.sheets.map((s) => ({
-          sheetName: s.sheetName,
-          rows: s.rows,
-          mapping: mappingState[s.sheetName],
-        })),
-      };
       const res = await fetch("/api/export", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(buildExportPayload(parsed, mappingState, "download")),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -195,6 +213,7 @@ export default function Page() {
     setFile(null);
     setParsed(null);
     setMappingState({});
+    setAdvancedOpen(false);
     setIssues(null);
     setIssueSummary(null);
     setError(null);
@@ -214,8 +233,12 @@ export default function Page() {
   };
 
   const mappedCountForSheet = (sheetName: string) => {
+    const sheet = parsed?.sheets.find((item) => item.sheetName === sheetName);
     const m = mappingState[sheetName] || {};
-    return Object.values(m).filter(Boolean).length;
+    const autoMap = Object.fromEntries(
+      (sheet?.mapping || []).map((item) => [item.templateColumn, item.sourceColumn || ""]),
+    );
+    return Object.values({ ...autoMap, ...m }).filter(Boolean).length;
   };
 
   return (
@@ -268,22 +291,18 @@ export default function Page() {
           <PreviewStep
             parsed={parsed}
             activeSheetIdx={activeSheetIdx}
-            setActiveSheetIdx={setActiveSheetIdx}
+            setActiveSheetIdx={(idx: number) => {
+              setActiveSheetIdx(idx);
+              setAdvancedOpen(false);
+            }}
             mappingState={mappingState}
             onBack={() => setStep(0)}
-            onNext={() => setStep(2)}
-          />
-        )}
-
-        {step === 2 && parsed && activeSheet && (
-          <MappingStep
-            parsed={parsed}
-            activeSheetIdx={activeSheetIdx}
-            setActiveSheetIdx={setActiveSheetIdx}
-            mappingState={mappingState}
             updateMapping={updateMapping}
             mappedCountForSheet={mappedCountForSheet}
-            onBack={() => setStep(1)}
+            issues={issues}
+            issueSummary={issueSummary}
+            advancedOpen={advancedOpen}
+            setAdvancedOpen={setAdvancedOpen}
             onNext={runValidation}
             loading={loading}
           />
@@ -294,7 +313,7 @@ export default function Page() {
             parsed={parsed}
             issues={issues}
             issueSummary={issueSummary}
-            onBack={() => setStep(2)}
+            onBack={() => setStep(1)}
             onDownload={downloadFile}
             onReset={reset}
             loading={loading}
@@ -388,60 +407,153 @@ const TEMPLATE_COLS = [
   "รับโอน/รับบริจาค","เงินกู้","รายได้สะสม","ทุนดำเนินการ",
 ];
 
+function statusIcon(status: SheetStatus): string {
+  if (status === "success") return "✓";
+  if (status === "warning") return "!";
+  if (status === "error") return "×";
+  return "skipped";
+}
+
+function statusLabel(status: SheetStatus): string {
+  if (status === "success") return "success";
+  if (status === "warning") return "warning";
+  if (status === "error") return "error";
+  return "skipped";
+}
+
+function summaryText(summary: SheetSummary): string {
+  if (summary.status === "skipped") return "skipped";
+  if (summary.errorCount > 0) return `${summary.errorCount} errors`;
+  if (summary.warningCount > 0) return `${summary.warningCount} warnings`;
+  return `${summary.rowCount} rows`;
+}
+
+function createRuntimeSheetSummary(
+  sheet: SheetData,
+  sheetIssues: ValidationIssue[],
+): SheetSummary {
+  const errorCount = sheetIssues.filter((issue) => issue.severity === "error").length;
+  const warningCount =
+    sheetIssues.filter((issue) => issue.severity === "warning").length +
+    (sheet.summary?.warningCount || 0);
+  return {
+    sheetName: sheet.sheetName,
+    status: errorCount > 0 ? "error" : warningCount > 0 ? "warning" : "success",
+    rowCount: sheet.rowCount,
+    headerRow: sheet.headerRowIndex + 1,
+    errorCount,
+    warningCount,
+  };
+}
+
+function IssueList({ issues, emptyText }: { issues: ValidationIssue[]; emptyText: string }) {
+  if (!issues.length) {
+    return (
+      <div className="success-block inline">
+        <div className="icon">✓</div>
+        <p>{emptyText}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="issue-list">
+      {issues.slice(0, 200).map((issue, idx) => (
+        <div className={`issue-row ${issue.severity}`} key={idx}>
+          <span className="tag">{issue.severity === "error" ? "error" : "warning"}</span>
+          <span>
+            <strong>{issue.sheetName}</strong>{" "}
+            {issue.rowIndex >= 0 ? `แถวที่ ${issue.rowIndex + 1}` : "ระดับชีต"}
+            {issue.column ? ` · ${issue.column}` : ""}: {issue.message}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function PreviewStep({
   parsed,
   activeSheetIdx,
   setActiveSheetIdx,
   mappingState,
+  updateMapping,
+  mappedCountForSheet,
+  issues,
+  issueSummary,
+  advancedOpen,
+  setAdvancedOpen,
   onBack,
   onNext,
+  loading,
 }: any) {
   const sheet: SheetData = parsed.sheets[activeSheetIdx];
-  const previewRows = sheet.sampleRows;
+  const previewRows = sheet.rows.slice(0, 30);
   const displayCols = sheet.headers;
-
-  // นับคอลัมน์ที่จับคู่ได้ (มี source)
   const sheetMap: Record<string, string> = mappingState[sheet.sheetName] || {};
-  const mappedCount = Object.values(sheetMap).filter(Boolean).length;
+  const sheetIssues = ((issues || []) as ValidationIssue[]).filter(
+    (issue) => issue.sheetName === sheet.sheetName,
+  );
+  const currentSummary = createRuntimeSheetSummary(sheet, sheetIssues);
+  const visibleMappings = sheet.mapping.map((m) => {
+    const manualSource = sheetMap[m.templateColumn];
+    return {
+      ...m,
+      sourceColumn: manualSource !== undefined ? manualSource || null : m.sourceColumn,
+      status: manualSource !== undefined ? "manual" : m.status,
+      confidence: manualSource !== undefined ? "high" : m.confidence,
+    };
+  });
 
   return (
     <>
-      <p className="eyebrow">Step 2</p>
-      <h2>ตรวจสอบข้อมูลที่อ่านได้</h2>
+      <p className="eyebrow">Auto mapping default</p>
+      <h2>ตรวจสอบชีต พรีวิว และผล Validation</h2>
       <p className="lead">
-        พบ {parsed.sheets.length} ชีตที่มีข้อมูล
+        พบ {parsed.sheets.length} ชีตที่แปลงได้
         {parsed.skippedSheets.length > 0 &&
-          ` (ข้าม ${parsed.skippedSheets.length} ชีตที่ไม่มีข้อมูล: ${parsed.skippedSheets.join(", ")})`}
-        <br />
-        <span style={{ color: "var(--tag-amber)", fontWeight: 600 }}>
-          Data Source Phase: แสดง header และ value ตาม Excel ต้นทาง
-        </span>{" "}
-        — ยังไม่แปลงชื่อคอลัมน์และยังไม่ย้ายข้อมูลไปคอลัมน์เทมเพลต
+          ` และข้าม ${parsed.skippedSheets.length} ชีต (${parsed.skippedSheets.join(", ")})`}
+        ระบบจับคู่คอลัมน์และตรวจสอบเบื้องต้นให้อัตโนมัติ สามารถแก้เฉพาะกรณีที่ mapping ผิดได้จาก Advanced Mapping
       </p>
 
       <div className="sheet-tabs">
         {parsed.sheets.map((s: SheetData, idx: number) => {
-          const cnt = Object.values(mappingState[s.sheetName] || {}).filter(Boolean).length;
+          const summary = createRuntimeSheetSummary(
+            s,
+            ((issues || []) as ValidationIssue[]).filter((issue) => issue.sheetName === s.sheetName),
+          );
           return (
-            <span
+            <button
               key={s.sheetName}
-              className={`sheet-tab ${idx === activeSheetIdx ? "active" : ""}`}
+              className={`sheet-tab ${summary.status} ${idx === activeSheetIdx ? "active" : ""}`}
               onClick={() => setActiveSheetIdx(idx)}
+              title={`Header row ${summary.headerRow || "-"} · ${summary.errorCount} errors · ${summary.warningCount} warnings`}
             >
+              <span className="status-dot">{statusIcon(summary.status)}</span>
               {s.sheetName}
-              <span className="count"> {s.rowCount} แถว · {cnt}/44</span>
-            </span>
+              <span className="count">{summaryText(summary)}</span>
+            </button>
           );
         })}
+        {(parsed.skippedSheetSummaries || []).map((summary: SheetSummary) => (
+          <span key={summary.sheetName} className="sheet-tab skipped muted">
+            <span className="status-dot">{statusIcon("skipped")}</span>
+            {summary.sheetName}
+            <span className="count">skipped</span>
+          </span>
+        ))}
       </div>
 
-      {/* legend: ต้นทาง */}
-      <div style={{ marginBottom: 10, display: "flex", gap: 16, flexWrap: "wrap", fontSize: 12, color: "var(--ink-soft)" }}>
-        <span>📌 แสดง {displayCols.length} คอลัมน์จาก Excel ต้นทาง</span>
-        <span>แถว header ในไฟล์: {sheet.headerRowIndex + 1}</span>
-        <span>🔗 จับคู่อัตโนมัติ {mappedCount}/44 คอลัมน์สำหรับชีตนี้</span>
+      <div className="sheet-meta">
+        <span>สถานะ: {statusLabel(currentSummary.status)}</span>
+        <span>{currentSummary.rowCount} rows</span>
+        <span>Header row: {currentSummary.headerRow || "-"}</span>
+        <span>{currentSummary.errorCount} errors</span>
+        <span>{currentSummary.warningCount} warnings</span>
+        <span>Mapped {mappedCountForSheet(sheet.sheetName)}/44 columns</span>
       </div>
 
+      <h3>Source Preview</h3>
       <div className="table-wrap">
         <table>
           <thead>
@@ -464,17 +576,99 @@ function PreviewStep({
           </tbody>
         </table>
       </div>
-      <p style={{ fontSize: 12, color: "var(--ink-soft)", marginTop: 8 }}>
-        แสดงตัวอย่าง {sheet.sampleRows.length} แถวแรกจากทั้งหมด {sheet.rowCount} แถว
-        · ข้อมูลชุดนี้คือ Data Source ก่อน Transform
+      <p className="hint">
+        แสดงตัวอย่าง {previewRows.length} แถวแรกจากทั้งหมด {sheet.rowCount} แถว
       </p>
+
+      <h3>Mapping Summary</h3>
+      <div className="table-wrap compact">
+        <table>
+          <thead>
+            <tr>
+              <th>Template Column</th>
+              <th>Source Column</th>
+              <th>Confidence</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {visibleMappings.map((m: MappingSuggestion) => (
+              <tr key={m.templateColumn}>
+                <td>{m.templateColumn}</td>
+                <td>{m.sourceColumn || <span className="muted-text">ไม่พบคอลัมน์</span>}</td>
+                <td>
+                  <span className={`badge ${m.confidence}`}>{m.confidence}</span>
+                </td>
+                <td>
+                  <span className={`badge ${m.status}`}>{m.status}</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="advanced-box">
+        <button className="btn secondary" onClick={() => setAdvancedOpen(!advancedOpen)}>
+          {advancedOpen ? "ซ่อน Advanced Mapping" : "แก้ไขการจับคู่คอลัมน์"}
+        </button>
+        {advancedOpen && (
+          <div className="manual-mapping">
+            {sheet.mapping.map((m: MappingSuggestion) => {
+              const current = sheetMap[m.templateColumn] ?? m.sourceColumn ?? "";
+              const isManual = sheetMap[m.templateColumn] !== undefined;
+              return (
+                <div className="map-row" key={m.templateColumn}>
+                  <div className="tmpl-col">{m.templateColumn}</div>
+                  <div className="arrow">→</div>
+                  <select
+                    value={current}
+                    onChange={(e) =>
+                      updateMapping(sheet.sheetName, m.templateColumn, e.target.value)
+                    }
+                  >
+                    <option value="">— ไม่จับคู่ —</option>
+                    {sheet.headers.map((h) => (
+                      <option key={h} value={h}>
+                        {h}
+                      </option>
+                    ))}
+                  </select>
+                  <span className={`badge ${isManual ? "manual" : m.method}`}>
+                    {isManual ? "manual" : m.method}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <h3>Validation Result</h3>
+      {issueSummary && (
+        <div className="summary-grid small">
+          <div className="summary-card">
+            <div className="num">{issueSummary.totalRows}</div>
+            <div className="label">แถวทั้งหมด</div>
+          </div>
+          <div className={`summary-card ${issueSummary.errorCount > 0 ? "error" : "ok"}`}>
+            <div className="num">{issueSummary.errorCount}</div>
+            <div className="label">Errors</div>
+          </div>
+          <div className="summary-card">
+            <div className="num">{issueSummary.warningCount}</div>
+            <div className="label">Warnings</div>
+          </div>
+        </div>
+      )}
+      <IssueList issues={sheetIssues} emptyText="ชีตนี้ไม่พบปัญหา พร้อม export ได้" />
 
       <div className="actions">
         <button className="btn secondary" onClick={onBack}>
           ← ย้อนกลับ
         </button>
-        <button className="btn amber" onClick={onNext}>
-          ไปจับคู่คอลัมน์ →
+        <button className="btn amber" disabled={loading} onClick={onNext}>
+          {loading ? "กำลังตรวจสอบ..." : "ตรวจสอบอีกครั้งและไป Export →"}
         </button>
       </div>
     </>

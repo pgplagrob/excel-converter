@@ -1,16 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as XLSX from "xlsx-js-style";
-import { TEMPLATE_COLUMNS } from "@/lib/mapping";
+import { mappingSuggestionsToRecord, mergeMapping, TEMPLATE_COLUMNS } from "@/lib/mapping";
 import { logTemplateDataset, transformRowsToTemplateDataset } from "@/lib/transform";
-import { validateMappedRows } from "@/lib/validate";
+import { createSheetSummary, validateMappedRows, validateSheetLevel } from "@/lib/validate";
 
 export const runtime = "nodejs";
 
 interface ExportSheetInput {
   sheetName: string;
   rows: Record<string, any>[];
+  headerRow?: number;
+  autoMapping?: any[];
+  manualMapping?: Record<string, string | null>;
   // mapping: templateColumn -> sourceColumn (or null/empty if unmapped)
-  mapping: Record<string, string | null>;
+  mapping?: Record<string, string | null>;
 }
 
 function applyTableStyle(ws: XLSX.WorkSheet, columns: string[], rowCount: number) {
@@ -75,18 +78,35 @@ export async function POST(req: NextRequest) {
       rowCount: number;
       sampleRows: Record<string, any>[];
     }[] = [];
+    const sheetSummaries: ReturnType<typeof createSheetSummary>[] = [];
 
     for (const sheet of sheetsInput) {
-      const mappedRows = transformRowsToTemplateDataset(sheet.rows, sheet.mapping);
-      logTemplateDataset(sheet.sheetName, mappedRows, sheet.mapping);
+      const autoMapping = Array.isArray(sheet.autoMapping)
+        ? mappingSuggestionsToRecord(sheet.autoMapping)
+        : sheet.mapping || {};
+      const finalMapping = mergeMapping(autoMapping, sheet.manualMapping || sheet.mapping || {});
+      const sheetLevelIssues = validateSheetLevel(
+        sheet.sheetName,
+        sheet.rows.length,
+        sheet.headerRow,
+        finalMapping,
+      );
+      const mappedRows = transformRowsToTemplateDataset(sheet.rows, finalMapping);
+      logTemplateDataset(sheet.sheetName, mappedRows, finalMapping);
       transformedSheets.push({
         sheetName: sheet.sheetName,
         rowCount: mappedRows.length,
         sampleRows: mappedRows.slice(0, 5),
       });
 
-      const issues = validateMappedRows(sheet.sheetName, mappedRows, sheet.rows);
+      const issues = [
+        ...sheetLevelIssues,
+        ...validateMappedRows(sheet.sheetName, mappedRows, sheet.rows),
+      ];
       allIssues.push(...issues);
+      sheetSummaries.push(
+        createSheetSummary(sheet.sheetName, mappedRows.length, sheet.headerRow, issues),
+      );
       allMappedRows.push(...mappedRows.map((r) => ({ __sheet: sheet.sheetName, ...r })));
 
       if (mode === "download") {
@@ -100,6 +120,7 @@ export async function POST(req: NextRequest) {
     if (mode === "validate") {
       return NextResponse.json({
         issues: allIssues,
+        sheetSummaries,
         totalRows: allMappedRows.length,
         errorCount: allIssues.filter((i) => i.severity === "error").length,
         warningCount: allIssues.filter((i) => i.severity === "warning").length,

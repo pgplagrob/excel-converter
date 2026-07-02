@@ -45,10 +45,11 @@ export const TEMPLATE_COLUMNS: string[] = [
   "ทุนดำเนินการ",
 ];
 
-const ALIASES: Record<string, string[]> = {
+export const COLUMN_ALIASES: Record<string, string[]> = {
   "RFID/QR CODE": ["rfid", "qr code", "qrcode", "บาร์โค้ด"],
   "รหัสสินทรัพย์ Elaas": ["รหัส elaas", "elaas"],
   "รหัสสินทรัพย์": [
+    "รหัสสินทรัพย์",
     "asset code",
     "asset id",
     "รหัสครุภัณฑ์",
@@ -56,8 +57,8 @@ const ALIASES: Record<string, string[]> = {
     "เลขครุภัณฑ์",
   ],
   "รหัสสินทรัพย์ (ส่วนประกอบ)": ["รหัสส่วนประกอบ", "รหัสครุภัณฑ์ย่อย"],
-  "ชื่อสินทรัพย์": ["asset name", "ชื่อครุภัณฑ์", "ชื่อทรัพย์สิน", "รายการ"],
-  "รายละเอียด": ["description", "spec", "รายละเอียดสินทรัพย์", "รายละเอียดครุภัณฑ์"],
+  "ชื่อสินทรัพย์": ["asset name", "ชื่อครุภัณฑ์", "ชื่อทรัพย์สิน", "รายละเอียดสินทรัพย์", "รายการ"],
+  "รายละเอียด": ["description", "spec", "รายละเอียดสินทรัพย์", "รายละเอียดครุภัณฑ์", "รายการครุภัณฑ์"],
   "ระบุอื่น ๆ": ["หมายเหตุ", "อื่นๆ", "อื่น ๆ", "รายละเอียดเพิ่มเติม"],
   "ประเภทสินทรัพย์": ["asset type", "ประเภท", "ประเภทครุภัณฑ์"],
   "ชนิดสินทรัพย์": ["asset category", "ชนิด", "หมวดครุภัณฑ์", "ชนิดครุภัณฑ์"],
@@ -65,11 +66,11 @@ const ALIASES: Record<string, string[]> = {
   "หน่วยนับ": ["unit", "หน่วย"],
   "อาคาร": ["building", "สถานที่ตั้ง", "สถานที่ใช้งาน", "หน่วยงาน"],
   "ห้อง": ["room", "ห้องที่ตั้ง"],
-  "ได้มาโดย": ["acquired by", "วิธีได้มา", "ได้มาโดย"],
+  "ได้มาโดย": ["acquired by", "วิธีได้มา", "ได้มาโดย", "ซื้อ/จ้าง"],
   "ได้มาจาก": ["acquired from", "ผู้ขาย", "supplier", "ได้มาจาก", "โอนให้"],
   "แหล่งงบประมาณ": ["budget source", "งบประมาณ", "แหล่งที่มา"],
-  "มูลค่า": ["value", "ราคา", "ราคาที่ได้มา", "ราคาทุน", "มูลค่าสินทรัพย์"],
-  "วันที่ได้รับ": ["received date", "วัน เดือน ปี", "วันที่ได้มา", "วันที่ได้รับ"],
+  "มูลค่า": ["value", "ราคา", "ราคาที่ได้มา", "ราคาทุน", "มูลค่าสินทรัพย์", "ราคาสินทรัพย์", "จำนวนเงิน"],
+  "วันที่ได้รับ": ["received date", "วัน เดือน ปี", "วันที่ได้มา", "วันที่ได้รับ", "วันเดือนปีที่ได้มา"],
   "วันที่ได้รับโอน": ["transfer date", "วันโอน", "วันที่โอน"],
   "วันที่ออกจำหน่าย": ["disposal date", "วันจำหน่าย"],
   "วันที่เริ่มรับประกัน": ["warranty start"],
@@ -77,11 +78,11 @@ const ALIASES: Record<string, string[]> = {
   "อายุการรับประกัน": ["warranty period"],
   "อายุการใช้งาน": ["useful life"],
   "ผู้ถือครอง": ["holder", "ผู้ครอบครอง", "ผู้ดูแล"],
-  "สำนัก": ["office", "สำนัก"],
+  "สำนัก": ["office", "สำนัก", "หน่วยงาน", "ส่วนราชการ"],
   "ฝ่าย": ["division", "ฝ่าย"],
-  "งาน": ["งาน"],
+  "งาน": ["งาน", "งานที่รับผิดชอบ"],
   "งานที่รับผิดชอบ": ["responsible unit", "ผู้รับผิดชอบ", "งานที่รับผิดชอบ"],
-  "สถานะ": ["status", "สภาพ", "สภาพครุภัณฑ์"],
+  "สถานะ": ["status", "สภาพ", "สภาพครุภัณฑ์", "สถานะสินทรัพย์"],
   "ต้องตรวจนับ": ["need count", "ตรวจนับ"],
   "คิดค่าเสื่อม": ["depreciation flag", "ค่าเสื่อม"],
   "ของสำคัญ": ["important item", "สำคัญ"],
@@ -113,7 +114,7 @@ export function getAllKeywords(): string[] {
   for (const col of TEMPLATE_COLUMNS) {
     const normalizedColumn = normalizeText(col);
     if (normalizedColumn.length >= 3) all.add(normalizedColumn);
-    for (const alias of ALIASES[col] || []) {
+    for (const alias of COLUMN_ALIASES[col] || []) {
       const normalizedAlias = normalizeText(alias);
       if (normalizedAlias.length >= 3) all.add(normalizedAlias);
     }
@@ -143,8 +144,43 @@ function levenshtein(a: string, b: string): number {
 export interface MappingSuggestion {
   templateColumn: string;
   sourceColumn: string | null;
-  confidence: number;
+  confidence: MappingConfidence;
+  confidenceScore: number;
+  status: MappingStatus;
   method: "exact" | "alias" | "fuzzy" | "none";
+}
+
+export type MappingConfidence = "high" | "medium" | "low" | "none";
+export type MappingStatus = "matched" | "guessed" | "missing" | "manual";
+export type TemplateMapping = Record<string, string | null | undefined>;
+
+function confidenceFromScore(score: number): MappingConfidence {
+  if (score >= 85) return "high";
+  if (score >= 70) return "medium";
+  if (score > 0) return "low";
+  return "none";
+}
+
+function statusFromMethod(method: MappingSuggestion["method"]): MappingStatus {
+  if (method === "exact") return "matched";
+  if (method === "alias" || method === "fuzzy") return "guessed";
+  return "missing";
+}
+
+function buildSuggestion(
+  templateColumn: string,
+  sourceColumn: string | null,
+  confidenceScore: number,
+  method: MappingSuggestion["method"],
+): MappingSuggestion {
+  return {
+    templateColumn,
+    sourceColumn,
+    confidence: confidenceFromScore(confidenceScore),
+    confidenceScore,
+    status: statusFromMethod(method),
+    method,
+  };
 }
 
 const EXACT_ONLY_TEMPLATE_COLUMNS = new Set([
@@ -167,25 +203,15 @@ export function suggestMapping(sourceHeaders: string[]): MappingSuggestion[] {
 
   for (const templateCol of TEMPLATE_COLUMNS) {
     if (AUTHORITATIVE_TEMPLATE_COLUMNS.has(templateCol)) {
-      results.push({
-        templateColumn: templateCol,
-        sourceColumn: null,
-        confidence: 0,
-        method: "none",
-      });
+      results.push(buildSuggestion(templateCol, null, 0, "none"));
       continue;
     }
 
-    let best: MappingSuggestion = {
-      templateColumn: templateCol,
-      sourceColumn: null,
-      confidence: 0,
-      method: "none",
-    };
+    let best: MappingSuggestion = buildSuggestion(templateCol, null, 0, "none");
 
     const candidates = [
       normalizeText(templateCol),
-      ...(ALIASES[templateCol] || []).map(normalizeText),
+      ...(COLUMN_ALIASES[templateCol] || []).map(normalizeText),
     ];
 
     for (const source of sourceHeaders) {
@@ -194,12 +220,7 @@ export function suggestMapping(sourceHeaders: string[]): MappingSuggestion[] {
       if (!normalizedSource) continue;
 
       if (candidates.includes(normalizedSource)) {
-        best = {
-          templateColumn: templateCol,
-          sourceColumn: source,
-          confidence: 100,
-          method: "exact",
-        };
+        best = buildSuggestion(templateCol, source, 100, "exact");
         break;
       }
 
@@ -214,26 +235,16 @@ export function suggestMapping(sourceHeaders: string[]): MappingSuggestion[] {
             normalizedSource.length >= 3 &&
             (normalizedSource.includes(candidate) || candidate.includes(normalizedSource)),
         );
-      if (containsMatch && best.confidence < 85) {
-        best = {
-          templateColumn: templateCol,
-          sourceColumn: source,
-          confidence: 85,
-          method: "alias",
-        };
+      if (containsMatch && best.confidenceScore < 85) {
+        best = buildSuggestion(templateCol, source, 85, "alias");
         continue;
       }
 
       const dist = levenshtein(normalizedSource, normalizeText(templateCol));
       const maxLen = Math.max(normalizedSource.length, normalizeText(templateCol).length, 1);
       const score = Math.round((1 - dist / maxLen) * 100);
-      if (!isInternalSource && allowsPartialMatch && score > 60 && score > best.confidence) {
-        best = {
-          templateColumn: templateCol,
-          sourceColumn: source,
-          confidence: score,
-          method: "fuzzy",
-        };
+      if (!isInternalSource && allowsPartialMatch && score > 60 && score > best.confidenceScore) {
+        best = buildSuggestion(templateCol, source, score, "fuzzy");
       }
     }
 
@@ -242,4 +253,22 @@ export function suggestMapping(sourceHeaders: string[]): MappingSuggestion[] {
   }
 
   return results;
+}
+
+export function mergeMapping(
+  autoMapping: TemplateMapping,
+  manualMapping: TemplateMapping = {},
+): TemplateMapping {
+  return {
+    ...autoMapping,
+    ...Object.fromEntries(
+      Object.entries(manualMapping).filter(([, sourceColumn]) => sourceColumn !== undefined),
+    ),
+  };
+}
+
+export function mappingSuggestionsToRecord(mapping: MappingSuggestion[]): TemplateMapping {
+  return Object.fromEntries(
+    mapping.map((item) => [item.templateColumn, item.sourceColumn || ""]),
+  );
 }

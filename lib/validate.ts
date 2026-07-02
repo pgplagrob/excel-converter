@@ -9,6 +9,18 @@ export interface ValidationIssue {
   severity: "error" | "warning";
 }
 
+export type SheetStatus = "success" | "warning" | "error" | "skipped";
+
+export interface SheetSummary {
+  sheetName: string;
+  status: SheetStatus;
+  rowCount: number;
+  headerRow?: number;
+  errorCount: number;
+  warningCount: number;
+  reason?: string;
+}
+
 const REQUIRED_COLUMNS = ["รหัสสินทรัพย์", "ชื่อสินทรัพย์"];
 const DATE_COLUMNS = [
   "วันที่ได้รับ",
@@ -49,6 +61,62 @@ function addIssue(
   severity: "error" | "warning",
 ): void {
   issues.push({ sheetName, rowIndex, column, message, severity });
+}
+
+export function validateSheetLevel(
+  sheetName: string,
+  rowCount: number,
+  headerRow: number | undefined,
+  mapping: Record<string, string | null | undefined>,
+): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+  if (rowCount === 0) {
+    addIssue(issues, sheetName, -1, "sheet", "ชีตนี้ไม่มีข้อมูลสำหรับแปลง", "error");
+  }
+  if (headerRow === undefined || headerRow < 1) {
+    addIssue(issues, sheetName, -1, "header", "ตรวจไม่พบแถว header ของชีต", "error");
+  }
+  for (const column of REQUIRED_COLUMNS) {
+    if (!mapping[column]) {
+      addIssue(
+        issues,
+        sheetName,
+        -1,
+        column,
+        `ไม่พบการจับคู่คอลัมน์สำคัญ "${column}"`,
+        "error",
+      );
+    }
+  }
+  return issues;
+}
+
+export function createSheetSummary(
+  sheetName: string,
+  rowCount: number,
+  headerRow: number | undefined,
+  issues: ValidationIssue[],
+  reason?: string,
+): SheetSummary {
+  const errorCount = issues.filter((issue) => issue.severity === "error").length;
+  const warningCount = issues.filter((issue) => issue.severity === "warning").length;
+  const status: SheetStatus =
+    reason || rowCount === 0
+      ? "skipped"
+      : errorCount > 0
+        ? "error"
+        : warningCount > 0
+          ? "warning"
+          : "success";
+  return {
+    sheetName,
+    status,
+    rowCount,
+    headerRow,
+    errorCount,
+    warningCount,
+    reason,
+  };
 }
 
 function isValidDate(value: string): boolean {
