@@ -1,5 +1,3 @@
-// Master list of the 44 template columns (in required order)
-// ← ตรงกับ asset-template.xlsx ทุกคอลัมน์ (col 3 ของจริงคือ "รหัสสินทรัพย์" ไม่ใช่ "สินทรัพย์")
 export const TEMPLATE_COLUMNS: string[] = [
   "RFID/QR CODE",
   "รหัสสินทรัพย์ Elaas",
@@ -47,211 +45,90 @@ export const TEMPLATE_COLUMNS: string[] = [
   "ทุนดำเนินการ",
 ];
 
-// ---------------------------------------------------------------------------
-// ALIASES — เพิ่มคำพ้องที่พบในไฟล์ต้นทางจริง (ครุภัณฑ์สำนักปลัดเทศบาล67)
-// ไฟล์มี 2 รูปแบบหัวตาราง:
-//   Pattern A (ครุภัณฑ์ใหม่2567, ต่ำกว่าเกณฑ์): row เดียว ชื่อคอลัมน์มี * นำหน้า
-//   Pattern B (สำนักงาน, ยานพาหนะ ฯลฯ):  2 rows: row3="รายการ/รหัสครุภัณฑ์/..." row4=sub-header
-// ---------------------------------------------------------------------------
 const ALIASES: Record<string, string[]> = {
-  "RFID/QR CODE": [
-    "rfid",
-    "qr code",
-    "qrcode",
-    "rfid/qr",
-    "บาร์โค้ด",
-    "บาร์โค๊ด",
-  ],
-
-  "รหัสสินทรัพย์ Elaas": [
-    "รหัส elaas",
-    "elaas",
-    "รหัสสินทรัพย์(elaas)",
-    "เลขครุภัณฑ์ elaas",
-  ],
-
-  รหัสสินทรัพย์: [
+  "RFID/QR CODE": ["rfid", "qr code", "qrcode", "บาร์โค้ด"],
+  "รหัสสินทรัพย์ Elaas": ["รหัส elaas", "elaas"],
+  "รหัสสินทรัพย์": [
     "asset code",
     "asset id",
     "รหัสครุภัณฑ์",
     "รหัสพัสดุ",
     "เลขครุภัณฑ์",
-    // Pattern A  — "รหัสสินทรัพย์" อาจตรงกันตรงๆ แต่เผื่อมี suffix
-    "รหัสสินทรัพย์2",
   ],
-
-  "รหัสสินทรัพย์ (ส่วนประกอบ)": [
-    "รหัสสินทรัพย์ส่วนประกอบ",
-    "รหัสครุภัณฑ์ย่อย",
-    "รหัสส่วนประกอบ",
-  ],
-
-  ชื่อสินทรัพย์: [
-    "sourceAssetName",
-    "ชื่อครุภัณฑ์",
-    "asset name",
-    "ชื่อทรัพย์สิน",
-  ],
-
-  รายละเอียด: [
-    "description",
-    "spec",
-    "สเปค",
-    "รายการ",
-    // Pattern A
-    "รายละเอียดสินทรัพย์",
-    "รายละเอียดครุภัณฑ์",
-  ],
-
-  "ระบุอื่น ๆ": ["ระบุอื่นๆ", "อื่นๆ", "other", "หมายเหตุอื่นๆ", "หมายเหตุ"],
-
-  ประเภทสินทรัพย์: ["asset type", "ประเภท", "ประเภทครุภัณฑ์"],
-
-  ชนิดสินทรัพย์: [
-    "sourceAssetType",
-    "asset category",
-    "ชนิด",
-    "หมวดสินทรัพย์",
-    // Pattern A — "*ชนิดสินทรัพย์" (มี * นำหน้า)
-    "*ชนิดสินทรัพย์",
-    "ชนิดครุภัณฑ์",
-    "หมวดครุภัณฑ์",
-  ],
-
-  รายการสินทรัพย์: ["asset item"],
-
-  หน่วยนับ: ["unit", "หน่วย"],
-
-  อาคาร: [
-    "building",
-    "ตึก",
-    // Pattern A
-    "สถานที่ตั้ง",
-    // Pattern B sub-header row
-    "สถานที่ใช้งาน",
-    "หน่วยงาน",
-  ],
-
-  ห้อง: ["room", "ห้องที่ตั้ง"],
-
-  ได้มาโดย: [
-    "acquired by",
-    "วิธีได้มา",
-    // Pattern A — "*ได้มาโดย"
-    "*ได้มาโดย",
-  ],
-
-  ได้มาจาก: ["acquired from", "ผู้ขาย", "supplier", "ได้มาจาก"],
-
-  แหล่งงบประมาณ: [
-    "budget source",
-    "งบประมาณ",
-    // โอน2567 มีคอลัมน์ "แหล่งที่มา"
-    "แหล่งที่มา",
-  ],
-
-  มูลค่า: [
-    "value",
-    "ราคา",
-    "มูลค่าสินทรัพย์",
-    "amount",
-    // Pattern A
-    "*ราคาสินทรัพย์ (ราคาทุน) (บาท)",
-    "ราคาสินทรัพย์",
-    "ราคาทุน",
-    // Pattern B
-    "ราคาที่ได้มา",
-  ],
-
-  วันที่ได้รับ: [
-    "received date",
-    "วันรับ",
-    // Pattern A — "*วันที่ได้มา\n(วว/ดด/ปปปป)"  (merged 3 sub-cols วัน/เดือน/ปี)
-    "*วันที่ได้มา",
-    "วันที่ได้มา",
-    "วันที่ได้มา(วว/ดด/ปปปป)",
-    // Pattern B header row3
-    "วัน เดือน ปี",
-    "วันเดือนปี",
-  ],
-
-  วันที่ได้รับโอน: ["transfer date", "วันโอน", "วัน เดือน ปีที่โอน"],
-  วันที่ออกจำหน่าย: ["disposal date", "วันจำหน่าย"],
-  วันที่เริ่มรับประกัน: ["warranty start", "วันเริ่มประกัน"],
-  วันที่หมดประกัน: ["warranty end", "วันหมดประกัน", "วันสิ้นสุดประกัน"],
-  อายุการรับประกัน: ["warranty period", "ระยะเวลาประกัน"],
-  อายุการใช้งาน: ["useful life", "อายุใช้งาน"],
-
-  ผู้ถือครอง: ["holder", "ผู้ครอบครอง", "ผู้ดูแล"],
-
-  สำนัก: ["office", "สำนักงาน"],
-  ฝ่าย: ["division", "department"],
-  งาน: [],
-
-  งานที่รับผิดชอบ: [
-    "responsible unit",
-    "ผู้รับผิดชอบ",
-    // Pattern A มีตรงๆ
-    "งานที่รับผิดชอบ",
-  ],
-
-  สถานะ: ["status", "สภาพ", "สภาพครุภัณฑ์"],
-
-  ต้องตรวจนับ: ["need count", "ตรวจนับ"],
-  คิดค่าเสื่อม: ["depreciation flag", "ค่าเสื่อม"],
-  ของสำคัญ: ["important item", "สำคัญ"],
-  ค่าเสื่อมสะสมยกมา: [
-    "accumulated depreciation brought forward",
-    "ค่าเสื่อมยกมา",
-  ],
-  "ณ วันที่ (ค่าเสื่อมยกมา)": ["as of date", "ณ วันที่"],
-  ส่งคืนสินทรัพย์: ["return asset", "คืนสินทรัพย์"],
-
-  เงินงบประมาณ: ["budget fund", "เงินงบ"],
+  "รหัสสินทรัพย์ (ส่วนประกอบ)": ["รหัสส่วนประกอบ", "รหัสครุภัณฑ์ย่อย"],
+  "ชื่อสินทรัพย์": ["asset name", "ชื่อครุภัณฑ์", "ชื่อทรัพย์สิน", "รายการ"],
+  "รายละเอียด": ["description", "spec", "รายละเอียดสินทรัพย์", "รายละเอียดครุภัณฑ์"],
+  "ระบุอื่น ๆ": ["หมายเหตุ", "อื่นๆ", "อื่น ๆ", "รายละเอียดเพิ่มเติม"],
+  "ประเภทสินทรัพย์": ["asset type", "ประเภท", "ประเภทครุภัณฑ์"],
+  "ชนิดสินทรัพย์": ["asset category", "ชนิด", "หมวดครุภัณฑ์", "ชนิดครุภัณฑ์"],
+  "รายการสินทรัพย์": ["asset item", "รายการสินทรัพย์", "หมวดรายการ"],
+  "หน่วยนับ": ["unit", "หน่วย"],
+  "อาคาร": ["building", "สถานที่ตั้ง", "สถานที่ใช้งาน", "หน่วยงาน"],
+  "ห้อง": ["room", "ห้องที่ตั้ง"],
+  "ได้มาโดย": ["acquired by", "วิธีได้มา", "ได้มาโดย"],
+  "ได้มาจาก": ["acquired from", "ผู้ขาย", "supplier", "ได้มาจาก", "โอนให้"],
+  "แหล่งงบประมาณ": ["budget source", "งบประมาณ", "แหล่งที่มา"],
+  "มูลค่า": ["value", "ราคา", "ราคาที่ได้มา", "ราคาทุน", "มูลค่าสินทรัพย์"],
+  "วันที่ได้รับ": ["received date", "วัน เดือน ปี", "วันที่ได้มา", "วันที่ได้รับ"],
+  "วันที่ได้รับโอน": ["transfer date", "วันโอน", "วันที่โอน"],
+  "วันที่ออกจำหน่าย": ["disposal date", "วันจำหน่าย"],
+  "วันที่เริ่มรับประกัน": ["warranty start"],
+  "วันที่หมดประกัน": ["warranty end"],
+  "อายุการรับประกัน": ["warranty period"],
+  "อายุการใช้งาน": ["useful life"],
+  "ผู้ถือครอง": ["holder", "ผู้ครอบครอง", "ผู้ดูแล"],
+  "สำนัก": ["office", "สำนัก"],
+  "ฝ่าย": ["division", "ฝ่าย"],
+  "งาน": ["งาน"],
+  "งานที่รับผิดชอบ": ["responsible unit", "ผู้รับผิดชอบ", "งานที่รับผิดชอบ"],
+  "สถานะ": ["status", "สภาพ", "สภาพครุภัณฑ์"],
+  "ต้องตรวจนับ": ["need count", "ตรวจนับ"],
+  "คิดค่าเสื่อม": ["depreciation flag", "ค่าเสื่อม"],
+  "ของสำคัญ": ["important item", "สำคัญ"],
+  "ค่าเสื่อมสะสมยกมา": ["accumulated depreciation brought forward"],
+  "ณ วันที่ (ค่าเสื่อมยกมา)": ["as of date"],
+  "ส่งคืนสินทรัพย์": ["return asset"],
+  "เงินงบประมาณ": ["budget fund", "เงินงบ"],
   "เงินสะสม/เงินทุนสำรองเงินสะสม": ["เงินสะสม", "เงินทุนสำรองเงินสะสม"],
   "เงินอุดหนุนระบุวัตถุประสงค์/เฉพาะกิจ": ["เงินอุดหนุน", "เฉพาะกิจ"],
-  เงินรับฝาก: ["deposit fund"],
+  "เงินรับฝาก": ["deposit fund"],
   "รับโอน/รับบริจาค": ["รับโอน", "รับบริจาค", "donation"],
-  เงินกู้: ["loan fund"],
-  รายได้สะสม: ["accumulated income"],
-  ทุนดำเนินการ: ["operating capital"],
+  "เงินกู้": ["loan fund"],
+  "รายได้สะสม": ["accumulated income"],
+  "ทุนดำเนินการ": ["operating capital"],
 };
 
 function normalizeText(s: string): string {
   return (s || "")
     .toString()
     .toLowerCase()
-    .replace(/\*/g, "") // ลบ * นำหน้า (Pattern A)
-    .replace(/\n/g, "") // ลบ newline ในหัวตาราง
+    .replace(/\*/g, "")
+    .replace(/\n/g, "")
     .replace(/\s+/g, "")
     .replace(/[()/.\-_,]/g, "");
 }
 
-// ส่งออก keyword ทั้งหมด (template + aliases) เพื่อใช้ใน detectHeaderRow ใน excel.ts
 export function getAllKeywords(): string[] {
   const all = new Set<string>();
   for (const col of TEMPLATE_COLUMNS) {
-    const n = normalizeText(col);
-    if (n.length >= 3) all.add(n);
+    const normalizedColumn = normalizeText(col);
+    if (normalizedColumn.length >= 3) all.add(normalizedColumn);
     for (const alias of ALIASES[col] || []) {
-      const na = normalizeText(alias);
-      if (na.length >= 3) all.add(na);
+      const normalizedAlias = normalizeText(alias);
+      if (normalizedAlias.length >= 3) all.add(normalizedAlias);
     }
   }
   return Array.from(all);
 }
 
-// Simple Levenshtein distance for fuzzy fallback matching
 function levenshtein(a: string, b: string): number {
-  const m = a.length;
-  const n = b.length;
-  const dp: number[][] = Array.from({ length: m + 1 }, () =>
-    new Array(n + 1).fill(0),
+  const dp: number[][] = Array.from({ length: a.length + 1 }, () =>
+    new Array(b.length + 1).fill(0),
   );
-  for (let i = 0; i <= m; i++) dp[i][0] = i;
-  for (let j = 0; j <= n; j++) dp[0][j] = j;
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
+  for (let i = 0; i <= a.length; i += 1) dp[i][0] = i;
+  for (let j = 0; j <= b.length; j += 1) dp[0][j] = j;
+  for (let i = 1; i <= a.length; i += 1) {
+    for (let j = 1; j <= b.length; j += 1) {
       const cost = a[i - 1] === b[j - 1] ? 0 : 1;
       dp[i][j] = Math.min(
         dp[i - 1][j] + 1,
@@ -260,31 +137,22 @@ function levenshtein(a: string, b: string): number {
       );
     }
   }
-  return dp[m][n];
+  return dp[a.length][b.length];
 }
 
 export interface MappingSuggestion {
   templateColumn: string;
   sourceColumn: string | null;
-  confidence: number; // 0-100
+  confidence: number;
   method: "exact" | "alias" | "fuzzy" | "none";
 }
 
-// Build a lookup of normalized template/alias strings -> template column
 const EXACT_ONLY_TEMPLATE_COLUMNS = new Set([
   "รหัสสินทรัพย์ Elaas",
   "รหัสสินทรัพย์ (ส่วนประกอบ)",
   "ชื่อสินทรัพย์",
   "งาน",
 ]);
-
-const LOOKUP: Map<string, string> = new Map();
-for (const col of TEMPLATE_COLUMNS) {
-  LOOKUP.set(normalizeText(col), col);
-  for (const alias of ALIASES[col] || []) {
-    LOOKUP.set(normalizeText(alias), col);
-  }
-}
 
 export function suggestMapping(sourceHeaders: string[]): MappingSuggestion[] {
   const usedSources = new Set<string>();
@@ -303,48 +171,49 @@ export function suggestMapping(sourceHeaders: string[]): MappingSuggestion[] {
       ...(ALIASES[templateCol] || []).map(normalizeText),
     ];
 
-    for (const src of sourceHeaders) {
-      if (usedSources.has(src)) continue;
-      const normSrc = normalizeText(src);
-      if (!normSrc) continue;
+    for (const source of sourceHeaders) {
+      if (usedSources.has(source)) continue;
+      const normalizedSource = normalizeText(source);
+      if (!normalizedSource) continue;
 
-      // exact match
-      if (candidates.includes(normSrc)) {
+      if (candidates.includes(normalizedSource)) {
         best = {
           templateColumn: templateCol,
-          sourceColumn: src,
+          sourceColumn: source,
           confidence: 100,
           method: "exact",
         };
         break;
       }
-      // substring match
-      const isSyntheticGroupSource = src === "sourceAssetName" || src === "sourceAssetType";
+
+      const isInternalSource = source.startsWith("__") || source.startsWith("sourceAsset");
       const allowsPartialMatch = !EXACT_ONLY_TEMPLATE_COLUMNS.has(templateCol);
       const containsMatch =
-        !isSyntheticGroupSource &&
+        !isInternalSource &&
         allowsPartialMatch &&
         candidates.some(
-          (c) => c.length >= 3 && normSrc.length >= 3 && normSrc.includes(c),
+          (candidate) =>
+            candidate.length >= 3 &&
+            normalizedSource.length >= 3 &&
+            (normalizedSource.includes(candidate) || candidate.includes(normalizedSource)),
         );
       if (containsMatch && best.confidence < 85) {
         best = {
           templateColumn: templateCol,
-          sourceColumn: src,
+          sourceColumn: source,
           confidence: 85,
           method: "alias",
         };
         continue;
       }
-      // fuzzy match via levenshtein
-      const dist = levenshtein(normSrc, normalizeText(templateCol));
-      const maxLen = Math.max(normSrc.length, templateCol.length, 1);
-      const ratio = 1 - dist / maxLen;
-      const score = Math.round(ratio * 100);
-      if (!isSyntheticGroupSource && allowsPartialMatch && score > 60 && score > best.confidence) {
+
+      const dist = levenshtein(normalizedSource, normalizeText(templateCol));
+      const maxLen = Math.max(normalizedSource.length, normalizeText(templateCol).length, 1);
+      const score = Math.round((1 - dist / maxLen) * 100);
+      if (!isInternalSource && allowsPartialMatch && score > 60 && score > best.confidence) {
         best = {
           templateColumn: templateCol,
-          sourceColumn: src,
+          sourceColumn: source,
           confidence: score,
           method: "fuzzy",
         };

@@ -25,9 +25,12 @@ export async function POST(req: NextRequest) {
       const mapping = suggestMapping(sheet.headers);
       return {
         sheetName: sheet.sheetName,
+        sourceProfile: sheet.sourceProfile,
         headerRowIndex: sheet.headerRowIndex,
         headers: sheet.headers,
         rowCount: sheet.rowCount,
+        groupedAssets: sheet.groupedAssets,
+        warnings: sheet.warnings,
         sampleRows: sheet.rows.slice(0, 10),
         rows: sheet.rows,
         mapping,

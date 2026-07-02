@@ -2,16 +2,13 @@ import { TEMPLATE_COLUMNS } from "./mapping";
 
 export interface ValidationIssue {
   sheetName: string;
-  rowIndex: number; // 0-based within sheet's data rows
+  rowIndex: number;
   column: string;
   message: string;
   severity: "error" | "warning";
 }
 
-// Columns that should not be left blank for a usable asset record after transform.
-const REQUIRED_COLUMNS = ["ชื่อสินทรัพย์", "รหัสสินทรัพย์"];
-
-// Columns expected to look like dates (loose check, not strict)
+const REQUIRED_COLUMNS = ["รหัสสินทรัพย์", "ชื่อสินทรัพย์"];
 const DATE_COLUMNS = [
   "วันที่ได้รับ",
   "วันที่ได้รับโอน",
@@ -20,55 +17,271 @@ const DATE_COLUMNS = [
   "วันที่หมดประกัน",
   "ณ วันที่ (ค่าเสื่อมยกมา)",
 ];
-
-// Columns expected to be numeric
 const NUMERIC_COLUMNS = ["มูลค่า", "ค่าเสื่อมสะสมยกมา"];
+const VALID_STATUSES = new Set(["", "ปกติ", "ชำรุด", "รอจำหน่าย", "สูญหาย", "ไม่ได้ใช้งาน"]);
+const HEADER_VALUES = new Set([
+  "ที่",
+  "รายการ",
+  "รหัสครุภัณฑ์",
+  "รหัสสินทรัพย์",
+  "วันเดือนปี",
+  "ราคาที่ได้มา",
+  "สภาพครุภัณฑ์",
+  "รวม",
+  "รวมทั้งสิ้น",
+]);
 
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$|^\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4}$/;
+function text(value: any): string {
+  return value === undefined || value === null ? "" : value.toString().trim();
+}
+
+function compact(value: any): string {
+  return text(value).replace(/\s+/g, "");
+}
+
+function addIssue(
+  issues: ValidationIssue[],
+  sheetName: string,
+  rowIndex: number,
+  column: string,
+  message: string,
+  severity: "error" | "warning",
+): void {
+  issues.push({ sheetName, rowIndex, column, message, severity });
+}
+
+function isValidDate(value: string): boolean {
+  if (!value) return true;
+  const match = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!match) return false;
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  const year = Number(match[3]);
+  if (year < 1800 || year > 2100 || month < 1 || month > 12 || day < 1 || day > 31) return false;
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
+  );
+}
+
+function rowLooksLikeData(row: Record<string, any>): boolean {
+  return Boolean(
+    text(row["ชื่อสินทรัพย์"]) ||
+      text(row["รายละเอียด"]) ||
+      text(row["มูลค่า"]) ||
+      text(row["ชนิดสินทรัพย์"]) ||
+      text(row["รายการสินทรัพย์"]),
+  );
+}
+
+function looksLikeLeakedHeader(row: Record<string, any>): boolean {
+  const values = TEMPLATE_COLUMNS.map((column) => compact(row[column])).filter(Boolean);
+  return values.some((value) => HEADER_VALUES.has(value)) || values.some((value) => value.includes("รวมทั้งสิ้น"));
+}
+
+function looksLikeLongDetailInsteadOfGroup(value: string): boolean {
+  const compactValue = compact(value);
+  if (!compactValue) return false;
+  if (/\(\d+\)/.test(compactValue) && compactValue.length <= 80) return false;
+  return (
+    compactValue.length > 45 ||
+    /ยี่ห้อ|รุ่น|ขนาด|หมายเลข|ทะเบียน|เครื่องยนต์|ตามอาคาร|หน้าห้อง/.test(value)
+  );
+}
 
 export function validateMappedRows(
   sheetName: string,
-  rows: Record<string, any>[]
+  rows: Record<string, any>[],
 ): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
+  const seenAssetCodes = new Map<string, number>();
 
   rows.forEach((row, idx) => {
     for (const col of REQUIRED_COLUMNS) {
-      const v = (row[col] ?? "").toString().trim();
-      if (!v) {
-        issues.push({
+      if (!text(row[col])) {
+        addIssue(
+          issues,
           sheetName,
-          rowIndex: idx,
-          column: col,
-          message: `ไม่พบข้อมูลในคอลัมน์ที่จำเป็น "${col}"`,
-          severity: "error",
-        });
+          idx,
+          col,
+          `ไม่พบข้อมูลในคอลัมน์ที่จำเป็น "${col}"`,
+          "error",
+        );
       }
     }
 
-    for (const col of DATE_COLUMNS) {
-      const v = (row[col] ?? "").toString().trim();
-      if (v && !DATE_RE.test(v)) {
-        issues.push({
+    const assetName = compact(row["ชื่อสินทรัพย์"]);
+    const assetCode = compact(row["รหัสสินทรัพย์"]);
+    const assetDetail = compact(row["รายละเอียด"]);
+    const assetType = compact(row["ชนิดสินทรัพย์"]);
+    const assetItem = compact(row["รายการสินทรัพย์"]);
+    const rowValues = TEMPLATE_COLUMNS.map((column) => compact(row[column])).filter(Boolean);
+    if (HEADER_VALUES.has(assetName)) {
+      addIssue(
+        issues,
+        sheetName,
+        idx,
+        "ชื่อสินทรัพย์",
+        `ชื่อสินทรัพย์ดูเหมือนหัวตารางหรือแถวรวม (${row["ชื่อสินทรัพย์"]})`,
+        "error",
+      );
+    }
+
+    if (assetName === "44" || assetName === "45") {
+      addIssue(
+        issues,
+        sheetName,
+        idx,
+        "ชื่อสินทรัพย์",
+        "ชื่อสินทรัพย์เป็นค่า placeholder 44/45 แทนชื่อจริง",
+        "error",
+      );
+    }
+
+    if (!assetName && assetDetail) {
+      addIssue(
+        issues,
+        sheetName,
+        idx,
+        "รายละเอียด",
+        "รายละเอียดมีค่า แต่ชื่อสินทรัพย์ว่าง",
+        "error",
+      );
+    }
+
+    if (assetItem && assetName && assetItem === assetName) {
+      addIssue(
+        issues,
+        sheetName,
+        idx,
+        "รายการสินทรัพย์",
+        "รายการสินทรัพย์เท่ากับชื่อสินทรัพย์ ซึ่งควรเป็นกลุ่มรายการ เช่น โต๊ะ (400)",
+        "error",
+      );
+    }
+
+    if (assetItem && looksLikeLongDetailInsteadOfGroup(text(row["รายการสินทรัพย์"]))) {
+      addIssue(
+        issues,
+        sheetName,
+        idx,
+        "รายการสินทรัพย์",
+        "รายการสินทรัพย์ดูเหมือนรายละเอียด/ชื่อสินทรัพย์รายตัว ไม่ใช่กลุ่มรายการ",
+        "warning",
+      );
+    }
+
+    if (assetCode && assetName && assetItem && !assetType) {
+      addIssue(
+        issues,
+        sheetName,
+        idx,
+        "ชนิดสินทรัพย์",
+        "แถวนี้มีรายการสินทรัพย์จากกลุ่ม แต่ชนิดสินทรัพย์ว่าง",
+        "warning",
+      );
+    }
+
+    if (rowValues.some((value) => value === "รวม" || value.includes("รวมทั้งสิ้น"))) {
+      addIssue(
+        issues,
+        sheetName,
+        idx,
+        "ชื่อสินทรัพย์",
+        "แถวส่งออกมีข้อความรวม/รวมทั้งสิ้น",
+        "error",
+      );
+    }
+
+    if (looksLikeLeakedHeader(row)) {
+      addIssue(
+        issues,
+        sheetName,
+        idx,
+        "ชื่อสินทรัพย์",
+        "แถวนี้ดูเหมือนหัวตารางหรือแถวสรุปที่รั่วเข้ามาเป็นข้อมูล",
+        "error",
+      );
+    }
+
+    if (!assetCode && rowLooksLikeData(row)) {
+      addIssue(
+        issues,
+        sheetName,
+        idx,
+        "รหัสสินทรัพย์",
+        "แถวนี้มีลักษณะเป็นข้อมูลสินทรัพย์แต่ไม่มีรหัสสินทรัพย์",
+        "error",
+      );
+    }
+
+    if (!assetCode && !text(row["มูลค่า"]) && text(row["รายละเอียด"]) && !text(row["ชื่อสินทรัพย์"])) {
+      addIssue(
+        issues,
+        sheetName,
+        idx,
+        "รายละเอียด",
+        "แถวนี้อาจเป็น continuation row ที่ถูกส่งออกเป็นแถวเดี่ยว",
+        "error",
+      );
+    }
+
+    if (assetCode) {
+      const previous = seenAssetCodes.get(assetCode);
+      if (previous !== undefined) {
+        addIssue(
+          issues,
           sheetName,
-          rowIndex: idx,
-          column: col,
-          message: `รูปแบบวันที่ไม่ถูกต้องในคอลัมน์ "${col}" (พบค่า: ${v})`,
-          severity: "warning",
-        });
+          idx,
+          "รหัสสินทรัพย์",
+          `พบรหัสสินทรัพย์ซ้ำกับแถวที่ ${previous + 1}: ${row["รหัสสินทรัพย์"]}`,
+          "warning",
+        );
+      } else {
+        seenAssetCodes.set(assetCode, idx);
+      }
+    }
+
+    const status = text(row["สถานะ"]);
+    if (!VALID_STATUSES.has(status)) {
+      addIssue(
+        issues,
+        sheetName,
+        idx,
+        "สถานะ",
+        `ค่าสถานะไม่อยู่ในชุดที่รองรับ: ${status}`,
+        "warning",
+      );
+    }
+
+    for (const col of DATE_COLUMNS) {
+      const value = text(row[col]);
+      if (value && !isValidDate(value)) {
+        addIssue(
+          issues,
+          sheetName,
+          idx,
+          col,
+          `รูปแบบวันที่น่าสงสัยในคอลัมน์ "${col}" (พบค่า: ${value})`,
+          "warning",
+        );
       }
     }
 
     for (const col of NUMERIC_COLUMNS) {
-      const v = (row[col] ?? "").toString().trim().replace(/,/g, "");
-      if (v && isNaN(Number(v))) {
-        issues.push({
+      const value = text(row[col]).replace(/,/g, "");
+      if (/^[\s\-–—]+$/.test(value)) continue;
+      if (value && Number.isNaN(Number(value))) {
+        addIssue(
+          issues,
           sheetName,
-          rowIndex: idx,
-          column: col,
-          message: `ค่าควรเป็นตัวเลขในคอลัมน์ "${col}" (พบค่า: ${row[col]})`,
-          severity: "warning",
-        });
+          idx,
+          col,
+          `ค่าควรเป็นตัวเลขในคอลัมน์ "${col}" (พบค่า: ${row[col]})`,
+          "warning",
+        );
       }
     }
   });
