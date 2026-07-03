@@ -5,9 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "test": "node scripts/check-conversion.js",
-    "check-conversion": "node scripts/check-conversion.js"
+    "start": "next start"
   },
   "dependencies": {
     "exceljs": "^4.4.0",
