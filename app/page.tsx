@@ -60,6 +60,63 @@ const STEP_LABELS = [
   "④ Export",
 ];
 
+const SOURCE_COLUMN_LABELS: Record<string, string> = {
+  __sourceProfile: "รูปแบบไฟล์ที่ระบบตรวจพบ",
+  __sheetName: "ชื่อชีตต้นทาง",
+  __excelRow: "แถวในไฟล์ Excel",
+  sourceAssetType: "ชนิดสินทรัพย์จากต้นทาง",
+  sourceAssetItem: "รายการสินทรัพย์จากต้นทาง",
+  sourceAssetName: "ชื่อสินทรัพย์ที่ระบบอ่านได้",
+  assetCode: "รหัสสินทรัพย์",
+  assetName: "ชื่อสินทรัพย์",
+  assetDetail: "รายละเอียดสินทรัพย์",
+  receivedDate: "วันที่ได้รับ",
+  value: "มูลค่า",
+  responsibleUnit: "งานที่รับผิดชอบ",
+  location: "สถานที่ตั้ง",
+  acquiredBy: "ได้มาโดย",
+  acquiredFrom: "ได้มาจาก",
+  budgetSource: "แหล่งงบประมาณ",
+  note: "หมายเหตุ",
+  statusNormal: "สถานะ: ปกติ",
+  statusBroken: "สถานะ: ชำรุด",
+  statusDeteriorated: "สถานะ: เสื่อมสภาพ",
+  statusLost: "สถานะ: สูญหาย",
+  statusStoredLong: "สถานะ: เก็บไว้นาน",
+  statusUnnecessary: "สถานะ: ไม่จำเป็นต้องใช้",
+  seq: "ลำดับ",
+  itemName: "รายการ",
+  __seq: "ลำดับที่ระบบอ่านได้",
+  __assetCode: "รหัสสินทรัพย์ที่ระบบอ่านได้",
+  __assetName: "ชื่อสินทรัพย์ที่ระบบอ่านได้",
+  __detail: "รายละเอียดที่ระบบอ่านได้",
+  __receivedDate: "วันที่ได้รับที่ระบบอ่านได้",
+  __value: "มูลค่าที่ระบบอ่านได้",
+  __acquiredBy: "ได้มาโดยที่ระบบอ่านได้",
+  __acquiredFrom: "ได้มาจากที่ระบบอ่านได้",
+  __budgetSource: "แหล่งงบประมาณที่ระบบอ่านได้",
+  __location: "สถานที่ตั้งที่ระบบอ่านได้",
+  __responsibleUnit: "งานที่รับผิดชอบที่ระบบอ่านได้",
+  __note: "หมายเหตุที่ระบบอ่านได้",
+  __status: "สถานะที่ระบบอ่านได้",
+  __assetCategory: "ประเภทสินทรัพย์ที่ระบบอ่านได้",
+  __depreciationFlag: "คิดค่าเสื่อมที่ระบบอ่านได้",
+  __needCount: "ต้องตรวจนับที่ระบบอ่านได้",
+  __importantFlag: "ของสำคัญที่ระบบอ่านได้",
+};
+
+function displaySourceColumnLabel(column: string | null | undefined): string {
+  if (!column) return "";
+  const emptyColumn = column.match(/^__EMPTY_COLUMN_(\d+)$/);
+  if (emptyColumn) return `คอลัมน์ว่าง ${emptyColumn[1]}`;
+  return SOURCE_COLUMN_LABELS[column] || column;
+}
+
+function displaySourceColumnWithOriginal(column: string): string {
+  const label = displaySourceColumnLabel(column);
+  return label === column ? label : `${label} (${column})`;
+}
+
 export default function Page() {
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -497,15 +554,23 @@ function PreviewStep({
     (issue) => issue.sheetName === sheet.sheetName,
   );
   const currentSummary = createRuntimeSheetSummary(sheet, sheetIssues);
-  const visibleMappings = sheet.mapping.map((m) => {
-    const manualSource = sheetMap[m.templateColumn];
-    return {
-      ...m,
-      sourceColumn: manualSource !== undefined ? manualSource || null : m.sourceColumn,
-      status: manualSource !== undefined ? "manual" : m.status,
-      confidence: manualSource !== undefined ? "high" : m.confidence,
-    };
-  });
+  const visibleMappings = sheet.mapping
+    .map((m, index) => {
+      const manualSource = sheetMap[m.templateColumn];
+      return {
+        ...m,
+        sourceColumn: manualSource !== undefined ? manualSource || null : m.sourceColumn,
+        status: manualSource !== undefined ? "manual" : m.status,
+        confidence: manualSource !== undefined ? "high" : m.confidence,
+        originalIndex: index,
+      };
+    })
+    .sort((a, b) => {
+      const aIsMapped = Boolean(a.sourceColumn);
+      const bIsMapped = Boolean(b.sourceColumn);
+      if (aIsMapped === bIsMapped) return a.originalIndex - b.originalIndex;
+      return aIsMapped ? -1 : 1;
+    });
 
   return (
     <>
@@ -561,8 +626,8 @@ function PreviewStep({
           <thead>
             <tr>
               {displayCols.map((col) => (
-                <th key={col}>
-                  <div>{col}</div>
+                <th key={col} title={col}>
+                  <div>{displaySourceColumnLabel(col)}</div>
                 </th>
               ))}
             </tr>
@@ -597,7 +662,13 @@ function PreviewStep({
             {visibleMappings.map((m: MappingSuggestion) => (
               <tr key={m.templateColumn}>
                 <td>{m.templateColumn}</td>
-                <td>{m.sourceColumn || <span className="muted-text">ไม่พบคอลัมน์</span>}</td>
+                <td>
+                  {m.sourceColumn ? (
+                    <span title={m.sourceColumn}>{displaySourceColumnLabel(m.sourceColumn)}</span>
+                  ) : (
+                    <span className="muted-text">ไม่พบคอลัมน์</span>
+                  )}
+                </td>
                 <td>
                   <span className={`badge ${m.confidence}`}>{m.confidence}</span>
                 </td>
@@ -616,7 +687,7 @@ function PreviewStep({
         </button>
         {advancedOpen && (
           <div className="manual-mapping">
-            {sheet.mapping.map((m: MappingSuggestion) => {
+            {visibleMappings.map((m: MappingSuggestion) => {
               const current = sheetMap[m.templateColumn] ?? m.sourceColumn ?? "";
               const isManual = sheetMap[m.templateColumn] !== undefined;
               return (
@@ -632,7 +703,7 @@ function PreviewStep({
                     <option value="">— ไม่จับคู่ —</option>
                     {sheet.headers.map((h) => (
                       <option key={h} value={h}>
-                        {h}
+                        {displaySourceColumnWithOriginal(h)}
                       </option>
                     ))}
                   </select>

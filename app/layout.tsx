@@ -1,3 +1,5 @@
+// Suppress TS error for side-effect CSS import when no type declarations are present
+// @ts-ignore: implicit any for module
 import "./globals.css";
 import type { Metadata } from "next";
 
