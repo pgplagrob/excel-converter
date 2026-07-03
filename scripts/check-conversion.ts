@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { readWorkbookBuffer } from "../lib/excel";
 import { createDataSourceWorkbook } from "../lib/datasource";
-import { suggestMapping } from "../lib/mapping";
+import { TEMPLATE_COLUMNS, suggestMapping } from "../lib/mapping";
 import { transformRowsToTemplateDataset } from "../lib/transform";
 import { validateMappedRows } from "../lib/validate";
 
@@ -10,6 +10,20 @@ const DEFAULT_FIXTURES = [
   "C:/Users/kxxka/OneDrive/Desktop/work/เทศบาลนครลำปาง/3 งบทรัพย์สินกองการเจ้าหน้าที่ ปี 67 อัพเดท 13 .xlsx",
   "C:/Users/kxxka/OneDrive/Desktop/work/เทศบาลนครลำปาง/ครุภัณฑ์สำนักปลัดเทศบาล67 แบบ กข แก้ไข15-11-67.xlsx",
 ];
+
+const COL_ASSET_CODE = "รหัสสินทรัพย์";
+const COL_ASSET_TYPE = "ชนิดสินทรัพย์";
+const COL_ASSET_ITEM = "รายการสินทรัพย์";
+const COL_ASSET_NAME = "ชื่อสินทรัพย์";
+const COL_ASSET_DETAIL = "รายละเอียด";
+const COL_VALUE = "มูลค่า";
+const COL_UNIT = "หน่วยนับ";
+
+const GROUP_CATEGORY = "ครุภัณฑ์สำนักงาน";
+const GROUP_ITEM = "โต๊ะ (400)";
+const ASSET_NAME = "โต๊ะทำงาน";
+const DUPLICATE_ASSET_NAME = "เก้าอี้ทำงาน";
+const DUPLICATE_ASSET_CODE = "400-32-1871";
 
 function text(value: any): string {
   return value === undefined || value === null ? "" : value.toString().trim();
@@ -55,6 +69,156 @@ function mappingForHeaders(headers: string[]): Record<string, string> {
   return Object.fromEntries(
     suggestMapping(headers).map((item) => [item.templateColumn, item.sourceColumn || ""]),
   );
+}
+
+function assertNoTemplateSampleValueLeak(): void {
+  const unmappedMapping = Object.fromEntries(TEMPLATE_COLUMNS.map((column) => [column, ""]));
+  const [row] = transformRowsToTemplateDataset(
+    [
+      {
+        assetCode: "sample-asset-1",
+        assetName: "เครื่องทดสอบ",
+        assetDetail: "เครื่องทดสอบ",
+        value: "100",
+      },
+    ],
+    unmappedMapping,
+  );
+
+  if (!row) throw new Error("Expected one exported row for template sample value regression");
+  if (text(row[COL_UNIT])) {
+    throw new Error(`Expected unmapped ${COL_UNIT} to stay blank, got ${row[COL_UNIT]}`);
+  }
+
+  const leakedColumns = Object.entries(row)
+    .filter(([, value]) => text(value) === "44")
+    .map(([column]) => column);
+  if (leakedColumns.length) {
+    throw new Error(`Unmapped template sample value 44 leaked into: ${leakedColumns.join(", ")}`);
+  }
+}
+
+function assertRequestedConverterRegressions(): void {
+  assertNoTemplateSampleValueLeak();
+
+  const rawWorkbook = {
+    fileName: "requested-regressions.xlsx",
+    sheets: [
+      {
+        sheetName: "ทะเบียนครุภัณฑ์",
+        matrix: [
+          ["ที่", "รายการ", "รหัสครุภัณฑ์", "วันที่ได้รับ", "มูลค่า", "ผู้รับผิดชอบ", "สภาพครุภัณฑ์"],
+          [],
+          [],
+          ["", GROUP_CATEGORY, ""],
+          ["", GROUP_ITEM, ""],
+          ["1", ASSET_NAME, DUPLICATE_ASSET_CODE, "", "100", "", "x"],
+          ["2", DUPLICATE_ASSET_NAME, DUPLICATE_ASSET_CODE, "", "200", "", "x"],
+        ],
+      },
+    ],
+  };
+  const datasource = createDataSourceWorkbook(rawWorkbook.fileName, rawWorkbook.sheets);
+  const sheet = datasource.sheets[0];
+  if (!sheet) throw new Error("Requested regression sheet was not parsed");
+
+  const exportedRows = transformRowsToTemplateDataset(sheet.rows, mappingForHeaders(sheet.headers));
+  if (exportedRows.length !== 2) {
+    throw new Error(`Expected duplicate asset code rows to both export, got ${exportedRows.length}`);
+  }
+
+  const [firstRow, secondRow] = exportedRows;
+  const expectedFirstRow = {
+    [COL_ASSET_TYPE]: GROUP_CATEGORY,
+    [COL_ASSET_ITEM]: GROUP_ITEM,
+    [COL_ASSET_NAME]: ASSET_NAME,
+    [COL_ASSET_CODE]: DUPLICATE_ASSET_CODE,
+    [COL_VALUE]: "100",
+  };
+  for (const [column, expectedValue] of Object.entries(expectedFirstRow)) {
+    if (text(firstRow[column]) !== expectedValue) {
+      throw new Error(`Expected ${column} to be ${expectedValue}, got ${firstRow[column] || "(blank)"}`);
+    }
+  }
+
+  if (text(firstRow[COL_ASSET_DETAIL]) === GROUP_ITEM) {
+    throw new Error(`${COL_ASSET_DETAIL} must not use the asset group label`);
+  }
+  if (text(secondRow[COL_ASSET_CODE]) !== DUPLICATE_ASSET_CODE) {
+    throw new Error("Expected the second duplicate asset-code row to keep the same asset code");
+  }
+  if (text(secondRow[COL_ASSET_NAME]) !== DUPLICATE_ASSET_NAME || text(secondRow[COL_VALUE]) !== "200") {
+    throw new Error("Rows with the same asset code but different names/prices must export separately");
+  }
+
+  const duplicateIssues = validateMappedRows(sheet.sheetName, exportedRows, sheet.rows).filter((issue) =>
+    issue.message.includes("Exact duplicate exported row"),
+  );
+  if (duplicateIssues.length) {
+    throw new Error("Different rows sharing an asset code must not be treated as exact duplicates");
+  }
+}
+
+function assertThaiAssetGroupRegression(): void {
+  const rawWorkbook = {
+    fileName: "thai-asset-group-regression.xlsx",
+    sheets: [
+      {
+        sheetName: "ทะเบียนครุภัณฑ์",
+        matrix: [
+          ["ที่", "รายการ", "รหัสครุภัณฑ์", "วันที่ได้รับ", "มูลค่า", "ผู้รับผิดชอบ", "สภาพครุภัณฑ์"],
+          [],
+          [],
+          ["", "ครุภัณฑ์สำนักงาน", ""],
+          ["", "โต๊ะ (400)", ""],
+          ["1", "โต๊ะทำงาน", "400-32-1871", "", "100", "", "✓"],
+          ["2", "เก้าอี้ทำงาน", "400-32-1871", "", "200", "", "✓"],
+        ],
+      },
+    ],
+  };
+  const datasource = createDataSourceWorkbook(rawWorkbook.fileName, rawWorkbook.sheets);
+  const sheet = datasource.sheets[0];
+  if (!sheet) throw new Error("Regression sheet was not parsed");
+
+  const exportedRows = transformRowsToTemplateDataset(sheet.rows, mappingForHeaders(sheet.headers));
+  if (exportedRows.length !== 2) {
+    throw new Error("Expected two exported real asset rows, got " + exportedRows.length);
+  }
+  if (sheet.rows[0].__rowKey === sheet.rows[1].__rowKey) {
+    throw new Error("Duplicate asset-code rows must have different composite row keys");
+  }
+
+  const row = exportedRows[0];
+  const expected = {
+    "ชนิดสินทรัพย์": "ครุภัณฑ์สำนักงาน",
+    "รายการสินทรัพย์": "โต๊ะ (400)",
+    "ชื่อสินทรัพย์": "โต๊ะทำงาน",
+    "รายละเอียด": "โต๊ะทำงาน",
+    "รหัสสินทรัพย์": "400-32-1871",
+  };
+
+  for (const [column, value] of Object.entries(expected)) {
+    if (row[column] !== value) {
+      throw new Error("Expected " + column + " to be " + value + ", got " + (row[column] || "(blank)"));
+    }
+  }
+
+  if (row["รายละเอียด"] === row["รายการสินทรัพย์"]) {
+    throw new Error("รายละเอียด must not use the asset group label");
+  }
+
+  const secondRow = exportedRows[1];
+  if (secondRow["รหัสสินทรัพย์"] !== row["รหัสสินทรัพย์"] || secondRow["ชื่อสินทรัพย์"] === row["ชื่อสินทรัพย์"]) {
+    throw new Error("Rows with the same asset code but different details must export separately");
+  }
+
+  const duplicateIssues = validateMappedRows(sheet.sheetName, exportedRows, sheet.rows).filter((issue) =>
+    issue.message.includes("Exact duplicate exported row"),
+  );
+  if (duplicateIssues.length) {
+    throw new Error("Different rows sharing an asset code must not be treated as exact duplicates");
+  }
 }
 
 function printSheet(sheet: any): {
@@ -138,6 +302,9 @@ function printSheet(sheet: any): {
 }
 
 function main(): void {
+  assertRequestedConverterRegressions();
+  assertThaiAssetGroupRegression();
+
   const files = process.argv.slice(2);
   const fixturePaths = files.length ? files : DEFAULT_FIXTURES;
 

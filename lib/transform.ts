@@ -74,6 +74,10 @@ function startsWithMainAssetType(value: any): boolean {
   );
 }
 
+function isGroupOrCategoryLabel(value: any): boolean {
+  return looksLikeAssetItemGroup(value) || startsWithMainAssetType(value);
+}
+
 function normalizedAssetFields(sourceRow: Record<string, any>): {
   assetName: string;
   assetDetail: string;
@@ -82,8 +86,8 @@ function normalizedAssetFields(sourceRow: Record<string, any>): {
 } {
   let sourceAssetType = cellText(sourceRow[SOURCE_ASSET_TYPE_COLUMN]);
   let sourceAssetItem = cellText(sourceRow[SOURCE_ASSET_ITEM_COLUMN]);
-  let assetName = firstText(sourceRow[SOURCE_ASSET_NAME_COLUMN], sourceRow.assetName, sourceRow[INTERNAL.assetName]);
-  let assetDetail = firstText(sourceRow.assetDetail, sourceRow[INTERNAL.detail], assetName);
+  let assetName = firstText(sourceRow.assetName, sourceRow[INTERNAL.assetName], sourceRow[SOURCE_ASSET_NAME_COLUMN]);
+  let assetDetail = firstText(sourceRow.assetDetail, sourceRow[INTERNAL.detail]);
 
   if (looksLikeAssetItemGroup(assetName)) {
     if (!sourceAssetItem) {
@@ -91,7 +95,6 @@ function normalizedAssetFields(sourceRow: Record<string, any>): {
       sourceRow[SOURCE_ASSET_ITEM_COLUMN] = sourceAssetItem;
     }
     assetName = "";
-    if (looksLikeAssetItemGroup(assetDetail)) assetDetail = "";
   }
 
   if (startsWithMainAssetType(assetName)) {
@@ -100,12 +103,18 @@ function normalizedAssetFields(sourceRow: Record<string, any>): {
       sourceRow[SOURCE_ASSET_TYPE_COLUMN] = sourceAssetType;
     }
     assetName = "";
-    if (startsWithMainAssetType(assetDetail)) assetDetail = "";
   }
 
   if (assetName && sourceAssetItem && assetName === sourceAssetItem) {
     assetName = "";
-    if (assetDetail === sourceAssetItem) assetDetail = "";
+  }
+
+  if (
+    isGroupOrCategoryLabel(assetDetail) ||
+    (sourceAssetItem && assetDetail === sourceAssetItem) ||
+    (sourceAssetType && assetDetail === sourceAssetType)
+  ) {
+    assetDetail = "";
   }
 
   return {

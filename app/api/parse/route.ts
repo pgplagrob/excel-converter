@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
       return {
         sheetName: sheet.sheetName,
         sourceProfile: sheet.sourceProfile,
+        profileDebug: sheet.profileDebug,
         headerRowIndex: sheet.headerRowIndex,
         summary: createSheetSummary(
           sheet.sheetName,
@@ -60,6 +61,7 @@ export async function POST(req: NextRequest) {
       sheets,
       skippedSheets: dataSource.skippedSheets,
       skippedSheetSummaries,
+      sheetProfileDebug: dataSource.profileDebug,
     });
   } catch (err: any) {
     console.error(err);

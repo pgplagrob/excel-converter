@@ -1,5 +1,6 @@
 import { getAllKeywords } from "./mapping";
 import type { WorkbookRowMeta } from "./excel";
+import { detectSheetProfile, type SheetProfileDetection } from "./sheet-profile";
 
 export type SourceProfile =
   | "NEW_ASSET_2567"
@@ -8,9 +9,17 @@ export type SourceProfile =
   | "SUMMARY_SKIP"
   | "UNKNOWN";
 
+export type SheetProfileDebug = SheetProfileDetection & {
+  sheetName: string;
+  shouldParse: boolean;
+  legacySourceProfile: SourceProfile;
+  skipReason?: string;
+};
+
 export interface DataSourceSheet {
   sheetName: string;
   sourceProfile: SourceProfile;
+  profileDebug?: SheetProfileDebug;
   headerRowIndex: number;
   headers: string[];
   rows: Record<string, any>[];
@@ -23,11 +32,14 @@ export interface DataSourceWorkbook {
   fileName: string;
   sheets: DataSourceSheet[];
   skippedSheets: string[];
+  profileDebug: SheetProfileDebug[];
 }
 
 export const SOURCE_PROFILE_COLUMN = "__sourceProfile";
 export const SOURCE_SHEET_NAME_COLUMN = "__sheetName";
 export const SOURCE_EXCEL_ROW_COLUMN = "__excelRow";
+export const SOURCE_ROW_INDEX_COLUMN = "__sourceRowIndex";
+export const SOURCE_ROW_KEY_COLUMN = "__rowKey";
 export const SOURCE_ASSET_TYPE_COLUMN = "sourceAssetType";
 export const SOURCE_ASSET_ITEM_COLUMN = "sourceAssetItem";
 export const SOURCE_ASSET_NAME_COLUMN = "sourceAssetName";
@@ -36,6 +48,8 @@ export type NormalizedSourceAssetRow = {
   __sourceProfile: string;
   __sheetName: string;
   __excelRow: number;
+  __sourceRowIndex: number;
+  __rowKey: string;
   assetCode: string;
   assetName: string;
   assetDetail?: string;
@@ -184,10 +198,6 @@ export function looksLikeAssetItemGroup(value: unknown): boolean {
 export function looksLikeAssetTypeGroup(value: unknown): boolean {
   const text = String(value ?? "").trim();
   return /^(ครุภัณฑ์|อสังหาริมทรัพย์|อาคาร|สิ่งปลูกสร้าง)/.test(text);
-}
-
-function looksLikeAssetItem(text: string): boolean {
-  return looksLikeAssetItemGroup(text);
 }
 
 function assetNameFromGroup(value: unknown): string {
@@ -393,6 +403,35 @@ function buildRawRow(headers: string[], sourceRow: any[]): Record<string, any> {
   return row;
 }
 
+function buildCompositeRowKey(
+  sheetName: string,
+  sourceRowIndex: number,
+  assetCode: string,
+  assetName: string,
+): string {
+  return JSON.stringify([sheetName, sourceRowIndex, assetCode, assetName]);
+}
+
+function updateRowIdentity(row: Record<string, any>): void {
+  const excelRow = Number(row[SOURCE_EXCEL_ROW_COLUMN]);
+  const sourceRowIndex =
+    typeof row[SOURCE_ROW_INDEX_COLUMN] === "number"
+      ? row[SOURCE_ROW_INDEX_COLUMN]
+      : Number.isFinite(excelRow)
+        ? excelRow - 1
+        : -1;
+  const assetCode = cellText(row.assetCode || row[INTERNAL.assetCode]);
+  const assetName = cellText(row.assetName || row[INTERNAL.assetName] || row[SOURCE_ASSET_NAME_COLUMN]);
+
+  row[SOURCE_ROW_INDEX_COLUMN] = sourceRowIndex;
+  row[SOURCE_ROW_KEY_COLUMN] = buildCompositeRowKey(
+    cellText(row[SOURCE_SHEET_NAME_COLUMN]),
+    sourceRowIndex,
+    assetCode,
+    assetName,
+  );
+}
+
 function withCommonMeta(
   row: Record<string, any>,
   profile: SourceProfile,
@@ -405,9 +444,11 @@ function withCommonMeta(
   row[SOURCE_PROFILE_COLUMN] = profile;
   row[SOURCE_SHEET_NAME_COLUMN] = sheetName;
   row[SOURCE_EXCEL_ROW_COLUMN] = excelRow;
+  row[SOURCE_ROW_INDEX_COLUMN] = excelRow - 1;
   row[SOURCE_ASSET_TYPE_COLUMN] = sourceAssetType;
   row[SOURCE_ASSET_ITEM_COLUMN] = sourceAssetItem;
   row[SOURCE_ASSET_NAME_COLUMN] = sourceAssetName;
+  updateRowIdentity(row);
   return row;
 }
 
@@ -461,6 +502,7 @@ function setNormalizedFields(
   row[INTERNAL.acquiredFrom] = row.acquiredFrom;
   row[INTERNAL.budgetSource] = row.budgetSource;
   row[INTERNAL.note] = row.note;
+  updateRowIdentity(row);
   return row;
 }
 
@@ -479,6 +521,8 @@ function appendHeaders(headers: string[]): string[] {
     SOURCE_PROFILE_COLUMN,
     SOURCE_SHEET_NAME_COLUMN,
     SOURCE_EXCEL_ROW_COLUMN,
+    SOURCE_ROW_INDEX_COLUMN,
+    SOURCE_ROW_KEY_COLUMN,
     SOURCE_ASSET_TYPE_COLUMN,
     SOURCE_ASSET_ITEM_COLUMN,
     SOURCE_ASSET_NAME_COLUMN,
@@ -527,7 +571,24 @@ function findTransferHeaderRow(matrix: any[][]): number {
   return matrix.findIndex((row) => rowContainsAny(row, ["เลขที่หนังสือ"]) && rowContainsAny(row, ["รหัสครุภัณฑ์"]));
 }
 
-function detectSourceProfile(sheetName: string, matrix: any[][]): SourceProfile {
+function legacyProfileFromDetection(detection: SheetProfileDetection): SourceProfile | null {
+  if (detection.profile === "summary") return "SUMMARY_SKIP";
+  if (detection.profile === "newAsset") return "NEW_ASSET_2567";
+  if (detection.profile === "transfer") return "TRANSFER_2567";
+  if (detection.profile === "registry" || detection.profile === "disposal") {
+    return "REGISTER_3_ROW_HEADER";
+  }
+  return null;
+}
+
+function detectSourceProfile(
+  sheetName: string,
+  matrix: any[][],
+  profileDetection: SheetProfileDetection = detectSheetProfile(matrix, sheetName),
+): SourceProfile {
+  const detectedProfile = legacyProfileFromDetection(profileDetection);
+  if (detectedProfile) return detectedProfile;
+
   const compactSheet = compactText(sheetName);
   if (compactSheet.includes("แบบกข")) return "SUMMARY_SKIP";
   if (compactSheet.includes("ครุภัณฑ์ใหม่2567")) return "NEW_ASSET_2567";
@@ -571,8 +632,11 @@ function parseNewAssetSheet(sheetName: string, matrix: any[][]): DataSourceSheet
       if (looksLikeAssetType(columnC)) {
         currentAssetType = columnC;
         currentAssetItem = "";
-      } else if (looksLikeAssetItemGroup(columnC)) currentAssetItem = columnC;
-      else currentAssetItem = columnC;
+      } else if (looksLikeAssetItemGroup(columnC)) {
+        currentAssetItem = columnC;
+      } else {
+        continue;
+      }
       groupedAssets.push({
         sourceRowIndex: index,
         excelRow: index + 1,
@@ -586,7 +650,7 @@ function parseNewAssetSheet(sheetName: string, matrix: any[][]): DataSourceSheet
 
     const sourceAssetType = looksLikeAssetItemGroup(columnC) ? currentAssetType : columnC || currentAssetType;
     const sourceAssetItem = looksLikeAssetItemGroup(columnC) ? columnC : currentAssetItem;
-    const sourceAssetName = assetNameFromGroup(sourceAssetItem);
+    const sourceAssetName = assetDetail;
     const row = withCommonMeta(
       buildRawRow(headers, sourceRow),
       "NEW_ASSET_2567",
@@ -599,7 +663,7 @@ function parseNewAssetSheet(sheetName: string, matrix: any[][]): DataSourceSheet
     row[INTERNAL.seq] = sequence;
     setNormalizedFields(row, {
       assetCode,
-      assetName: sourceAssetName,
+      assetName: assetDetail,
       assetDetail,
       receivedDate: normalizeThaiDate(sourceRow[4], sourceRow[5], sourceRow[6]),
       value: sourceRow[7] ?? "",
@@ -670,7 +734,7 @@ function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSourceSheet
         });
         continue;
       }
-      if (looksLikeAssetItem(itemName) || !previousDataRow) {
+      if (looksLikeAssetItemGroup(itemName)) {
         currentAssetItem = itemName;
         previousDataRow = null;
         groupedAssets.push({
@@ -682,10 +746,12 @@ function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSourceSheet
         continue;
       }
 
-      appendNormalizedDetail(previousDataRow, itemName);
-      previousDataRow[SOURCE_ASSET_NAME_COLUMN] = previousDataRow[INTERNAL.assetName];
-      if (note) {
-        appendNormalizedNote(previousDataRow, note);
+      if (previousDataRow) {
+        appendNormalizedDetail(previousDataRow, itemName);
+        previousDataRow[SOURCE_ASSET_NAME_COLUMN] = previousDataRow[INTERNAL.assetName];
+        if (note) {
+          appendNormalizedNote(previousDataRow, note);
+        }
       }
       continue;
     }
@@ -865,16 +931,30 @@ export function createDataSourceWorkbook(
 ): DataSourceWorkbook {
   const sheets: DataSourceSheet[] = [];
   const skippedSheets: string[] = [];
+  const profileDebug: SheetProfileDebug[] = [];
 
   for (const workbookSheet of workbookSheets) {
     const { sheetName, matrix } = workbookSheet;
+    const profileDetection = detectSheetProfile(matrix, sheetName);
+    const profile = detectSourceProfile(sheetName, matrix, profileDetection);
+    const debug: SheetProfileDebug = {
+      sheetName,
+      ...profileDetection,
+      shouldParse: profile !== "SUMMARY_SKIP",
+      legacySourceProfile: profile,
+    };
+    profileDebug.push(debug);
+
     if (isSheetEffectivelyEmpty(matrix)) {
+      debug.shouldParse = false;
+      debug.skipReason = "empty sheet";
       skippedSheets.push(sheetName);
       continue;
     }
 
-    const profile = detectSourceProfile(sheetName, matrix);
     if (profile === "SUMMARY_SKIP") {
+      debug.shouldParse = false;
+      debug.skipReason = "summary sheet";
       skippedSheets.push(sheetName);
       continue;
     }
@@ -888,14 +968,17 @@ export function createDataSourceWorkbook(
             ? parseTransferSheet(sheetName, matrix)
             : parseUnknownSheet(sheetName, matrix, workbookSheet.rowMeta);
 
+    sheet.profileDebug = debug;
     if (sheet.rows.length === 0) {
+      debug.shouldParse = false;
+      debug.skipReason = "no parsed asset rows";
       skippedSheets.push(sheetName);
       continue;
     }
     sheets.push(sheet);
   }
 
-  return { fileName, sheets, skippedSheets };
+  return { fileName, sheets, skippedSheets, profileDebug };
 }
 
 export function logDataSourceWorkbook(
@@ -908,12 +991,28 @@ export function logDataSourceWorkbook(
     skippedSheets: workbook.skippedSheets,
   });
 
+  for (const debug of workbook.profileDebug) {
+    console.log("[PROFILE] sheet", {
+      sheetName: debug.sheetName,
+      detectedProfile: debug.profile,
+      headerRowIndex: debug.headerRowIndex,
+      confidence: debug.confidence,
+      reasons: debug.reasons,
+      shouldParse: debug.shouldParse,
+      skipReason: debug.skipReason,
+      legacySourceProfile: debug.legacySourceProfile,
+    });
+  }
+
   for (const sheet of workbook.sheets) {
     const rawSheet = rawSheets.find((item) => item.sheetName === sheet.sheetName);
     console.log("[PARSE] sheet", {
       sheetName: sheet.sheetName,
       sourceProfile: sheet.sourceProfile,
+      detectedProfile: sheet.profileDebug?.profile,
+      profileConfidence: sheet.profileDebug?.confidence,
       headerRow: sheet.headerRowIndex + 1,
+      detectedHeaderRow: sheet.profileDebug?.headerRowIndex === null ? null : (sheet.profileDebug?.headerRowIndex ?? -1) + 1,
       rowCount: sheet.rowCount,
       warnings: sheet.warnings,
     });

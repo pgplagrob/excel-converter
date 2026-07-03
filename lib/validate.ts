@@ -1,4 +1,4 @@
-import { SOURCE_ASSET_ITEM_COLUMN, looksLikeAssetItemGroup, looksLikeAssetTypeGroup } from "./datasource";
+import { INTERNAL, SOURCE_ASSET_ITEM_COLUMN, SOURCE_ASSET_NAME_COLUMN, looksLikeAssetItemGroup, looksLikeAssetTypeGroup } from "./datasource";
 import { TEMPLATE_COLUMNS } from "./mapping";
 
 export interface ValidationIssue {
@@ -68,6 +68,7 @@ export function validateSheetLevel(
   rowCount: number,
   headerRow: number | undefined,
   mapping: Record<string, string | null | undefined>,
+  sourceRows: Record<string, any>[] = [],
 ): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   if (rowCount === 0) {
@@ -77,7 +78,15 @@ export function validateSheetLevel(
     addIssue(issues, sheetName, -1, "header", "ตรวจไม่พบแถว header ของชีต", "error");
   }
   for (const column of REQUIRED_COLUMNS) {
-    if (!mapping[column]) {
+    const hasNormalizedValue = sourceRows.some((row) => {
+      if (column === "รหัสสินทรัพย์") return Boolean(text(row.assetCode) || text(row[INTERNAL.assetCode]));
+      if (column === "ชื่อสินทรัพย์") {
+        return Boolean(text(row.assetName) || text(row[INTERNAL.assetName]) || text(row[SOURCE_ASSET_NAME_COLUMN]));
+      }
+      return false;
+    });
+
+    if (!mapping[column] && !hasNormalizedValue) {
       addIssue(
         issues,
         sheetName,
@@ -166,7 +175,7 @@ export function validateMappedRows(
   sourceRows: Record<string, any>[] = [],
 ): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
-  const seenAssetCodes = new Map<string, number>();
+  const seenExactRows = new Map<string, number>();
 
   rows.forEach((row, idx) => {
     const sourceRow = sourceRows[idx] || {};
@@ -333,20 +342,19 @@ export function validateMappedRows(
       );
     }
 
-    if (assetCode) {
-      const previous = seenAssetCodes.get(assetCode);
-      if (previous !== undefined) {
-        addIssue(
-          issues,
-          sheetName,
-          idx,
-          "รหัสสินทรัพย์",
-          `พบรหัสสินทรัพย์ซ้ำกับแถวที่ ${previous + 1}: ${row["รหัสสินทรัพย์"]}`,
-          "warning",
-        );
-      } else {
-        seenAssetCodes.set(assetCode, idx);
-      }
+    const exactRowKey = JSON.stringify(TEMPLATE_COLUMNS.map((column) => text(row[column])));
+    const previousExactRow = seenExactRows.get(exactRowKey);
+    if (previousExactRow !== undefined) {
+      addIssue(
+        issues,
+        sheetName,
+        idx,
+        "row",
+        `Exact duplicate exported row matches row ${previousExactRow + 1}. Duplicate asset codes are allowed when other fields differ.`,
+        "warning",
+      );
+    } else {
+      seenExactRows.set(exactRowKey, idx);
     }
 
     const status = text(row["สถานะ"]);

@@ -64,6 +64,8 @@ const SOURCE_COLUMN_LABELS: Record<string, string> = {
   __sourceProfile: "รูปแบบไฟล์ที่ระบบตรวจพบ",
   __sheetName: "ชื่อชีตต้นทาง",
   __excelRow: "แถวในไฟล์ Excel",
+  __sourceRowIndex: "Source row index",
+  __rowKey: "Stable row key",
   sourceAssetType: "ชนิดสินทรัพย์จากต้นทาง",
   sourceAssetItem: "รายการสินทรัพย์จากต้นทาง",
   sourceAssetName: "ชื่อสินทรัพย์ที่ระบบอ่านได้",
@@ -634,7 +636,7 @@ function PreviewStep({
           </thead>
           <tbody>
             {previewRows.map((row: any, i: number) => (
-              <tr key={i}>
+              <tr key={row.__rowKey || `${sheet.sheetName}:${i}`}>
                 {displayCols.map((col) => (
                   <td key={col}>{row[col] || <span style={{ color: "#ccc" }}>—</span>}</td>
                 ))}

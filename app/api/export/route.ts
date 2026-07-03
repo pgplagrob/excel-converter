@@ -100,6 +100,7 @@ export async function POST(req: NextRequest) {
         sheet.rows.length,
         sheet.headerRow,
         finalMapping,
+        sheet.rows,
       );
       const mappedRows = transformRowsToTemplateDataset(sheet.rows, finalMapping);
       logTemplateDataset(sheet.sheetName, mappedRows, finalMapping);
