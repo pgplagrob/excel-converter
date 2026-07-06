@@ -1,6 +1,7 @@
 import { TEMPLATE_COLUMNS } from "./mapping";
 import {
   INTERNAL,
+  SOURCE_ASSET_ITEM_EMIT_ONCE_COLUMN,
   SOURCE_ASSET_ITEM_COLUMN,
   SOURCE_ASSET_NAME_COLUMN,
   SOURCE_ASSET_TYPE_COLUMN,
@@ -125,6 +126,10 @@ function normalizedAssetFields(sourceRow: Record<string, any>): {
   };
 }
 
+function sourceAssetItemShouldEmit(sourceRow: Record<string, any>): boolean {
+  return sourceRow[SOURCE_ASSET_ITEM_EMIT_ONCE_COLUMN] === true;
+}
+
 function deriveAssetCategory(sourceRow: Record<string, any>, sourceAssetType: string): string {
   const explicitCategory = cellText(sourceRow[INTERNAL.assetCategory]);
   if (explicitCategory) return explicitCategory;
@@ -137,12 +142,13 @@ function validateAuthoritativeAssetFields(templateRow: Record<string, any>, sour
   const assetName = cellText(templateRow[ASSET_NAME_COLUMN]);
   const assetItem = cellText(templateRow[ASSET_ITEM_COLUMN]);
   const sourceAssetItem = cellText(sourceRow[SOURCE_ASSET_ITEM_COLUMN]);
+  const shouldEmitSourceAssetItem = sourceAssetItemShouldEmit(sourceRow);
   const problems: string[] = [];
 
   if (looksLikeAssetItemGroup(assetName)) problems.push("ชื่อสินทรัพย์ matches item-group pattern");
   if (assetName && assetItem && assetName === assetItem) problems.push("ชื่อสินทรัพย์ equals รายการสินทรัพย์");
   if (startsWithMainAssetType(assetName)) problems.push("ชื่อสินทรัพย์ starts with main asset type");
-  if (!assetItem && sourceAssetItem) problems.push("รายการสินทรัพย์ is empty while sourceAssetItem exists");
+  if (!assetItem && sourceAssetItem && shouldEmitSourceAssetItem) problems.push("รายการสินทรัพย์ is empty while sourceAssetItem should be emitted");
 
   if (problems.length) {
     console.warn("[TRANSFORM] asset field validation", {
@@ -162,7 +168,7 @@ function applyAuthoritativeAssetFields(templateRow: Record<string, any>, sourceR
   templateRow[ASSET_NAME_COLUMN] = normalized.assetName || "";
   templateRow[ASSET_DETAIL_COLUMN] = normalized.assetDetail || normalized.assetName || "";
   templateRow[ASSET_TYPE_COLUMN] = normalized.sourceAssetType || "";
-  templateRow[ASSET_ITEM_COLUMN] = normalized.sourceAssetItem || "";
+  templateRow[ASSET_ITEM_COLUMN] = sourceAssetItemShouldEmit(sourceRow) ? normalized.sourceAssetItem || "" : "";
   validateAuthoritativeAssetFields(templateRow, sourceRow);
 }
 

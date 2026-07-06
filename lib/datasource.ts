@@ -42,6 +42,7 @@ export const SOURCE_ROW_INDEX_COLUMN = "__sourceRowIndex";
 export const SOURCE_ROW_KEY_COLUMN = "__rowKey";
 export const SOURCE_ASSET_TYPE_COLUMN = "sourceAssetType";
 export const SOURCE_ASSET_ITEM_COLUMN = "sourceAssetItem";
+export const SOURCE_ASSET_ITEM_EMIT_ONCE_COLUMN = "__sourceAssetItemEmitOnce";
 export const SOURCE_ASSET_NAME_COLUMN = "sourceAssetName";
 
 export type NormalizedSourceAssetRow = {
@@ -55,6 +56,7 @@ export type NormalizedSourceAssetRow = {
   assetDetail?: string;
   sourceAssetType?: string;
   sourceAssetItem?: string;
+  __sourceAssetItemEmitOnce?: boolean;
   receivedDate?: unknown;
   value?: unknown;
   responsibleUnit?: string;
@@ -440,6 +442,7 @@ function withCommonMeta(
   sourceAssetType: string,
   sourceAssetItem: string,
   sourceAssetName: string,
+  sourceAssetItemEmitOnce = false,
 ): Record<string, any> {
   row[SOURCE_PROFILE_COLUMN] = profile;
   row[SOURCE_SHEET_NAME_COLUMN] = sheetName;
@@ -447,6 +450,7 @@ function withCommonMeta(
   row[SOURCE_ROW_INDEX_COLUMN] = excelRow - 1;
   row[SOURCE_ASSET_TYPE_COLUMN] = sourceAssetType;
   row[SOURCE_ASSET_ITEM_COLUMN] = sourceAssetItem;
+  row[SOURCE_ASSET_ITEM_EMIT_ONCE_COLUMN] = sourceAssetItemEmitOnce;
   row[SOURCE_ASSET_NAME_COLUMN] = sourceAssetName;
   updateRowIdentity(row);
   return row;
@@ -525,6 +529,7 @@ function appendHeaders(headers: string[]): string[] {
     SOURCE_ROW_KEY_COLUMN,
     SOURCE_ASSET_TYPE_COLUMN,
     SOURCE_ASSET_ITEM_COLUMN,
+    SOURCE_ASSET_ITEM_EMIT_ONCE_COLUMN,
     SOURCE_ASSET_NAME_COLUMN,
     ...NORMALIZED_FIELD_HEADERS,
   ];
@@ -618,6 +623,7 @@ function parseNewAssetSheet(sheetName: string, matrix: any[][]): DataSourceSheet
   const warnings: string[] = [];
   let currentAssetType = "";
   let currentAssetItem = "";
+  let currentAssetItemWasEmitted = false;
 
   for (let index = headerRowIndex + 1; index < matrix.length; index += 1) {
     const sourceRow = matrix[index] || [];
@@ -632,8 +638,10 @@ function parseNewAssetSheet(sheetName: string, matrix: any[][]): DataSourceSheet
       if (looksLikeAssetType(columnC)) {
         currentAssetType = columnC;
         currentAssetItem = "";
+        currentAssetItemWasEmitted = false;
       } else if (looksLikeAssetItemGroup(columnC)) {
         currentAssetItem = columnC;
+        currentAssetItemWasEmitted = false;
       } else {
         continue;
       }
@@ -650,6 +658,13 @@ function parseNewAssetSheet(sheetName: string, matrix: any[][]): DataSourceSheet
 
     const sourceAssetType = looksLikeAssetItemGroup(columnC) ? currentAssetType : columnC || currentAssetType;
     const sourceAssetItem = looksLikeAssetItemGroup(columnC) ? columnC : currentAssetItem;
+    const sourceAssetItemEmitOnce = Boolean(
+      sourceAssetItem && (looksLikeAssetItemGroup(columnC) || !currentAssetItemWasEmitted),
+    );
+    if (sourceAssetItemEmitOnce) {
+      currentAssetItem = sourceAssetItem;
+      currentAssetItemWasEmitted = true;
+    }
     const sourceAssetName = assetDetail;
     const row = withCommonMeta(
       buildRawRow(headers, sourceRow),
@@ -659,6 +674,7 @@ function parseNewAssetSheet(sheetName: string, matrix: any[][]): DataSourceSheet
       sourceAssetType,
       sourceAssetItem,
       sourceAssetName,
+      sourceAssetItemEmitOnce,
     );
     row[INTERNAL.seq] = sequence;
     setNormalizedFields(row, {
@@ -710,6 +726,7 @@ function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSourceSheet
   const warnings: string[] = [];
   let currentAssetType = "";
   let currentAssetItem = "";
+  let currentAssetItemWasEmitted = false;
   let previousDataRow: Record<string, any> | null = null;
 
   for (let index = headerRowIndex + 3; index < matrix.length; index += 1) {
@@ -725,6 +742,7 @@ function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSourceSheet
       if (looksLikeAssetType(itemName)) {
         currentAssetType = itemName;
         currentAssetItem = "";
+        currentAssetItemWasEmitted = false;
         previousDataRow = null;
         groupedAssets.push({
           sourceRowIndex: index,
@@ -736,6 +754,7 @@ function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSourceSheet
       }
       if (looksLikeAssetItemGroup(itemName)) {
         currentAssetItem = itemName;
+        currentAssetItemWasEmitted = false;
         previousDataRow = null;
         groupedAssets.push({
           sourceRowIndex: index,
@@ -763,6 +782,8 @@ function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSourceSheet
 
     const isDataRow = (isNumericSequence(sequence) || looksLikeAssetCode(assetCode)) && itemName;
     if (!isDataRow) continue;
+    const sourceAssetItemEmitOnce = Boolean(currentAssetItem && !currentAssetItemWasEmitted);
+    if (sourceAssetItemEmitOnce) currentAssetItemWasEmitted = true;
 
     const row = withCommonMeta(
       buildRawRow(headers, sourceRow),
@@ -772,6 +793,7 @@ function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSourceSheet
       currentAssetType,
       currentAssetItem,
       itemName,
+      sourceAssetItemEmitOnce,
     );
     row[INTERNAL.seq] = sequence;
     setNormalizedFields(row, {

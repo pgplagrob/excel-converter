@@ -1,4 +1,4 @@
-import { INTERNAL, SOURCE_ASSET_ITEM_COLUMN, SOURCE_ASSET_NAME_COLUMN, looksLikeAssetItemGroup, looksLikeAssetTypeGroup } from "./datasource";
+import { INTERNAL, SOURCE_ASSET_ITEM_EMIT_ONCE_COLUMN, SOURCE_ASSET_ITEM_COLUMN, SOURCE_ASSET_NAME_COLUMN, looksLikeAssetItemGroup, looksLikeAssetTypeGroup } from "./datasource";
 import { TEMPLATE_COLUMNS } from "./mapping";
 
 export interface ValidationIssue {
@@ -169,6 +169,10 @@ function looksLikeLongDetailInsteadOfGroup(value: string): boolean {
   );
 }
 
+function sourceAssetItemShouldEmit(sourceRow: Record<string, any>): boolean {
+  return sourceRow[SOURCE_ASSET_ITEM_EMIT_ONCE_COLUMN] === true;
+}
+
 export function validateMappedRows(
   sheetName: string,
   rows: Record<string, any>[],
@@ -176,6 +180,8 @@ export function validateMappedRows(
 ): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   const seenExactRows = new Map<string, number>();
+  let previousSourceAssetItem = "";
+  let previousAssetItem = "";
 
   rows.forEach((row, idx) => {
     const sourceRow = sourceRows[idx] || {};
@@ -198,6 +204,7 @@ export function validateMappedRows(
     const assetType = compact(row["ชนิดสินทรัพย์"]);
     const assetItem = compact(row["รายการสินทรัพย์"]);
     const sourceAssetItem = compact(sourceRow[SOURCE_ASSET_ITEM_COLUMN]);
+    const shouldEmitSourceAssetItem = sourceAssetItemShouldEmit(sourceRow);
     const rowValues = TEMPLATE_COLUMNS.map((column) => compact(row[column])).filter(Boolean);
     if (HEADER_VALUES.has(assetName)) {
       addIssue(
@@ -265,13 +272,24 @@ export function validateMappedRows(
       );
     }
 
-    if (!assetItem && sourceAssetItem) {
+    if (!assetItem && sourceAssetItem && shouldEmitSourceAssetItem) {
       addIssue(
         issues,
         sheetName,
         idx,
         "รายการสินทรัพย์",
         "รายการสินทรัพย์ว่าง ทั้งที่ข้อมูลต้นทางมีกลุ่มรายการที่ถูก carry-forward",
+        "warning",
+      );
+    }
+
+    if (assetItem && sourceAssetItem && sourceAssetItem === previousSourceAssetItem && assetItem === previousAssetItem) {
+      addIssue(
+        issues,
+        sheetName,
+        idx,
+        "รายการสินทรัพย์",
+        "รายการสินทรัพย์ซ้ำต่อเนื่องในกลุ่มเดียวกัน ควรแสดงเฉพาะแถวแรกของกลุ่มแล้วเว้นว่างในแถวถัดไป",
         "warning",
       );
     }
@@ -397,6 +415,9 @@ export function validateMappedRows(
         );
       }
     }
+
+    previousSourceAssetItem = sourceAssetItem;
+    previousAssetItem = assetItem;
   });
 
   return issues;
