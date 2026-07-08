@@ -197,6 +197,7 @@ export function looksLikeAssetItemGroup(value: unknown): boolean {
   return /\(\d{2,4}\)$/.test(text);
 }
 
+
 export function looksLikeAssetTypeGroup(value: unknown): boolean {
   const text = String(value ?? "").trim();
   return /^(ครุภัณฑ์|อสังหาริมทรัพย์|อาคาร|สิ่งปลูกสร้าง)/.test(text);

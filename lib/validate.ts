@@ -368,7 +368,7 @@ export function validateMappedRows(
         sheetName,
         idx,
         "row",
-        `Exact duplicate exported row matches row ${previousExactRow + 1}. Duplicate asset codes are allowed when other fields differ.`,
+        `แถวส่งออกซ้ำกับแถวที่ ${previousExactRow + 1} แบบทั้งแถว ระบบอนุญาตให้รหัสสินทรัพย์ซ้ำได้เฉพาะกรณีที่ข้อมูลช่องอื่นแตกต่างกัน`,
         "warning",
       );
     } else {

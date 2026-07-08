@@ -54,10 +54,10 @@ interface ValidationIssue {
 }
 
 const STEP_LABELS = [
-  "① อัปโหลดไฟล์",
-  "② Sheet overview",
-  "③ Preview + validate",
-  "④ Export",
+  "1. อัปโหลดไฟล์",
+  "2. Sheet overview",
+  "3. Preview + validate",
+  "4. Export",
 ];
 
 const SOURCE_COLUMN_LABELS: Record<string, string> = {
@@ -309,7 +309,7 @@ export default function Page() {
           <div className="brand-tag" />
           <div>
             <h1>ตัวกลางแปลงไฟล์สินทรัพย์</h1>
-            <p>แปลงข้อมูล Excel หลายชีตให้ตรงเทมเพลตมาตรฐาน 44 คอลัมน์</p>
+            <p>แปลงข้อมูล Excel หลายชีตให้ตรงเทมเพลตบริษัท</p>
           </div>
         </div>
         <div className="steps">
@@ -472,21 +472,42 @@ function statusIcon(status: SheetStatus): string {
   if (status === "success") return "✓";
   if (status === "warning") return "!";
   if (status === "error") return "×";
-  return "skipped";
+  return "–";
 }
 
 function statusLabel(status: SheetStatus): string {
-  if (status === "success") return "success";
-  if (status === "warning") return "warning";
-  if (status === "error") return "error";
-  return "skipped";
+  if (status === "success") return "พร้อมใช้งาน";
+  if (status === "warning") return "มีคำเตือน";
+  if (status === "error") return "พบข้อผิดพลาด";
+  return "ข้ามชีต";
 }
 
 function summaryText(summary: SheetSummary): string {
-  if (summary.status === "skipped") return "skipped";
-  if (summary.errorCount > 0) return `${summary.errorCount} errors`;
-  if (summary.warningCount > 0) return `${summary.warningCount} warnings`;
-  return `${summary.rowCount} rows`;
+  if (summary.status === "skipped") return "ข้าม";
+  if (summary.errorCount > 0) return `${summary.errorCount} ข้อผิดพลาด`;
+  if (summary.warningCount > 0) return `${summary.warningCount} คำเตือน`;
+  return `${summary.rowCount} แถว`;
+}
+
+function issueSeverityLabel(severity: ValidationIssue["severity"]): string {
+  return severity === "error" ? "ผิดพลาด" : "เตือน";
+}
+
+function displayIssueColumn(column: string): string {
+  if (column === "row") return "ทั้งแถว";
+  if (column === "sheet") return "ระดับชีต";
+  if (column === "header") return "หัวตาราง";
+  return column;
+}
+
+function displayIssueMessage(message: string): string {
+  const exactDuplicate = message.match(
+    /^Exact duplicate exported row matches row (\d+)\. Duplicate asset codes are allowed when other fields differ\.$/,
+  );
+  if (exactDuplicate) {
+    return `แถวส่งออกซ้ำกับแถวที่ ${exactDuplicate[1]} แบบทั้งแถว ระบบอนุญาตให้รหัสสินทรัพย์ซ้ำได้เฉพาะกรณีที่ข้อมูลช่องอื่นแตกต่างกัน`;
+  }
+  return message;
 }
 
 function createRuntimeSheetSummary(
@@ -521,11 +542,12 @@ function IssueList({ issues, emptyText }: { issues: ValidationIssue[]; emptyText
     <div className="issue-list">
       {issues.slice(0, 200).map((issue, idx) => (
         <div className={`issue-row ${issue.severity}`} key={idx}>
-          <span className="tag">{issue.severity === "error" ? "error" : "warning"}</span>
+          <span className="tag">{issueSeverityLabel(issue.severity)}</span>
           <span>
             <strong>{issue.sheetName}</strong>{" "}
             {issue.rowIndex >= 0 ? `แถวที่ ${issue.rowIndex + 1}` : "ระดับชีต"}
-            {issue.column ? ` · ${issue.column}` : ""}: {issue.message}
+            {issue.column ? ` · ${displayIssueColumn(issue.column)}` : ""}:{" "}
+            {displayIssueMessage(issue.message)}
           </span>
         </div>
       ))}
@@ -596,7 +618,7 @@ function PreviewStep({
               key={s.sheetName}
               className={`sheet-tab ${summary.status} ${idx === activeSheetIdx ? "active" : ""}`}
               onClick={() => setActiveSheetIdx(idx)}
-              title={`Header row ${summary.headerRow || "-"} · ${summary.errorCount} errors · ${summary.warningCount} warnings`}
+              title={`แถวหัวตาราง ${summary.headerRow || "-"} · ${summary.errorCount} ข้อผิดพลาด · ${summary.warningCount} คำเตือน`}
             >
               <span className="status-dot">{statusIcon(summary.status)}</span>
               {s.sheetName}
@@ -613,13 +635,34 @@ function PreviewStep({
         ))}
       </div>
 
-      <div className="sheet-meta">
-        <span>สถานะ: {statusLabel(currentSummary.status)}</span>
-        <span>{currentSummary.rowCount} rows</span>
-        <span>Header row: {currentSummary.headerRow || "-"}</span>
-        <span>{currentSummary.errorCount} errors</span>
-        <span>{currentSummary.warningCount} warnings</span>
-        <span>Mapped {mappedCountForSheet(sheet.sheetName)}/44 columns</span>
+      <div className={`sheet-summary-panel ${currentSummary.status}`}>
+        <div className="sheet-summary-heading">
+          <div>
+            <span className="summary-kicker">สรุปชีตปัจจุบัน</span>
+            <strong>{sheet.sheetName}</strong>
+          </div>
+          <span className={`status-badge ${currentSummary.status}`}>
+            {statusLabel(currentSummary.status)}
+          </span>
+        </div>
+        <div className="sheet-summary-grid">
+          <div className="sheet-summary-item">
+            <span>จำนวนแถว</span>
+            <strong>{currentSummary.rowCount.toLocaleString("th-TH")}</strong>
+          </div>
+          <div className="sheet-summary-item">
+            <span>ข้อผิดพลาด</span>
+            <strong>{currentSummary.errorCount.toLocaleString("th-TH")}</strong>
+          </div>
+          <div className="sheet-summary-item">
+            <span>คำเตือน</span>
+            <strong>{currentSummary.warningCount.toLocaleString("th-TH")}</strong>
+          </div>
+          <div className="sheet-summary-item">
+            <span>จับคู่คอลัมน์แล้ว</span>
+            <strong>{mappedCountForSheet(sheet.sheetName).toLocaleString("th-TH")}/44</strong>
+          </div>
+        </div>
       </div>
 
       <h3>Source Preview</h3>
@@ -719,7 +762,7 @@ function PreviewStep({
         )}
       </div>
 
-      <h3>Validation Result</h3>
+      <h3>ผลการตรวจสอบข้อมูล</h3>
       {issueSummary && (
         <div className="summary-grid small">
           <div className="summary-card">
@@ -728,11 +771,11 @@ function PreviewStep({
           </div>
           <div className={`summary-card ${issueSummary.errorCount > 0 ? "error" : "ok"}`}>
             <div className="num">{issueSummary.errorCount}</div>
-            <div className="label">Errors</div>
+            <div className="label">ข้อผิดพลาด</div>
           </div>
           <div className="summary-card">
             <div className="num">{issueSummary.warningCount}</div>
-            <div className="label">Warnings</div>
+            <div className="label">คำเตือน</div>
           </div>
         </div>
       )}
@@ -905,11 +948,11 @@ function DownloadStep({
           {(issues as ValidationIssue[]).slice(0, 200).map((issue, idx) => (
             <div className={`issue-row ${issue.severity}`} key={idx}>
               <span className="tag">
-                {issue.severity === "error" ? "ผิดพลาด" : "เตือน"}
+                {issueSeverityLabel(issue.severity)}
               </span>
               <span>
                 <strong>{issue.sheetName}</strong> แถวที่ {issue.rowIndex + 1}:{" "}
-                {issue.message}
+                {displayIssueMessage(issue.message)}
               </span>
             </div>
           ))}
