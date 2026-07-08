@@ -1,20 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as XLSX from "xlsx-js-style";
+import type { ExportMode, ExportRequest, ExportSheetInput } from "@/lib/client-types";
 import { mappingSuggestionsToRecord, mergeMapping, TEMPLATE_COLUMNS } from "@/lib/mapping";
 import { logTemplateDataset, transformRowsToTemplateDataset } from "@/lib/transform";
 import { createSheetSummary, validateMappedRows, validateSheetLevel } from "@/lib/validate";
 
 export const runtime = "nodejs";
-
-interface ExportSheetInput {
-  sheetName: string;
-  rows: Record<string, any>[];
-  headerRow?: number;
-  autoMapping?: any[];
-  manualMapping?: Record<string, string | null>;
-  // mapping: templateColumn -> sourceColumn (or null/empty if unmapped)
-  mapping?: Record<string, string | null>;
-}
 
 function applyTableStyle(ws: XLSX.WorkSheet, columns: string[], rowCount: number) {
   const borderStyle = {
@@ -70,11 +61,11 @@ function buildExportFileName(sourceFileName?: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const body = (await req.json()) as ExportRequest;
     const sourceFileName = body.sourceFileName || "output.xlsx";
     const baseName = sourceFileName.replace(".xlsx", "");
     const sheetsInput: ExportSheetInput[] = body.sheets || [];
-    const mode: string = body.mode || "download"; // "download" | "validate"
+    const mode: ExportMode = body.mode || "download";
 
     if (!sheetsInput.length) {
       return NextResponse.json({ error: "ไม่มีข้อมูลสำหรับสร้างไฟล์" }, { status: 400 });

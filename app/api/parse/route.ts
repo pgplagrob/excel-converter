@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { ParseResponse, ValidationIssue } from "@/lib/client-types";
 import { createDataSourceWorkbook, logDataSourceWorkbook } from "@/lib/datasource";
 import { readWorkbookBuffer } from "@/lib/excel";
 import { suggestMapping } from "@/lib/mapping";
-import { createSheetSummary, type ValidationIssue } from "@/lib/validate";
+import { createSheetSummary } from "@/lib/validate";
 
 export const runtime = "nodejs";
 
@@ -56,13 +57,15 @@ export async function POST(req: NextRequest) {
       createSheetSummary(sheetName, 0, undefined, [], "skipped"),
     );
 
-    return NextResponse.json({
+    const response: ParseResponse = {
       fileName: dataSource.fileName,
       sheets,
       skippedSheets: dataSource.skippedSheets,
       skippedSheetSummaries,
       sheetProfileDebug: dataSource.profileDebug,
-    });
+    };
+
+    return NextResponse.json(response);
   } catch (err: any) {
     console.error(err);
     return NextResponse.json(
