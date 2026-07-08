@@ -472,7 +472,7 @@ function setNormalizedFields(
   },
 ): Record<string, any> {
   let assetName = cellText(values.assetName);
-  let assetDetail = cellText(values.assetDetail) || assetName;
+  let assetDetail = cellText(values.assetDetail);
 
   if (looksLikeAssetItemGroup(assetName)) {
     if (!cellText(row[SOURCE_ASSET_ITEM_COLUMN])) row[SOURCE_ASSET_ITEM_COLUMN] = assetName;
@@ -480,7 +480,7 @@ function setNormalizedFields(
     if (looksLikeAssetItemGroup(assetDetail)) assetDetail = "";
   }
 
-  if (looksLikeAssetType(assetName)) {
+  if (!values.assetCode && looksLikeAssetType(assetName)) {
     if (!cellText(row[SOURCE_ASSET_TYPE_COLUMN])) row[SOURCE_ASSET_TYPE_COLUMN] = assetName;
     assetName = "";
     if (looksLikeAssetType(assetDetail)) assetDetail = "";
@@ -488,7 +488,7 @@ function setNormalizedFields(
 
   row.assetCode = values.assetCode || "";
   row.assetName = assetName;
-  row.assetDetail = assetDetail || assetName || "";
+  row.assetDetail = assetDetail;
   row.receivedDate = values.receivedDate ?? "";
   row.value = values.value ?? "";
   row.responsibleUnit = values.responsibleUnit || "";
@@ -682,7 +682,6 @@ function parseNewAssetSheet(sheetName: string, matrix: any[][]): DataSourceSheet
       currentAssetItem = sourceAssetItem;
       currentAssetItemWasEmitted = true;
     }
-    const sourceAssetName = assetDetail;
     const row = withCommonMeta(
       buildRawRow(headers, sourceRow),
       "NEW_ASSET_2567",
@@ -691,13 +690,13 @@ function parseNewAssetSheet(sheetName: string, matrix: any[][]): DataSourceSheet
       sourceAssetType,
       sourceAssetTypeEmitOnce,
       sourceAssetItem,
-      sourceAssetName,
+      "",
       sourceAssetItemEmitOnce,
     );
     row[INTERNAL.seq] = sequence;
     setNormalizedFields(row, {
       assetCode,
-      assetName: assetDetail,
+      assetName: "",
       assetDetail,
       receivedDate: normalizeThaiDate(sourceRow[4], sourceRow[5], sourceRow[6]),
       value: sourceRow[7] ?? "",
@@ -823,7 +822,7 @@ function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSourceSheet
     setNormalizedFields(row, {
       assetCode,
       assetName: itemName,
-      assetDetail: itemName,
+      assetDetail: "",
       receivedDate: normalizeThaiDate(sourceRow[3]),
       value: sourceRow[4] ?? "",
       responsibleUnit: sourceRow[5] ?? "",
@@ -908,7 +907,7 @@ function parseTransferSheet(sheetName: string, matrix: any[][]): DataSourceSheet
     setNormalizedFields(row, {
       assetCode: cellText(sourceRow[4]),
       assetName,
-      assetDetail: assetName,
+      assetDetail: "",
       receivedDate: normalizeThaiDate(sourceRow[5], sourceRow[6], sourceRow[7]),
       value: sourceRow[8] ?? "",
       responsibleUnit: sourceRow[9] ?? "",

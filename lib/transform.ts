@@ -88,6 +88,7 @@ function normalizedAssetFields(sourceRow: Record<string, any>): {
 } {
   let sourceAssetType = cellText(sourceRow[SOURCE_ASSET_TYPE_COLUMN]);
   let sourceAssetItem = cellText(sourceRow[SOURCE_ASSET_ITEM_COLUMN]);
+  const assetCode = firstText(sourceRow.assetCode, sourceRow[INTERNAL.assetCode]);
   let assetName = firstText(sourceRow.assetName, sourceRow[INTERNAL.assetName], sourceRow[SOURCE_ASSET_NAME_COLUMN]);
   let assetDetail = firstText(sourceRow.assetDetail, sourceRow[INTERNAL.detail]);
 
@@ -99,7 +100,7 @@ function normalizedAssetFields(sourceRow: Record<string, any>): {
     assetName = "";
   }
 
-  if (startsWithMainAssetType(assetName)) {
+  if (!assetCode && startsWithMainAssetType(assetName)) {
     if (!sourceAssetType) {
       sourceAssetType = assetName;
       sourceRow[SOURCE_ASSET_TYPE_COLUMN] = sourceAssetType;
@@ -121,7 +122,7 @@ function normalizedAssetFields(sourceRow: Record<string, any>): {
 
   return {
     assetName,
-    assetDetail: assetDetail || assetName || "",
+    assetDetail,
     sourceAssetType,
     sourceAssetItem,
   };
@@ -178,6 +179,7 @@ function deriveAssetCategory(sourceRow: Record<string, any>, sourceAssetType: st
 
 function validateAuthoritativeAssetFields(templateRow: Record<string, any>, sourceRow: Record<string, any>): void {
   const assetName = cellText(templateRow[ASSET_NAME_COLUMN]);
+  const assetCode = cellText(templateRow["รหัสสินทรัพย์"]);
   const assetItem = cellText(templateRow[ASSET_ITEM_COLUMN]);
   const sourceAssetItem = cellText(sourceRow[SOURCE_ASSET_ITEM_COLUMN]);
   const shouldEmitSourceAssetItem = sourceAssetItemShouldEmit(sourceRow);
@@ -185,7 +187,7 @@ function validateAuthoritativeAssetFields(templateRow: Record<string, any>, sour
 
   if (looksLikeAssetItemGroup(assetName)) problems.push("ชื่อสินทรัพย์ matches item-group pattern");
   if (assetName && assetItem && assetName === assetItem) problems.push("ชื่อสินทรัพย์ equals รายการสินทรัพย์");
-  if (startsWithMainAssetType(assetName)) problems.push("ชื่อสินทรัพย์ starts with main asset type");
+  if (!assetCode && startsWithMainAssetType(assetName)) problems.push("ชื่อสินทรัพย์ starts with main asset type");
   if (!assetItem && sourceAssetItem && shouldEmitSourceAssetItem) problems.push("รายการสินทรัพย์ is empty while sourceAssetItem should be emitted");
 
   if (problems.length) {
@@ -205,7 +207,7 @@ function applyAuthoritativeAssetFields(templateRow: Record<string, any>, sourceR
   const normalized = normalizedAssetFields(sourceRow);
   const visibleSourceAssetType = sourceAssetTypeShouldEmit(sourceRow) ? normalized.sourceAssetType : "";
   templateRow[ASSET_NAME_COLUMN] = normalized.assetName || "";
-  templateRow[ASSET_DETAIL_COLUMN] = normalized.assetDetail || normalized.assetName || "";
+  templateRow[ASSET_DETAIL_COLUMN] = normalized.assetDetail || "";
   templateRow[ASSET_TYPE_COLUMN] = visibleSourceAssetType;
   templateRow[ASSET_ITEM_COLUMN] = sourceAssetItemShouldEmit(sourceRow) ? normalized.sourceAssetItem || "" : "";
   validateAuthoritativeAssetFields(templateRow, sourceRow);
@@ -223,7 +225,7 @@ function mapProfileRow(sourceRow: Record<string, any>, profile: SourceProfile): 
 
   row["รหัสสินทรัพย์"] = assetCode;
   row[ASSET_NAME_COLUMN] = assetName;
-  row[ASSET_DETAIL_COLUMN] = assetDetail || assetName;
+  row[ASSET_DETAIL_COLUMN] = assetDetail;
   row["ประเภทสินทรัพย์"] = deriveAssetCategory(sourceRow, visibleSourceAssetType);
   row[ASSET_TYPE_COLUMN] = visibleSourceAssetType;
   row[ASSET_ITEM_COLUMN] = sourceAssetItem;
@@ -247,7 +249,7 @@ function mapProfileRow(sourceRow: Record<string, any>, profile: SourceProfile): 
   }
 
   if (profile === "TRANSFER_2567") {
-    row[ASSET_DETAIL_COLUMN] = assetDetail || assetName;
+    row[ASSET_DETAIL_COLUMN] = assetDetail;
     row["ได้มาจาก"] = sourceValue(sourceRow, "acquiredFrom", INTERNAL.acquiredFrom) ?? "";
     row["แหล่งงบประมาณ"] = sourceValue(sourceRow, "budgetSource", INTERNAL.budgetSource) ?? "";
     row["สถานะ"] = "ปกติ";

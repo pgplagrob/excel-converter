@@ -5,6 +5,7 @@ import {
   SOURCE_ASSET_NAME_COLUMN,
   SOURCE_ASSET_TYPE_COLUMN,
   SOURCE_ASSET_TYPE_EMIT_ONCE_COLUMN,
+  SOURCE_PROFILE_COLUMN,
   looksLikeAssetItemGroup,
   looksLikeAssetTypeGroup,
 } from "./datasource";
@@ -90,7 +91,12 @@ export function validateSheetLevel(
     const hasNormalizedValue = sourceRows.some((row) => {
       if (column === "รหัสสินทรัพย์") return Boolean(text(row.assetCode) || text(row[INTERNAL.assetCode]));
       if (column === "ชื่อสินทรัพย์") {
-        return Boolean(text(row.assetName) || text(row[INTERNAL.assetName]) || text(row[SOURCE_ASSET_NAME_COLUMN]));
+        return Boolean(
+          text(row.assetName) ||
+            text(row[INTERNAL.assetName]) ||
+            text(row[SOURCE_ASSET_NAME_COLUMN]) ||
+            sourceAllowsDetailOnlyAssetName(row),
+        );
       }
       return false;
     });
@@ -189,6 +195,13 @@ function sourceAssetTypeShouldEmit(sourceRow: Record<string, any>): boolean {
   return Boolean(text(sourceRow[SOURCE_ASSET_TYPE_COLUMN]));
 }
 
+function sourceAllowsDetailOnlyAssetName(sourceRow: Record<string, any>): boolean {
+  return (
+    text(sourceRow[SOURCE_PROFILE_COLUMN]) === "NEW_ASSET_2567" &&
+    Boolean(text(sourceRow.assetDetail) || text(sourceRow[INTERNAL.detail]))
+  );
+}
+
 export function validateMappedRows(
   sheetName: string,
   rows: Record<string, any>[],
@@ -201,8 +214,12 @@ export function validateMappedRows(
 
   rows.forEach((row, idx) => {
     const sourceRow = sourceRows[idx] || {};
+    const allowsDetailOnlyAssetName = sourceAllowsDetailOnlyAssetName(sourceRow);
     for (const col of REQUIRED_COLUMNS) {
-      if (!text(row[col])) {
+      if (
+        !text(row[col]) &&
+        !(col === "ชื่อสินทรัพย์" && text(row["รายละเอียด"]) && allowsDetailOnlyAssetName)
+      ) {
         addIssue(
           issues,
           sheetName,
@@ -245,7 +262,7 @@ export function validateMappedRows(
       );
     }
 
-    if (looksLikeAssetTypeGroup(row["ชื่อสินทรัพย์"])) {
+    if (!assetCode && looksLikeAssetTypeGroup(row["ชื่อสินทรัพย์"])) {
       addIssue(
         issues,
         sheetName,
@@ -267,7 +284,7 @@ export function validateMappedRows(
       );
     }
 
-    if (!assetName && assetDetail) {
+    if (!assetName && assetDetail && !allowsDetailOnlyAssetName) {
       addIssue(
         issues,
         sheetName,
