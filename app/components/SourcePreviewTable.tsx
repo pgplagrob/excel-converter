@@ -7,6 +7,7 @@ interface SourcePreviewTableProps {
 
 export function SourcePreviewTable({ sheet }: SourcePreviewTableProps) {
   const previewRows = previewRowsWithVisibleAssetType(sheet.rows).slice(0, 30);
+  const visibleColumns = sheet.headers.filter((column) => !column.startsWith("__"));
 
   return (
     <>
@@ -15,7 +16,7 @@ export function SourcePreviewTable({ sheet }: SourcePreviewTableProps) {
         <table>
           <thead>
             <tr>
-              {sheet.headers.map((column) => (
+              {visibleColumns.map((column) => (
                 <th key={column} title={column}>
                   <div>{displaySourceColumnLabel(column)}</div>
                 </th>
@@ -25,9 +26,15 @@ export function SourcePreviewTable({ sheet }: SourcePreviewTableProps) {
           <tbody>
             {previewRows.map((row, index) => (
               <tr key={row.__rowKey || `${sheet.sheetName}:${index}`}>
-                {sheet.headers.map((column) => (
-                  <td key={column}>{row[column] || <span style={{ color: "#ccc" }}>—</span>}</td>
-                ))}
+                {visibleColumns.map((column) => {
+                  const value = row[column];
+                  const isEmpty = value === "" || value === undefined || value === null;
+                  return (
+                    <td key={column}>
+                      {isEmpty ? <span style={{ color: "#ccc" }}>—</span> : String(value)}
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>

@@ -59,7 +59,7 @@ export default function Page() {
     parsedData: ParseResponse,
     manualMappingState: Record<string, Record<string, string>>,
   ) => {
-    const res = await fetch("/api/export", {
+    const res = await fetch("/api/v1/export", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(buildExportPayload(parsedData, manualMappingState, "validate")),
@@ -89,7 +89,7 @@ export default function Page() {
     try {
       const fd = new FormData();
       fd.append("file", file);
-      const res = await fetch("/api/parse", { method: "POST", body: fd });
+      const res = await fetch("/api/v1/parse", { method: "POST", body: fd });
       const data: ParseResponse = await res.json();
       if (!res.ok) {
         setError(data.error || "เกิดข้อผิดพลาดในการอ่านไฟล์");
@@ -133,7 +133,7 @@ export default function Page() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/export", {
+      const res = await fetch("/api/v1/export", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(buildExportPayload(parsed, mappingState, "download")),
