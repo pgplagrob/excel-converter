@@ -67,6 +67,7 @@ const SOURCE_COLUMN_LABELS: Record<string, string> = {
   __sourceRowIndex: "Source row index",
   __rowKey: "Stable row key",
   sourceAssetType: "ชนิดสินทรัพย์จากต้นทาง",
+  __sourceAssetTypeEmitOnce: "แสดงชนิดสินทรัพย์จากต้นทางครั้งเดียว",
   sourceAssetItem: "รายการสินทรัพย์จากต้นทาง",
   sourceAssetName: "ชื่อสินทรัพย์ที่ระบบอ่านได้",
   assetCode: "รหัสสินทรัพย์",
@@ -107,11 +108,38 @@ const SOURCE_COLUMN_LABELS: Record<string, string> = {
   __importantFlag: "ของสำคัญที่ระบบอ่านได้",
 };
 
+const SOURCE_PROFILE_COLUMN = "__sourceProfile";
+const SOURCE_ASSET_TYPE_COLUMN = "sourceAssetType";
+const SOURCE_ASSET_TYPE_EMIT_ONCE_COLUMN = "__sourceAssetTypeEmitOnce";
+
 function displaySourceColumnLabel(column: string | null | undefined): string {
   if (!column) return "";
   const emptyColumn = column.match(/^__EMPTY_COLUMN_(\d+)$/);
   if (emptyColumn) return `คอลัมน์ว่าง ${emptyColumn[1]}`;
   return SOURCE_COLUMN_LABELS[column] || column;
+}
+
+function previewRowsWithVisibleAssetType(rows: Record<string, any>[]): Record<string, any>[] {
+  let previousAssetType = "";
+
+  return rows.map((row) => {
+    const profile = String(row[SOURCE_PROFILE_COLUMN] || "").trim();
+    const sourceAssetType = String(row[SOURCE_ASSET_TYPE_COLUMN] || "").trim();
+
+    if (profile !== "REGISTER_3_ROW_HEADER" || !sourceAssetType) return row;
+
+    const emitFlag = row[SOURCE_ASSET_TYPE_EMIT_ONCE_COLUMN];
+    const shouldShow =
+      emitFlag === true || (emitFlag !== false && sourceAssetType !== previousAssetType);
+    previousAssetType = sourceAssetType;
+
+    return shouldShow
+      ? row
+      : {
+          ...row,
+          [SOURCE_ASSET_TYPE_COLUMN]: "",
+        };
+  });
 }
 
 function displaySourceColumnWithOriginal(column: string): string {
@@ -571,7 +599,7 @@ function PreviewStep({
   loading,
 }: any) {
   const sheet: SheetData = parsed.sheets[activeSheetIdx];
-  const previewRows = sheet.rows.slice(0, 30);
+  const previewRows = previewRowsWithVisibleAssetType(sheet.rows).slice(0, 30);
   const displayCols = sheet.headers;
   const sheetMap: Record<string, string> = mappingState[sheet.sheetName] || {};
   const sheetIssues = ((issues || []) as ValidationIssue[]).filter(

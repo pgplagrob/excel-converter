@@ -1,4 +1,13 @@
-import { INTERNAL, SOURCE_ASSET_ITEM_EMIT_ONCE_COLUMN, SOURCE_ASSET_ITEM_COLUMN, SOURCE_ASSET_NAME_COLUMN, looksLikeAssetItemGroup, looksLikeAssetTypeGroup } from "./datasource";
+import {
+  INTERNAL,
+  SOURCE_ASSET_ITEM_EMIT_ONCE_COLUMN,
+  SOURCE_ASSET_ITEM_COLUMN,
+  SOURCE_ASSET_NAME_COLUMN,
+  SOURCE_ASSET_TYPE_COLUMN,
+  SOURCE_ASSET_TYPE_EMIT_ONCE_COLUMN,
+  looksLikeAssetItemGroup,
+  looksLikeAssetTypeGroup,
+} from "./datasource";
 import { TEMPLATE_COLUMNS } from "./mapping";
 
 export interface ValidationIssue {
@@ -173,6 +182,13 @@ function sourceAssetItemShouldEmit(sourceRow: Record<string, any>): boolean {
   return sourceRow[SOURCE_ASSET_ITEM_EMIT_ONCE_COLUMN] === true;
 }
 
+function sourceAssetTypeShouldEmit(sourceRow: Record<string, any>): boolean {
+  const emitOnce = sourceRow[SOURCE_ASSET_TYPE_EMIT_ONCE_COLUMN];
+  if (emitOnce === false) return false;
+  if (emitOnce === true) return true;
+  return Boolean(text(sourceRow[SOURCE_ASSET_TYPE_COLUMN]));
+}
+
 export function validateMappedRows(
   sheetName: string,
   rows: Record<string, any>[],
@@ -205,6 +221,7 @@ export function validateMappedRows(
     const assetItem = compact(row["รายการสินทรัพย์"]);
     const sourceAssetItem = compact(sourceRow[SOURCE_ASSET_ITEM_COLUMN]);
     const shouldEmitSourceAssetItem = sourceAssetItemShouldEmit(sourceRow);
+    const shouldEmitSourceAssetType = sourceAssetTypeShouldEmit(sourceRow);
     const rowValues = TEMPLATE_COLUMNS.map((column) => compact(row[column])).filter(Boolean);
     if (HEADER_VALUES.has(assetName)) {
       addIssue(
@@ -305,7 +322,7 @@ export function validateMappedRows(
       );
     }
 
-    if (assetCode && assetName && assetItem && !assetType) {
+    if (assetCode && assetName && assetItem && !assetType && shouldEmitSourceAssetType) {
       addIssue(
         issues,
         sheetName,

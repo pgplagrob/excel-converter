@@ -41,6 +41,7 @@ export const SOURCE_EXCEL_ROW_COLUMN = "__excelRow";
 export const SOURCE_ROW_INDEX_COLUMN = "__sourceRowIndex";
 export const SOURCE_ROW_KEY_COLUMN = "__rowKey";
 export const SOURCE_ASSET_TYPE_COLUMN = "sourceAssetType";
+export const SOURCE_ASSET_TYPE_EMIT_ONCE_COLUMN = "__sourceAssetTypeEmitOnce";
 export const SOURCE_ASSET_ITEM_COLUMN = "sourceAssetItem";
 export const SOURCE_ASSET_ITEM_EMIT_ONCE_COLUMN = "__sourceAssetItemEmitOnce";
 export const SOURCE_ASSET_NAME_COLUMN = "sourceAssetName";
@@ -55,6 +56,7 @@ export type NormalizedSourceAssetRow = {
   assetName: string;
   assetDetail?: string;
   sourceAssetType?: string;
+  __sourceAssetTypeEmitOnce?: boolean;
   sourceAssetItem?: string;
   __sourceAssetItemEmitOnce?: boolean;
   receivedDate?: unknown;
@@ -135,6 +137,7 @@ interface GroupedAssetDebug {
   excelRow: number;
   sourceAssetName: string;
   sourceAssetType: string;
+  sourceAssetTypeEmitOnce?: boolean;
   firstAssetCode?: string;
   firstSequence?: string;
 }
@@ -441,6 +444,7 @@ function withCommonMeta(
   sheetName: string,
   excelRow: number,
   sourceAssetType: string,
+  sourceAssetTypeEmitOnce: boolean | undefined,
   sourceAssetItem: string,
   sourceAssetName: string,
   sourceAssetItemEmitOnce = false,
@@ -450,6 +454,9 @@ function withCommonMeta(
   row[SOURCE_EXCEL_ROW_COLUMN] = excelRow;
   row[SOURCE_ROW_INDEX_COLUMN] = excelRow - 1;
   row[SOURCE_ASSET_TYPE_COLUMN] = sourceAssetType;
+  if (sourceAssetTypeEmitOnce !== undefined) {
+    row[SOURCE_ASSET_TYPE_EMIT_ONCE_COLUMN] = sourceAssetTypeEmitOnce;
+  }
   row[SOURCE_ASSET_ITEM_COLUMN] = sourceAssetItem;
   row[SOURCE_ASSET_ITEM_EMIT_ONCE_COLUMN] = sourceAssetItemEmitOnce;
   row[SOURCE_ASSET_NAME_COLUMN] = sourceAssetName;
@@ -529,6 +536,7 @@ function appendHeaders(headers: string[]): string[] {
     SOURCE_ROW_INDEX_COLUMN,
     SOURCE_ROW_KEY_COLUMN,
     SOURCE_ASSET_TYPE_COLUMN,
+    SOURCE_ASSET_TYPE_EMIT_ONCE_COLUMN,
     SOURCE_ASSET_ITEM_COLUMN,
     SOURCE_ASSET_ITEM_EMIT_ONCE_COLUMN,
     SOURCE_ASSET_NAME_COLUMN,
@@ -623,6 +631,7 @@ function parseNewAssetSheet(sheetName: string, matrix: any[][]): DataSourceSheet
   const groupedAssets: GroupedAssetDebug[] = [];
   const warnings: string[] = [];
   let currentAssetType = "";
+  let currentAssetTypeWasEmitted = false;
   let currentAssetItem = "";
   let currentAssetItemWasEmitted = false;
 
@@ -638,6 +647,7 @@ function parseNewAssetSheet(sheetName: string, matrix: any[][]): DataSourceSheet
     if (!sequence && !assetCode && columnC) {
       if (looksLikeAssetType(columnC)) {
         currentAssetType = columnC;
+        currentAssetTypeWasEmitted = false;
         currentAssetItem = "";
         currentAssetItemWasEmitted = false;
       } else if (looksLikeAssetItemGroup(columnC)) {
@@ -651,13 +661,19 @@ function parseNewAssetSheet(sheetName: string, matrix: any[][]): DataSourceSheet
         excelRow: index + 1,
         sourceAssetName: currentAssetItem || currentAssetType,
         sourceAssetType: currentAssetType,
+        sourceAssetTypeEmitOnce: Boolean(currentAssetType && !currentAssetTypeWasEmitted),
       });
       continue;
     }
 
     if (!(isNumericSequence(sequence) && assetCode && assetDetail)) continue;
 
-    const sourceAssetType = looksLikeAssetItemGroup(columnC) ? currentAssetType : columnC || currentAssetType;
+    const usesCarriedAssetType = !columnC || looksLikeAssetItemGroup(columnC);
+    const sourceAssetType = usesCarriedAssetType ? currentAssetType : columnC;
+    const sourceAssetTypeEmitOnce = usesCarriedAssetType
+      ? Boolean(sourceAssetType && !currentAssetTypeWasEmitted)
+      : undefined;
+    if (sourceAssetTypeEmitOnce) currentAssetTypeWasEmitted = true;
     const sourceAssetItem = looksLikeAssetItemGroup(columnC) ? columnC : currentAssetItem;
     const sourceAssetItemEmitOnce = Boolean(
       sourceAssetItem && (looksLikeAssetItemGroup(columnC) || !currentAssetItemWasEmitted),
@@ -673,6 +689,7 @@ function parseNewAssetSheet(sheetName: string, matrix: any[][]): DataSourceSheet
       sheetName,
       index + 1,
       sourceAssetType,
+      sourceAssetTypeEmitOnce,
       sourceAssetItem,
       sourceAssetName,
       sourceAssetItemEmitOnce,
@@ -690,7 +707,6 @@ function parseNewAssetSheet(sheetName: string, matrix: any[][]): DataSourceSheet
       note: sourceRow[11] ?? "",
     });
     row[INTERNAL.status] = "ปกติ";
-    row[INTERNAL.assetCategory] = "ครุภัณฑ์";
     row[INTERNAL.needCount] = "True";
     row[INTERNAL.importantFlag] = "False";
     row[INTERNAL.depreciationFlag] = sheetName.includes("ต่ำกว่าเกณฑ์") ? "False" : "True";
@@ -726,6 +742,7 @@ function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSourceSheet
   const groupedAssets: GroupedAssetDebug[] = [];
   const warnings: string[] = [];
   let currentAssetType = "";
+  let currentAssetTypeWasEmitted = false;
   let currentAssetItem = "";
   let currentAssetItemWasEmitted = false;
   let previousDataRow: Record<string, any> | null = null;
@@ -742,6 +759,7 @@ function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSourceSheet
     if (!sequence && !assetCode && itemName) {
       if (looksLikeAssetType(itemName)) {
         currentAssetType = itemName;
+        currentAssetTypeWasEmitted = false;
         currentAssetItem = "";
         currentAssetItemWasEmitted = false;
         previousDataRow = null;
@@ -750,6 +768,7 @@ function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSourceSheet
           excelRow: index + 1,
           sourceAssetName: currentAssetType,
           sourceAssetType: currentAssetType,
+          sourceAssetTypeEmitOnce: Boolean(currentAssetType && !currentAssetTypeWasEmitted),
         });
         continue;
       }
@@ -762,6 +781,7 @@ function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSourceSheet
           excelRow: index + 1,
           sourceAssetName: currentAssetItem,
           sourceAssetType: currentAssetType,
+          sourceAssetTypeEmitOnce: Boolean(currentAssetType && !currentAssetTypeWasEmitted),
         });
         continue;
       }
@@ -783,6 +803,8 @@ function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSourceSheet
 
     const isDataRow = (isNumericSequence(sequence) || looksLikeAssetCode(assetCode)) && itemName;
     if (!isDataRow) continue;
+    const sourceAssetTypeEmitOnce = Boolean(currentAssetType && !currentAssetTypeWasEmitted);
+    if (sourceAssetTypeEmitOnce) currentAssetTypeWasEmitted = true;
     const sourceAssetItemEmitOnce = Boolean(currentAssetItem && !currentAssetItemWasEmitted);
     if (sourceAssetItemEmitOnce) currentAssetItemWasEmitted = true;
 
@@ -792,6 +814,7 @@ function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSourceSheet
       sheetName,
       index + 1,
       currentAssetType,
+      sourceAssetTypeEmitOnce,
       currentAssetItem,
       itemName,
       sourceAssetItemEmitOnce,
@@ -867,8 +890,7 @@ function parseTransferSheet(sheetName: string, matrix: any[][]): DataSourceSheet
     if (!looksLikeAssetCode(sourceRow[4])) continue;
 
     const assetType = cellText(sourceRow[3]);
-    const sourceAssetType =
-      assetType || (sheetName.includes("อาคาร") ? "อสังหาริมทรัพย์" : "ครุภัณฑ์");
+    const sourceAssetType = assetType;
     const assetName = cellText(sourceRow[2]);
     if (!assetName) continue;
 
@@ -878,6 +900,7 @@ function parseTransferSheet(sheetName: string, matrix: any[][]): DataSourceSheet
       sheetName,
       index + 1,
       sourceAssetType,
+      undefined,
       "",
       assetName,
     );
@@ -931,6 +954,7 @@ function parseUnknownSheet(
         sheetName,
         headerRowIndex + index + 2,
         "",
+        undefined,
         "",
         "",
       ),

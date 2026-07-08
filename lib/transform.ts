@@ -4,6 +4,7 @@ import {
   SOURCE_ASSET_ITEM_EMIT_ONCE_COLUMN,
   SOURCE_ASSET_ITEM_COLUMN,
   SOURCE_ASSET_NAME_COLUMN,
+  SOURCE_ASSET_TYPE_EMIT_ONCE_COLUMN,
   SOURCE_ASSET_TYPE_COLUMN,
   SOURCE_PROFILE_COLUMN,
   type SourceProfile,
@@ -130,7 +131,44 @@ function sourceAssetItemShouldEmit(sourceRow: Record<string, any>): boolean {
   return sourceRow[SOURCE_ASSET_ITEM_EMIT_ONCE_COLUMN] === true;
 }
 
+function sourceAssetTypeShouldEmit(sourceRow: Record<string, any>): boolean {
+  const emitOnce = sourceRow[SOURCE_ASSET_TYPE_EMIT_ONCE_COLUMN];
+  if (emitOnce === false) return false;
+  if (emitOnce === true) return true;
+  return Boolean(cellText(sourceRow[SOURCE_ASSET_TYPE_COLUMN]));
+}
+
+function hasAssetTypeEmitFlag(sourceRow: Record<string, any>): boolean {
+  const emitOnce = sourceRow[SOURCE_ASSET_TYPE_EMIT_ONCE_COLUMN];
+  return emitOnce === true || emitOnce === false;
+}
+
+function backfillRegisterAssetTypeEmitFlags(rows: Record<string, any>[]): Record<string, any>[] {
+  let previousAssetType = "";
+
+  return rows.map((sourceRow) => {
+    const profile = cellText(sourceRow[SOURCE_PROFILE_COLUMN]);
+    const sourceAssetType = cellText(sourceRow[SOURCE_ASSET_TYPE_COLUMN]);
+
+    if (profile !== "REGISTER_3_ROW_HEADER" || !sourceAssetType) return sourceRow;
+
+    if (hasAssetTypeEmitFlag(sourceRow)) {
+      previousAssetType = sourceAssetType;
+      return sourceRow;
+    }
+
+    const shouldEmit = sourceAssetType !== previousAssetType;
+    previousAssetType = sourceAssetType;
+
+    return {
+      ...sourceRow,
+      [SOURCE_ASSET_TYPE_EMIT_ONCE_COLUMN]: shouldEmit,
+    };
+  });
+}
+
 function deriveAssetCategory(sourceRow: Record<string, any>, sourceAssetType: string): string {
+  if (!sourceAssetType) return "";
   const explicitCategory = cellText(sourceRow[INTERNAL.assetCategory]);
   if (explicitCategory) return explicitCategory;
   return sourceAssetType.includes("อสังหาริมทรัพย์") || sourceAssetType.includes("อาคาร")
@@ -165,9 +203,10 @@ function validateAuthoritativeAssetFields(templateRow: Record<string, any>, sour
 
 function applyAuthoritativeAssetFields(templateRow: Record<string, any>, sourceRow: Record<string, any>): void {
   const normalized = normalizedAssetFields(sourceRow);
+  const visibleSourceAssetType = sourceAssetTypeShouldEmit(sourceRow) ? normalized.sourceAssetType : "";
   templateRow[ASSET_NAME_COLUMN] = normalized.assetName || "";
   templateRow[ASSET_DETAIL_COLUMN] = normalized.assetDetail || normalized.assetName || "";
-  templateRow[ASSET_TYPE_COLUMN] = normalized.sourceAssetType || "";
+  templateRow[ASSET_TYPE_COLUMN] = visibleSourceAssetType;
   templateRow[ASSET_ITEM_COLUMN] = sourceAssetItemShouldEmit(sourceRow) ? normalized.sourceAssetItem || "" : "";
   validateAuthoritativeAssetFields(templateRow, sourceRow);
 }
@@ -177,6 +216,7 @@ function mapProfileRow(sourceRow: Record<string, any>, profile: SourceProfile): 
   const normalized = normalizedAssetFields(sourceRow);
   const sourceAssetType = normalized.sourceAssetType;
   const sourceAssetItem = normalized.sourceAssetItem;
+  const visibleSourceAssetType = sourceAssetTypeShouldEmit(sourceRow) ? sourceAssetType : "";
   const assetCode = sourceValue(sourceRow, "assetCode", INTERNAL.assetCode) ?? "";
   const assetName = normalized.assetName;
   const assetDetail = normalized.assetDetail;
@@ -184,8 +224,8 @@ function mapProfileRow(sourceRow: Record<string, any>, profile: SourceProfile): 
   row["รหัสสินทรัพย์"] = assetCode;
   row[ASSET_NAME_COLUMN] = assetName;
   row[ASSET_DETAIL_COLUMN] = assetDetail || assetName;
-  row["ประเภทสินทรัพย์"] = deriveAssetCategory(sourceRow, sourceAssetType);
-  row[ASSET_TYPE_COLUMN] = sourceAssetType;
+  row["ประเภทสินทรัพย์"] = deriveAssetCategory(sourceRow, visibleSourceAssetType);
+  row[ASSET_TYPE_COLUMN] = visibleSourceAssetType;
   row[ASSET_ITEM_COLUMN] = sourceAssetItem;
   row["มูลค่า"] = cleanMoneyValue(sourceValue(sourceRow, "value", INTERNAL.value));
   row["วันที่ได้รับ"] = sourceValue(sourceRow, "receivedDate", INTERNAL.receivedDate) ?? "";
@@ -203,11 +243,7 @@ function mapProfileRow(sourceRow: Record<string, any>, profile: SourceProfile): 
 
   if (profile === "REGISTER_3_ROW_HEADER") {
     row["ระบุอื่น ๆ"] = sourceValue(sourceRow, "note", INTERNAL.note) ?? "";
-    row["ประเภทสินทรัพย์"] =
-      sourceAssetType.includes("อสังหาริมทรัพย์") ||
-      sourceRow[INTERNAL.assetCategory] === "อสังหาริมทรัพย์"
-        ? "อสังหาริมทรัพย์"
-        : "ครุภัณฑ์";
+    row["ประเภทสินทรัพย์"] = deriveAssetCategory(sourceRow, visibleSourceAssetType);
   }
 
   if (profile === "TRANSFER_2567") {
@@ -277,13 +313,14 @@ function mapFallbackRow(sourceRow: Record<string, any>, mapping: TemplateMapping
   const normalized = normalizedAssetFields(sourceRow);
   const sourceAssetType = normalized.sourceAssetType;
   const sourceAssetItem = normalized.sourceAssetItem;
+  const visibleSourceAssetType = sourceAssetTypeShouldEmit(sourceRow) ? sourceAssetType : "";
 
   const assetCode = cellText(sourceRow.assetCode);
   const assetName = normalized.assetName;
   const assetDetail = normalized.assetDetail;
   if (assetCode || assetName || assetDetail || sourceAssetType || sourceAssetItem) {
     templateRow["รหัสสินทรัพย์"] = assetCode || templateRow["รหัสสินทรัพย์"] || "";
-    templateRow["ประเภทสินทรัพย์"] = deriveAssetCategory(sourceRow, sourceAssetType);
+    templateRow["ประเภทสินทรัพย์"] = deriveAssetCategory(sourceRow, visibleSourceAssetType);
     templateRow["มูลค่า"] = cleanMoneyValue(sourceRow.value ?? templateRow["มูลค่า"]);
     templateRow["วันที่ได้รับ"] = sourceRow.receivedDate ?? templateRow["วันที่ได้รับ"] ?? "";
   }
@@ -296,7 +333,8 @@ export function transformRowsToTemplateDataset(
   rows: Record<string, any>[],
   mapping: TemplateMapping,
 ): Record<string, any>[] {
-  return rows.map((sourceRow) => {
+  const rowsWithEmitFlags = backfillRegisterAssetTypeEmitFlags(rows);
+  return rowsWithEmitFlags.map((sourceRow) => {
     const profile = cellText(sourceRow[SOURCE_PROFILE_COLUMN]);
     if (isKnownProfile(profile)) return mapProfileRow(sourceRow, profile);
     return mapFallbackRow(sourceRow, mapping);
