@@ -674,12 +674,14 @@ function parseNewAssetSheet(sheetName: string, matrix: any[][]): DataSourceSheet
       ? Boolean(sourceAssetType && !currentAssetTypeWasEmitted)
       : undefined;
     if (sourceAssetTypeEmitOnce) currentAssetTypeWasEmitted = true;
-    const sourceAssetItem = looksLikeAssetItemGroup(columnC) ? columnC : currentAssetItem;
-    const sourceAssetItemEmitOnce = Boolean(
-      sourceAssetItem && (looksLikeAssetItemGroup(columnC) || !currentAssetItemWasEmitted),
-    );
+    const nextAssetItem = looksLikeAssetItemGroup(columnC) ? columnC : currentAssetItem;
+    if (nextAssetItem && nextAssetItem !== currentAssetItem) {
+      currentAssetItem = nextAssetItem;
+      currentAssetItemWasEmitted = false;
+    }
+    const sourceAssetItem = currentAssetItem;
+    const sourceAssetItemEmitOnce = Boolean(sourceAssetItem && !currentAssetItemWasEmitted);
     if (sourceAssetItemEmitOnce) {
-      currentAssetItem = sourceAssetItem;
       currentAssetItemWasEmitted = true;
     }
     const row = withCommonMeta(

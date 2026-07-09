@@ -201,7 +201,7 @@ function mapProfileRow(sourceRow: Record<string, any>, profile: SourceProfile): 
   row[ASSET_DETAIL_COLUMN] = assetDetail;
   row["ประเภทสินทรัพย์"] = deriveAssetCategory(sourceRow, visibleSourceAssetType);
   row[ASSET_TYPE_COLUMN] = visibleSourceAssetType;
-  row[ASSET_ITEM_COLUMN] = sourceAssetItem;
+  row[ASSET_ITEM_COLUMN] = sourceAssetItemShouldEmit(sourceRow) ? sourceAssetItem : "";
   row["มูลค่า"] = cleanMoneyValue(sourceValue(sourceRow, "value", INTERNAL.value));
   row["วันที่ได้รับ"] = sourceValue(sourceRow, "receivedDate", INTERNAL.receivedDate) ?? "";
   row["งานที่รับผิดชอบ"] = sourceValue(sourceRow, "responsibleUnit", INTERNAL.responsibleUnit) ?? "";
