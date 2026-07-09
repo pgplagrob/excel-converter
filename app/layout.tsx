@@ -4,7 +4,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "ตัวกลางแปลงไฟล์สินทรัพย์",
+  title: "ตัวกลางแปลงไฟล์สินทรัพย์ | ทดสอบ",
   description: "แปลงไฟล์ Excel ข้อมูลสินทรัพย์ให้ตรงตามเทมเพลตมาตรฐาน 44 คอลัมน์",
 };
 
