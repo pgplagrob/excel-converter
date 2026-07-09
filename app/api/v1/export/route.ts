@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import * as XLSX from "xlsx-js-style";
 import type { ExportMode, ExportRequest, ExportSheetInput } from "@/lib/client-types";
 import { mappingSuggestionsToRecord, mergeMapping, TEMPLATE_COLUMNS } from "@/lib/mapping";
-import { logTemplateDataset, transformRowsToTemplateDataset } from "@/lib/transform";
+import { transformRowsToTemplateDataset } from "@/lib/transform";
 import { createSheetSummary, validateMappedRows, validateSheetLevel } from "@/lib/validate";
 
 export const runtime = "nodejs";
@@ -94,7 +94,6 @@ export async function POST(req: NextRequest) {
         sheet.rows,
       );
       const mappedRows = transformRowsToTemplateDataset(sheet.rows, finalMapping);
-      logTemplateDataset(sheet.sheetName, mappedRows, finalMapping);
       transformedSheets.push({
         sheetName: sheet.sheetName,
         rowCount: mappedRows.length,

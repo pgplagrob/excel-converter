@@ -66,7 +66,6 @@ export default function Page() {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "ตรวจสอบข้อมูลไม่สำเร็จ");
-    console.log("[Transform] template dataset", data.transformedSheets);
     setIssues(data.issues);
     setIssueSummary({
       errorCount: data.errorCount,
@@ -96,7 +95,6 @@ export default function Page() {
         setLoading(false);
         return;
       }
-      console.log("[DataSource] parsed workbook", data);
       setParsed(data);
       setActiveSheetIdx(0);
 

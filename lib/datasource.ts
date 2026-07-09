@@ -793,6 +793,7 @@ function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSourceSheet
         }
       }
       continue;
+      
     }
 
     if (!sequence && !assetCode && !itemName && note && previousDataRow) {
@@ -971,6 +972,54 @@ function parseUnknownSheet(
   };
 }
 
+// ตรวจคุณภาพข้อมูลหลัง parse แล้วแปะ warning ที่ต้นตอมาจากไฟล์ต้นฉบับ
+// (รหัสซ้ำ / ยอดรวมในไฟล์ไม่ตรง / ชื่อกรอกไม่ครบ) — จะไปโผล่บนหน้าเว็บผ่าน sheet.warnings
+function appendDataQualityWarnings(sheet: DataSourceSheet, matrix: any[][]): void {
+  // 1) รหัสครุภัณฑ์ซ้ำ
+  const codeRows = new Map<string, number[]>();
+  for (const row of sheet.rows) {
+    const code = cellText(row[INTERNAL.assetCode]);
+    if (!code) continue;
+    const excelRow = Number(row[SOURCE_EXCEL_ROW_COLUMN]) || 0;
+    (codeRows.get(code) ?? codeRows.set(code, []).get(code)!).push(excelRow);
+  }
+  const dupes = [...codeRows.entries()].filter(([, r]) => r.length > 1);
+  if (dupes.length) {
+    const preview = dupes
+      .slice(0, 5)
+      .map(([code, r]) => `${code} (แถว ${r.join(", ")})`)
+      .join("; ");
+    const more = dupes.length > 5 ? ` และอีก ${dupes.length - 5} รหัส` : "";
+    sheet.warnings.push(`พบรหัสครุภัณฑ์ซ้ำ ${dupes.length} รหัส: ${preview}${more}`);
+  }
+
+  // 2) ยอดรวมในไฟล์ (แถว "รวมทั้งสิ้น") ไม่ตรงกับจำนวนที่อ่านได้
+  //    อ่านจำนวนจากคอลัมน์ลำดับ (col 0) เท่านั้น กันไปหยิบคอลัมน์มูลค่า (ยอดเงินรวม)
+  for (const row of matrix) {
+    if (!row.some((cell) => /รวมทั้งสิ้น/.test(cellText(cell)))) continue;
+    const stated = parseInt(cellText(row[0]).replace(/[,\s]/g, ""), 10);
+    if (!Number.isNaN(stated) && stated !== sheet.rowCount) {
+      sheet.warnings.push(
+        `ยอดรวมในไฟล์ (รวมทั้งสิ้น = ${stated}) ไม่ตรงกับจำนวนที่อ่านได้ (${sheet.rowCount}) ต่าง ${Math.abs(stated - sheet.rowCount)} แถว`,
+      );
+    }
+    break;
+  }
+
+  // 3) ชื่อสินทรัพย์สั้นผิดปกติ (มักกรอกไม่ครบ)
+  const shortNames = sheet.rows
+    .map((row) => ({ name: cellText(row[INTERNAL.assetName]), code: cellText(row[INTERNAL.assetCode]) }))
+    .filter((r) => r.name.length > 0 && r.name.length <= 4);
+  if (shortNames.length) {
+    const preview = shortNames
+      .slice(0, 5)
+      .map((r) => `"${r.name}"${r.code ? ` (${r.code})` : ""}`)
+      .join(", ");
+    const more = shortNames.length > 5 ? ` และอีก ${shortNames.length - 5} แถว` : "";
+    sheet.warnings.push(`พบ ${shortNames.length} แถวที่ชื่อสินทรัพย์สั้นผิดปกติ อาจกรอกไม่ครบ: ${preview}${more}`);
+  }
+}
+
 export function createDataSourceWorkbook(
   fileName: string,
   workbookSheets: { sheetName: string; matrix: any[][]; rowMeta?: WorkbookRowMeta[] }[],
@@ -1021,54 +1070,9 @@ export function createDataSourceWorkbook(
       skippedSheets.push(sheetName);
       continue;
     }
+    appendDataQualityWarnings(sheet, matrix);
     sheets.push(sheet);
   }
 
   return { fileName, sheets, skippedSheets, profileDebug };
-}
-
-export function logDataSourceWorkbook(
-  workbook: DataSourceWorkbook,
-  rawSheets: { sheetName: string; matrix: any[][] }[] = [],
-): void {
-  console.log("[PARSE] workbook", {
-    fileName: workbook.fileName,
-    sheetCount: workbook.sheets.length,
-    skippedSheets: workbook.skippedSheets,
-  });
-
-  for (const debug of workbook.profileDebug) {
-    console.log("[PROFILE] sheet", {
-      sheetName: debug.sheetName,
-      detectedProfile: debug.profile,
-      headerRowIndex: debug.headerRowIndex,
-      confidence: debug.confidence,
-      reasons: debug.reasons,
-      shouldParse: debug.shouldParse,
-      skipReason: debug.skipReason,
-      legacySourceProfile: debug.legacySourceProfile,
-    });
-  }
-
-  for (const sheet of workbook.sheets) {
-    const rawSheet = rawSheets.find((item) => item.sheetName === sheet.sheetName);
-    console.log("[PARSE] sheet", {
-      sheetName: sheet.sheetName,
-      sourceProfile: sheet.sourceProfile,
-      detectedProfile: sheet.profileDebug?.profile,
-      profileConfidence: sheet.profileDebug?.confidence,
-      headerRow: sheet.headerRowIndex + 1,
-      detectedHeaderRow: sheet.profileDebug?.headerRowIndex === null ? null : (sheet.profileDebug?.headerRowIndex ?? -1) + 1,
-      rowCount: sheet.rowCount,
-      warnings: sheet.warnings,
-    });
-    console.log("[SOURCE] firstRows", {
-      sheetName: sheet.sheetName,
-      rows: rawSheet?.matrix.slice(0, 8) ?? [],
-    });
-    console.log("[DATASOURCE] normalizedRows", {
-      sheetName: sheet.sheetName,
-      rows: sheet.rows.slice(0, 3),
-    });
-  }
 }

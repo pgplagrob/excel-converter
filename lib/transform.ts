@@ -177,32 +177,6 @@ function deriveAssetCategory(sourceRow: Record<string, any>, sourceAssetType: st
     : "ครุภัณฑ์";
 }
 
-function validateAuthoritativeAssetFields(templateRow: Record<string, any>, sourceRow: Record<string, any>): void {
-  const assetName = cellText(templateRow[ASSET_NAME_COLUMN]);
-  const assetCode = cellText(templateRow["รหัสสินทรัพย์"]);
-  const assetItem = cellText(templateRow[ASSET_ITEM_COLUMN]);
-  const sourceAssetItem = cellText(sourceRow[SOURCE_ASSET_ITEM_COLUMN]);
-  const shouldEmitSourceAssetItem = sourceAssetItemShouldEmit(sourceRow);
-  const problems: string[] = [];
-
-  if (looksLikeAssetItemGroup(assetName)) problems.push("ชื่อสินทรัพย์ matches item-group pattern");
-  if (assetName && assetItem && assetName === assetItem) problems.push("ชื่อสินทรัพย์ equals รายการสินทรัพย์");
-  if (!assetCode && startsWithMainAssetType(assetName)) problems.push("ชื่อสินทรัพย์ starts with main asset type");
-  if (!assetItem && sourceAssetItem && shouldEmitSourceAssetItem) problems.push("รายการสินทรัพย์ is empty while sourceAssetItem should be emitted");
-
-  if (problems.length) {
-    console.warn("[TRANSFORM] asset field validation", {
-      sourceProfile: sourceRow[SOURCE_PROFILE_COLUMN],
-      sheetName: sourceRow.__sheetName,
-      excelRow: sourceRow.__excelRow,
-      problems,
-      assetName,
-      assetItem,
-      sourceAssetItem,
-    });
-  }
-}
-
 function applyAuthoritativeAssetFields(templateRow: Record<string, any>, sourceRow: Record<string, any>): void {
   const normalized = normalizedAssetFields(sourceRow);
   const visibleSourceAssetType = sourceAssetTypeShouldEmit(sourceRow) ? normalized.sourceAssetType : "";
@@ -210,7 +184,6 @@ function applyAuthoritativeAssetFields(templateRow: Record<string, any>, sourceR
   templateRow[ASSET_DETAIL_COLUMN] = normalized.assetDetail || "";
   templateRow[ASSET_TYPE_COLUMN] = visibleSourceAssetType;
   templateRow[ASSET_ITEM_COLUMN] = sourceAssetItemShouldEmit(sourceRow) ? normalized.sourceAssetItem || "" : "";
-  validateAuthoritativeAssetFields(templateRow, sourceRow);
 }
 
 function mapProfileRow(sourceRow: Record<string, any>, profile: SourceProfile): Record<string, any> {
@@ -343,17 +316,3 @@ export function transformRowsToTemplateDataset(
   });
 }
 
-export function logTemplateDataset(
-  sheetName: string,
-  rows: Record<string, any>[],
-  mapping: TemplateMapping,
-): void {
-  console.log("[TRANSFORM] templateDataset", {
-    sheetName,
-    rowCount: rows.length,
-    mappedColumns: Object.entries(mapping)
-      .filter(([, sourceColumn]) => Boolean(sourceColumn))
-      .map(([templateColumn, sourceColumn]) => ({ templateColumn, sourceColumn })),
-    sampleRows: rows.slice(0, 5),
-  });
-}

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { ParseResponse, ValidationIssue } from "@/lib/client-types";
-import { createDataSourceWorkbook, logDataSourceWorkbook } from "@/lib/datasource";
+import { createDataSourceWorkbook } from "@/lib/datasource";
 import { readWorkbookBuffer } from "@/lib/excel";
 import { suggestMapping } from "@/lib/mapping";
 import { createSheetSummary } from "@/lib/validate";
@@ -21,7 +21,6 @@ export async function POST(req: NextRequest) {
 
     const rawWorkbook = readWorkbookBuffer(buffer, file.name);
     const dataSource = createDataSourceWorkbook(rawWorkbook.fileName, rawWorkbook.sheets);
-    logDataSourceWorkbook(dataSource, rawWorkbook.sheets);
 
     const sheets = dataSource.sheets.map((sheet) => {
       const mapping = suggestMapping(sheet.headers);
