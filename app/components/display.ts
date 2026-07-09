@@ -51,6 +51,8 @@ const SOURCE_COLUMN_LABELS: Record<string, string> = {
 const SOURCE_PROFILE_COLUMN = "__sourceProfile";
 const SOURCE_ASSET_TYPE_COLUMN = "sourceAssetType";
 const SOURCE_ASSET_TYPE_EMIT_ONCE_COLUMN = "__sourceAssetTypeEmitOnce";
+const SOURCE_ASSET_ITEM_COLUMN = "sourceAssetItem";
+const SOURCE_ASSET_ITEM_EMIT_ONCE_COLUMN = "__sourceAssetItemEmitOnce";
 
 // จับคู่ชื่อคอลัมน์เทมเพลต (ที่ issue อ้างถึง) -> คอลัมน์ต้นทางในตาราง Source Preview
 // ใช้ไฮไลต์ช่องที่เป็นต้นตอของคำเตือน/ข้อผิดพลาด
@@ -80,24 +82,44 @@ export function previewRowsWithVisibleAssetType(
   rows: Record<string, any>[],
 ): Record<string, any>[] {
   let previousAssetType = "";
+  let previousAssetItem = "";
 
   return rows.map((row) => {
     const profile = String(row[SOURCE_PROFILE_COLUMN] || "").trim();
     const sourceAssetType = String(row[SOURCE_ASSET_TYPE_COLUMN] || "").trim();
+    const sourceAssetItem = String(row[SOURCE_ASSET_ITEM_COLUMN] || "").trim();
 
-    if (profile !== "REGISTER_3_ROW_HEADER" || !sourceAssetType) return row;
+    let nextRow = row;
 
-    const emitFlag = row[SOURCE_ASSET_TYPE_EMIT_ONCE_COLUMN];
-    const shouldShow =
-      emitFlag === true || (emitFlag !== false && sourceAssetType !== previousAssetType);
-    previousAssetType = sourceAssetType;
+    if (profile === "REGISTER_3_ROW_HEADER" && sourceAssetType) {
+      const emitFlag = row[SOURCE_ASSET_TYPE_EMIT_ONCE_COLUMN];
+      const shouldShow =
+        emitFlag === true || (emitFlag !== false && sourceAssetType !== previousAssetType);
+      previousAssetType = sourceAssetType;
 
-    return shouldShow
-      ? row
-      : {
-          ...row,
+      if (!shouldShow) {
+        nextRow = {
+          ...nextRow,
           [SOURCE_ASSET_TYPE_COLUMN]: "",
         };
+      }
+    }
+
+    if (sourceAssetItem) {
+      const itemEmitFlag = row[SOURCE_ASSET_ITEM_EMIT_ONCE_COLUMN];
+      const shouldShowItem =
+        itemEmitFlag === true || (itemEmitFlag !== false && sourceAssetItem !== previousAssetItem);
+      previousAssetItem = sourceAssetItem;
+
+      if (!shouldShowItem) {
+        nextRow = {
+          ...nextRow,
+          [SOURCE_ASSET_ITEM_COLUMN]: "",
+        };
+      }
+    }
+
+    return nextRow;
   });
 }
 
