@@ -409,6 +409,17 @@ th {
 tr:last-child td { border-bottom: none; }
 td:last-child, th:last-child { border-right: none; }
 
+/* ไฮไลต์แถว/ช่องที่มีคำเตือนหรือข้อผิดพลาดในตาราง Source Preview */
+.issue-marker-col { width: 28px; text-align: center; color: var(--tag-amber); }
+.issue-marker { text-align: center; font-weight: 700; cursor: help; }
+tr.row-warning { background: var(--tag-amber-soft); }
+tr.row-warning .issue-marker { color: var(--tag-amber); }
+tr.row-error { background: var(--error-soft); }
+tr.row-error .issue-marker { color: var(--error); }
+td.cell-flag { cursor: help; box-shadow: inset 0 0 0 2px currentColor; }
+td.cell-warning { color: var(--tag-amber); font-weight: 600; }
+td.cell-error { color: var(--error); font-weight: 600; }
+
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));

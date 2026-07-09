@@ -92,7 +92,7 @@ export function PreviewStep({
         mappedCount={mappedCountForSheet(sheet.sheetName)}
       />
 
-      <SourcePreviewTable sheet={sheet} />
+      <SourcePreviewTable sheet={sheet} issues={sheetIssues} />
 
       <MappingSummary
         sheet={sheet}

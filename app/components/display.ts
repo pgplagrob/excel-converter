@@ -52,6 +52,18 @@ const SOURCE_PROFILE_COLUMN = "__sourceProfile";
 const SOURCE_ASSET_TYPE_COLUMN = "sourceAssetType";
 const SOURCE_ASSET_TYPE_EMIT_ONCE_COLUMN = "__sourceAssetTypeEmitOnce";
 
+// จับคู่ชื่อคอลัมน์เทมเพลต (ที่ issue อ้างถึง) -> คอลัมน์ต้นทางในตาราง Source Preview
+// ใช้ไฮไลต์ช่องที่เป็นต้นตอของคำเตือน/ข้อผิดพลาด
+export const TEMPLATE_TO_SOURCE_COLUMN: Record<string, string> = {
+  รหัสสินทรัพย์: "assetCode",
+  ชื่อสินทรัพย์: "assetName",
+  รายละเอียด: "assetDetail",
+  ชนิดสินทรัพย์: "sourceAssetType",
+  รายการสินทรัพย์: "sourceAssetItem",
+  มูลค่า: "value",
+  วันที่ได้รับ: "receivedDate",
+};
+
 export function displaySourceColumnLabel(column: string | null | undefined): string {
   if (!column) return "";
   const emptyColumn = column.match(/^__EMPTY_COLUMN_(\d+)$/);
