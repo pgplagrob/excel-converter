@@ -3,7 +3,7 @@ import * as XLSX from "xlsx-js-style";
 import type { ExportMode, ExportRequest, ExportSheetInput } from "@/lib/client-types";
 import { getAnalysis } from "@/lib/analysis-store";
 import { mappingSuggestionsToRecord, mergeMapping } from "@/lib/mapping";
-import { buildAssetTemplateWorkbook, loadAssetTemplateMetadata } from "@/lib/template";
+import { buildAssetTemplateWorkbookBySheet, loadAssetTemplateMetadata } from "@/lib/template";
 import { transformRowsToTemplateDataset } from "@/lib/transform";
 import { createSheetSummary, validateMappedRows, validateSheetLevel } from "@/lib/validate";
 
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     }
 
     const allIssues: any[] = [];
-    const exportableRows: Record<string, any>[] = [];
+    const exportableSheets: { sheetName: string; rows: Record<string, any>[] }[] = [];
     const transformedSheets: {
       sheetName: string;
       rowCount: number;
@@ -103,7 +103,10 @@ export async function POST(req: NextRequest) {
       if (errorCount === 0) {
         sourceSheet.eligibility = "exportable";
         sourceSheet.eligibilityReason = "validated with no errors";
-        exportableRows.push(...mappedRows);
+        exportableSheets.push({
+          sheetName: sourceSheet.sheetName,
+          rows: mappedRows,
+        });
       } else {
         sourceSheet.eligibility = "needsReview";
         sourceSheet.eligibilityReason = "validation found errors";
@@ -114,21 +117,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         issues: allIssues,
         sheetSummaries,
-        totalRows: exportableRows.length,
+        totalRows: exportableSheets.reduce((sum, sheet) => sum + sheet.rows.length, 0),
         errorCount: allIssues.filter((i) => i.severity === "error").length,
         warningCount: allIssues.filter((i) => i.severity === "warning").length,
         transformedSheets,
       });
     }
 
-    if (!exportableRows.length) {
+    if (!exportableSheets.length) {
       return NextResponse.json(
         { error: "ยังไม่มีชีตหรือแถวที่ผ่านการตรวจสอบสำหรับ export กรุณาตรวจ mapping/ข้อผิดพลาดก่อน" },
         { status: 400 },
       );
     }
 
-    const wb = buildAssetTemplateWorkbook(exportableRows);
+    const wb = buildAssetTemplateWorkbookBySheet(exportableSheets);
     const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
     const fileName = buildExportFileName(sourceFileName);
 

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import * as XLSX from "xlsx-js-style";
 import { createDataSourceWorkbook } from "../lib/datasource";
 import { mappingSuggestionsToRecord, suggestMapping } from "../lib/mapping";
-import { buildAssetTemplateWorkbook, loadAssetTemplateMetadata } from "../lib/template";
+import { buildAssetTemplateWorkbook, buildAssetTemplateWorkbookBySheet, loadAssetTemplateMetadata } from "../lib/template";
 import { transformRowsToTemplateDataset } from "../lib/transform";
 import { validateMappedRows, validateSheetLevel } from "../lib/validate";
 
@@ -105,6 +105,39 @@ test("template output keeps Sheet1 at 44 columns and preserves Reference sheet",
   assert.equal(readBack.SheetNames.includes("Reference"), true);
   assert.equal(sheetRows.length, 2);
   assert.equal(sheetRows[1][2], "A-001");
+});
+
+test("split template output creates one worksheet per exportable source sheet", () => {
+  const wb = buildAssetTemplateWorkbookBySheet([
+    {
+      sheetName: "ครุภัณฑ์ใหม่2567",
+      rows: [
+        {
+          "รหัสสินทรัพย์": "A-001",
+          "ชื่อสินทรัพย์": "เครื่องคอมพิวเตอร์",
+        },
+      ],
+    },
+    {
+      sheetName: "สำนักงาน",
+      rows: [
+        {
+          "รหัสสินทรัพย์": "B-001",
+          "ชื่อสินทรัพย์": "โต๊ะทำงาน",
+        },
+      ],
+    },
+  ]);
+  const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+  const readBack = XLSX.read(buffer, { type: "buffer" });
+  const firstRows = XLSX.utils.sheet_to_json(readBack.Sheets["ครุภัณฑ์ใหม่2567"], { header: 1, defval: "" }) as unknown[][];
+  const secondRows = XLSX.utils.sheet_to_json(readBack.Sheets["สำนักงาน"], { header: 1, defval: "" }) as unknown[][];
+
+  assert.deepEqual(readBack.SheetNames, ["ครุภัณฑ์ใหม่2567", "สำนักงาน", "Reference"]);
+  assert.equal(firstRows[0].length, 44);
+  assert.equal(secondRows[0].length, 44);
+  assert.equal(firstRows[1][2], "A-001");
+  assert.equal(secondRows[1][2], "B-001");
 });
 
 test("validation blocks rows with missing required asset identity", () => {

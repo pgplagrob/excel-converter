@@ -14,6 +14,11 @@ export interface AssetTemplateMetadata {
   references: TemplateReferenceValues;
 }
 
+export interface AssetTemplateSheetInput {
+  sheetName: string;
+  rows: Record<string, unknown>[];
+}
+
 const TEMPLATE_PATH = path.join(process.cwd(), "assets", "asset-template.xlsx");
 
 function cellText(value: unknown): string {
@@ -85,22 +90,75 @@ function applyTemplateStyles(
   }
 }
 
-export function buildAssetTemplateWorkbook(rows: Record<string, unknown>[]): XLSX.WorkBook {
-  const wb = readTemplateWorkbook();
-  const metadata = loadAssetTemplateMetadata();
-  const sourceSheet = wb.Sheets.Sheet1;
+function buildTemplateSheet(
+  rows: Record<string, unknown>[],
+  columns: string[],
+  sourceSheet: XLSX.WorkSheet | undefined,
+): XLSX.WorkSheet {
   const aoa = [
-    metadata.columns,
-    ...rows.map((row) => metadata.columns.map((column) => row[column] ?? "")),
+    columns,
+    ...rows.map((row) => columns.map((column) => row[column] ?? "")),
   ];
   const ws = XLSX.utils.aoa_to_sheet(aoa);
 
   if (sourceSheet) {
-    applyTemplateStyles(ws, sourceSheet, metadata.columns, rows.length);
+    applyTemplateStyles(ws, sourceSheet, columns, rows.length);
   }
+
+  return ws;
+}
+
+function sanitizeSheetName(value: string): string {
+  const cleaned = (value || "Sheet")
+    .replace(/[\[\]\:\*\?\/\\]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return (cleaned || "Sheet").slice(0, 31);
+}
+
+function uniqueSheetName(rawName: string, usedNames: Set<string>): string {
+  const baseName = sanitizeSheetName(rawName);
+  let name = baseName;
+  let counter = 2;
+
+  while (usedNames.has(name.toLowerCase())) {
+    const suffix = ` (${counter})`;
+    name = `${baseName.slice(0, 31 - suffix.length)}${suffix}`;
+    counter += 1;
+  }
+
+  usedNames.add(name.toLowerCase());
+  return name;
+}
+
+export function buildAssetTemplateWorkbook(rows: Record<string, unknown>[]): XLSX.WorkBook {
+  const wb = readTemplateWorkbook();
+  const metadata = loadAssetTemplateMetadata();
+  const sourceSheet = wb.Sheets.Sheet1;
+  const ws = buildTemplateSheet(rows, metadata.columns, sourceSheet);
 
   wb.Sheets.Sheet1 = ws;
   wb.SheetNames = ["Sheet1", ...wb.SheetNames.filter((name) => name !== "Sheet1")];
+  return wb;
+}
+
+export function buildAssetTemplateWorkbookBySheet(sheets: AssetTemplateSheetInput[]): XLSX.WorkBook {
+  const wb = readTemplateWorkbook();
+  const metadata = loadAssetTemplateMetadata();
+  const sourceSheet = wb.Sheets.Sheet1;
+  const preservedSheetNames = wb.SheetNames.filter((name) => name !== "Sheet1");
+  const usedNames = new Set(preservedSheetNames.map((name) => name.toLowerCase()));
+  const outputSheetNames: string[] = [];
+
+  delete wb.Sheets.Sheet1;
+
+  for (const sheet of sheets) {
+    const safeName = uniqueSheetName(sheet.sheetName, usedNames);
+    wb.Sheets[safeName] = buildTemplateSheet(sheet.rows, metadata.columns, sourceSheet);
+    outputSheetNames.push(safeName);
+  }
+
+  wb.SheetNames = [...outputSheetNames, ...preservedSheetNames];
   return wb;
 }
 
