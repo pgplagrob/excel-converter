@@ -43,7 +43,12 @@ function emptyTemplateRow(): Record<string, any> {
 }
 
 function isKnownProfile(profile: string): profile is SourceProfile {
-  return profile === "NEW_ASSET_2567" || profile === "REGISTER_3_ROW_HEADER" || profile === "TRANSFER_2567";
+  return (
+    profile === "NEW_ASSET_2567" ||
+    profile === "REGISTER_3_ROW_HEADER" ||
+    profile === "TRANSFER_2567" ||
+    profile === "ASSET_DATA"
+  );
 }
 
 function firstText(...values: any[]): string {
@@ -221,11 +226,12 @@ function mapProfileRow(sourceRow: Record<string, any>, profile: SourceProfile): 
     row["ประเภทสินทรัพย์"] = deriveAssetCategory(sourceRow, visibleSourceAssetType);
   }
 
-  if (profile === "TRANSFER_2567") {
+  if (profile === "TRANSFER_2567" || profile === "ASSET_DATA") {
     row[ASSET_DETAIL_COLUMN] = assetDetail;
     row["ได้มาจาก"] = sourceValue(sourceRow, "acquiredFrom", INTERNAL.acquiredFrom) ?? "";
     row["แหล่งงบประมาณ"] = sourceValue(sourceRow, "budgetSource", INTERNAL.budgetSource) ?? "";
-    row["สถานะ"] = "ปกติ";
+    row["อาคาร"] = sourceValue(sourceRow, "location", INTERNAL.location) ?? "";
+    row["สถานะ"] = sourceRow[INTERNAL.status] || "ปกติ";
   }
 
   applyAuthoritativeAssetFields(row, sourceRow);

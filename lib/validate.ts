@@ -10,6 +10,7 @@ import {
   looksLikeAssetTypeGroup,
 } from "./datasource";
 import { TEMPLATE_COLUMNS } from "./mapping";
+import type { TemplateReferenceValues } from "./template";
 
 export interface ValidationIssue {
   sheetName: string;
@@ -71,6 +72,15 @@ function addIssue(
   severity: "error" | "warning",
 ): void {
   issues.push({ sheetName, rowIndex, column, message, severity });
+}
+
+function allowedValuesFromReference(
+  references: TemplateReferenceValues | undefined,
+  key: keyof TemplateReferenceValues,
+  fallback: Set<string>,
+): Set<string> {
+  const values = references?.[key];
+  return values && values.size ? new Set(["", ...values]) : fallback;
 }
 
 export function validateSheetLevel(
@@ -206,11 +216,16 @@ export function validateMappedRows(
   sheetName: string,
   rows: Record<string, any>[],
   sourceRows: Record<string, any>[] = [],
+  references?: TemplateReferenceValues,
 ): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
   const seenExactRows = new Map<string, number>();
   let previousSourceAssetItem = "";
   let previousAssetItem = "";
+  const validStatuses = allowedValuesFromReference(references, "statuses", VALID_STATUSES);
+  const validGetByMethods = allowedValuesFromReference(references, "getByMethods", new Set([""]));
+  const validSourceFunds = allowedValuesFromReference(references, "sourceFunds", new Set([""]));
+  const validBooleans = allowedValuesFromReference(references, "booleans", new Set(["", "True", "False"]));
 
   rows.forEach((row, idx) => {
     const sourceRow = sourceRows[idx] || {};
@@ -410,7 +425,7 @@ export function validateMappedRows(
     }
 
     const status = text(row["สถานะ"]);
-    if (!VALID_STATUSES.has(status)) {
+    if (!validStatuses.has(status)) {
       addIssue(
         issues,
         sheetName,
@@ -419,6 +434,44 @@ export function validateMappedRows(
         `ค่าสถานะไม่อยู่ในชุดที่รองรับ: ${status}`,
         "warning",
       );
+    }
+
+    const acquiredBy = text(row["ได้มาโดย"]);
+    if (acquiredBy && !validGetByMethods.has(acquiredBy)) {
+      addIssue(
+        issues,
+        sheetName,
+        idx,
+        "ได้มาโดย",
+        `ค่าวิธีได้มาไม่อยู่ใน Reference: ${acquiredBy}`,
+        "warning",
+      );
+    }
+
+    const sourceFund = text(row["แหล่งงบประมาณ"]);
+    if (sourceFund && !validSourceFunds.has(sourceFund)) {
+      addIssue(
+        issues,
+        sheetName,
+        idx,
+        "แหล่งงบประมาณ",
+        `ค่าแหล่งงบประมาณไม่อยู่ใน Reference: ${sourceFund}`,
+        "warning",
+      );
+    }
+
+    for (const col of ["ต้องตรวจนับ", "คิดค่าเสื่อม", "ของสำคัญ", "ส่งคืนสินทรัพย์"]) {
+      const value = text(row[col]);
+      if (value && !validBooleans.has(value)) {
+        addIssue(
+          issues,
+          sheetName,
+          idx,
+          col,
+          `ค่าควรเป็น True/False ตาม Reference (พบค่า: ${value})`,
+          "warning",
+        );
+      }
     }
 
     for (const col of DATE_COLUMNS) {

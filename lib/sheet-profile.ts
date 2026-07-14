@@ -3,7 +3,15 @@ export type SourceSheetProfile =
   | "newAsset"
   | "transfer"
   | "disposal"
+  | "realEstate"
+  | "assetData"
+  | "maintenance"
   | "summary"
+  | "help"
+  | "reference"
+  | "form"
+  | "template"
+  | "empty"
   | "unknown";
 
 export interface SheetProfileDetection {
@@ -59,6 +67,34 @@ const SUMMARY_HEADERS = [
   "รหัสพัสดุ",
   "ครุภัณฑ์ต่ำกว่าเกณฑ์",
   "แบบกข",
+];
+
+const ASSET_DATA_HEADERS = [
+  "AssetCode",
+  "ModelName",
+  "AssetTypeName",
+  "PurchaseDate",
+  "PurchasePrice",
+  "Price",
+  "LocationName",
+];
+
+const REAL_ESTATE_HEADERS = [
+  "อสังหาริมทรัพย์",
+  "ที่ดิน",
+  "อาคาร",
+  "สิ่งปลูกสร้าง",
+  "เลขที่โฉนด",
+  "วันที่ได้กรรมสิทธิ์",
+  "ราคาประเมิน",
+];
+
+const MAINTENANCE_HEADERS = [
+  "ซ่อม",
+  "บำรุง",
+  "maintenance",
+  "แจ้งซ่อม",
+  "วันที่ซ่อม",
 ];
 
 function cellText(value: unknown): string {
@@ -187,6 +223,53 @@ function scoreSummaryProfile(rows: unknown[][], sheetName: string): ProfileScore
   };
 }
 
+function scoreNameOnlySkipProfile(sheetName: string, rows: unknown[][]): ProfileScore | null {
+  const compactSheetName = normalizeText(sheetName);
+  const firstRowsText = rows.slice(0, 8).map(normalizedRowText).join("|");
+  const pairs: { profile: SourceSheetProfile; tokens: string[]; score: number }[] = [
+    { profile: "help", tokens: ["help", "คู่มือ", "คำอธิบาย", "วิธีใช้"], score: 0.95 },
+    { profile: "reference", tokens: ["reference", "อ้างอิง", "lookup"], score: 0.95 },
+    { profile: "template", tokens: ["template", "ตัวอย่าง", "แม่แบบ"], score: 0.9 },
+    { profile: "form", tokens: ["แบบฟอร์ม", "แบบ กข", "แบบกข"], score: 0.9 },
+  ];
+
+  for (const candidate of pairs) {
+    const matched = candidate.tokens.filter((token) => {
+      const normalized = normalizeText(token);
+      return compactSheetName.includes(normalized) || firstRowsText.includes(normalized);
+    });
+    if (matched.length) {
+      return {
+        profile: candidate.profile,
+        score: candidate.score,
+        rowIndex: null,
+        reasons: [`matched non-export sheet marker: ${matched.join(", ")}`],
+      };
+    }
+  }
+
+  return null;
+}
+
+function scoreRealEstateProfile(rows: unknown[][], sheetName: string): ProfileScore {
+  const score = scoreHeaderProfile(rows, "realEstate", REAL_ESTATE_HEADERS, 2);
+  const compactSheetName = normalizeText(sheetName);
+  const matchedName = ["อสังหาริมทรัพย์", "ที่ดิน", "อาคาร", "สิ่งปลูกสร้าง"].filter((token) =>
+    compactSheetName.includes(normalizeText(token)),
+  );
+
+  if (matchedName.length && score.score < 0.65) {
+    return {
+      profile: "realEstate",
+      score: Math.max(score.score, 0.65),
+      rowIndex: score.rowIndex,
+      reasons: [`sheet name suggests real estate: ${matchedName.join(", ")}`, ...score.reasons],
+    };
+  }
+
+  return score;
+}
+
 function confidenceFromScore(score: number): number {
   return Math.max(0, Math.min(1, Number(score.toFixed(2))));
 }
@@ -196,8 +279,31 @@ export function detectSheetProfile(
   sheetName: string,
 ): SheetProfileDetection {
   const scanRows = rows.slice(0, Math.min(rows.length, 30));
+  const nonEmptyRows = rows.filter((row) => row.some((cell) => Boolean(cellText(cell))));
+  if (nonEmptyRows.length < 2) {
+    return {
+      profile: "empty",
+      headerRowIndex: null,
+      confidence: 1,
+      reasons: ["sheet has fewer than two non-empty rows"],
+    };
+  }
+
+  const nonExportProfile = scoreNameOnlySkipProfile(sheetName, scanRows);
+  if (nonExportProfile) {
+    return {
+      profile: nonExportProfile.profile,
+      headerRowIndex: nonExportProfile.rowIndex,
+      confidence: confidenceFromScore(nonExportProfile.score),
+      reasons: nonExportProfile.reasons,
+    };
+  }
+
   const scores = [
     scoreSummaryProfile(scanRows, sheetName),
+    scoreHeaderProfile(scanRows, "assetData", ASSET_DATA_HEADERS, 4),
+    scoreRealEstateProfile(scanRows, sheetName),
+    scoreHeaderProfile(scanRows, "maintenance", MAINTENANCE_HEADERS, 2),
     scoreDisposalProfile(scanRows),
     scoreHeaderProfile(scanRows, "transfer", TRANSFER_HEADERS, 4),
     scoreHeaderProfile(scanRows, "newAsset", NEW_ASSET_HEADERS, 3),

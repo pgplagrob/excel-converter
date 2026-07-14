@@ -6,13 +6,25 @@ export type SourceProfile =
   | "NEW_ASSET_2567"
   | "REGISTER_3_ROW_HEADER"
   | "TRANSFER_2567"
+  | "ASSET_DATA"
   | "SUMMARY_SKIP"
   | "UNKNOWN";
+
+export type SheetEligibility = "exportable" | "needsReview" | "skipped";
+
+export interface SheetParseDecision {
+  eligibility: SheetEligibility;
+  reason: string;
+  confidence: number;
+  issues: string[];
+}
 
 export type SheetProfileDebug = SheetProfileDetection & {
   sheetName: string;
   shouldParse: boolean;
   legacySourceProfile: SourceProfile;
+  eligibility: SheetEligibility;
+  decisionReason: string;
   skipReason?: string;
 };
 
@@ -24,6 +36,9 @@ export interface DataSourceSheet {
   headers: string[];
   rows: Record<string, any>[];
   rowCount: number;
+  eligibility: SheetEligibility;
+  eligibilityReason: string;
+  confidence: number;
   groupedAssets: GroupedAssetDebug[];
   warnings: string[];
 }
@@ -173,6 +188,11 @@ function rowContainsAny(row: any[], tokens: string[]): boolean {
   return tokens.some((token) => text.includes(token));
 }
 
+function rowContainsAll(row: any[], tokens: string[]): boolean {
+  const text = rowText(row).replace(/\s+/g, "").toLowerCase();
+  return tokens.every((token) => text.includes(token.toLowerCase().replace(/\s+/g, "")));
+}
+
 function isTotalOrSummaryRow(row: any[]): boolean {
   const cells = row.map((cell) => compactText(cell)).filter(Boolean);
   return cells.some((cell) => cell === "รวม" || cell.includes("รวมทั้งสิ้น"));
@@ -186,6 +206,19 @@ function looksLikeAssetCode(value: any): boolean {
   const text = compactText(value);
   if (!text || /^(รหัส|เลข|รวม)/.test(text)) return false;
   return /\d/.test(text) && /[-/]/.test(text);
+}
+
+function sheetLooksAssetLike(matrix: any[][]): boolean {
+  const scanRows = matrix.slice(0, Math.min(matrix.length, 80));
+  const hasAssetHeader = scanRows.some((row) =>
+    rowContainsAny(row, ["รหัสสินทรัพย์", "รหัสครุภัณฑ์", "AssetCode"]) &&
+    rowContainsAny(row, ["ชื่อ", "รายการ", "ModelName", "รายละเอียด"]),
+  );
+  const hasAssetRows = scanRows.some((row) => {
+    const cells = row.map(cellText);
+    return cells.some(looksLikeAssetCode) && cells.some((cell) => cell.length >= 3 && !looksLikeAssetCode(cell));
+  });
+  return hasAssetHeader || hasAssetRows;
 }
 
 function looksLikeAssetType(text: string): boolean {
@@ -409,6 +442,25 @@ function buildRawRow(headers: string[], sourceRow: any[]): Record<string, any> {
   return row;
 }
 
+function deriveAssetCategoryFromText(value: string): string {
+  if (!value) return "";
+  if (/อสังหาริมทรัพย์|ที่ดิน|อาคาร|สิ่งปลูกสร้าง/.test(value)) return "อสังหาริมทรัพย์";
+  return "ครุภัณฑ์";
+}
+
+function findHeaderRowByTokens(matrix: any[][], requiredTokens: string[]): number {
+  return matrix.findIndex((row) => rowContainsAll(row, requiredTokens));
+}
+
+function findColumnIndex(headers: string[], candidates: string[]): number {
+  const normalizedCandidates = candidates.map(normalizeForScore);
+  return headers.findIndex((header) => normalizedCandidates.includes(normalizeForScore(header)));
+}
+
+function valueAt(sourceRow: any[], index: number): any {
+  return index >= 0 ? sourceRow[index] : "";
+}
+
 function buildCompositeRowKey(
   sheetName: string,
   sourceRowIndex: number,
@@ -586,10 +638,21 @@ function findTransferHeaderRow(matrix: any[][]): number {
 }
 
 function legacyProfileFromDetection(detection: SheetProfileDetection): SourceProfile | null {
-  if (detection.profile === "summary") return "SUMMARY_SKIP";
+  if (
+    detection.profile === "summary" ||
+    detection.profile === "help" ||
+    detection.profile === "reference" ||
+    detection.profile === "form" ||
+    detection.profile === "template" ||
+    detection.profile === "empty" ||
+    detection.profile === "maintenance"
+  ) {
+    return "SUMMARY_SKIP";
+  }
+  if (detection.profile === "assetData") return "ASSET_DATA";
   if (detection.profile === "newAsset") return "NEW_ASSET_2567";
   if (detection.profile === "transfer") return "TRANSFER_2567";
-  if (detection.profile === "registry" || detection.profile === "disposal") {
+  if (detection.profile === "registry" || detection.profile === "disposal" || detection.profile === "realEstate") {
     return "REGISTER_3_ROW_HEADER";
   }
   return null;
@@ -605,6 +668,9 @@ function detectSourceProfile(
 
   const compactSheet = compactText(sheetName);
   if (compactSheet.includes("แบบกข")) return "SUMMARY_SKIP";
+  if (compactSheet.includes("help") || compactSheet.includes("reference") || compactSheet.includes("template")) {
+    return "SUMMARY_SKIP";
+  }
   if (compactSheet.includes("ครุภัณฑ์ใหม่2567")) return "NEW_ASSET_2567";
   if (compactSheet.includes("โอน2567") || compactSheet.includes("โอนอาคาร2567")) {
     return "TRANSFER_2567";
@@ -614,6 +680,9 @@ function detectSourceProfile(
   const firstRows = matrix.slice(0, 8);
   if (firstRows.some((row) => rowContainsAny(row, ["รหัสสินทรัพย์"]) && rowContainsAny(row, ["รายละเอียดสินทรัพย์"]))) {
     return "NEW_ASSET_2567";
+  }
+  if (firstRows.some((row) => rowContainsAny(row, ["AssetCode"]) && rowContainsAny(row, ["ModelName"]))) {
+    return "ASSET_DATA";
   }
   if (firstRows.some((row) => rowContainsAny(row, ["รหัสครุภัณฑ์"]) && rowContainsAny(row, ["สภาพครุภัณฑ์"]))) {
     return "REGISTER_3_ROW_HEADER";
@@ -728,6 +797,9 @@ function parseNewAssetSheet(sheetName: string, matrix: any[][]): DataSourceSheet
     headers,
     rows,
     rowCount: rows.length,
+    eligibility: "needsReview",
+    eligibilityReason: "pending validation",
+    confidence: 0,
     groupedAssets,
     warnings,
   };
@@ -874,6 +946,9 @@ function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSourceSheet
     headers,
     rows,
     rowCount: rows.length,
+    eligibility: "needsReview",
+    eligibilityReason: "pending validation",
+    confidence: 0,
     groupedAssets,
     warnings,
   };
@@ -933,6 +1008,85 @@ function parseTransferSheet(sheetName: string, matrix: any[][]): DataSourceSheet
     headers,
     rows,
     rowCount: rows.length,
+    eligibility: "needsReview",
+    eligibilityReason: "pending validation",
+    confidence: 0,
+    groupedAssets: [],
+    warnings,
+  };
+}
+
+function parseAssetDataSheet(sheetName: string, matrix: any[][]): DataSourceSheet {
+  const detectedHeaderIndex = findHeaderRowByTokens(matrix, ["AssetCode", "ModelName"]);
+  const headerRowIndex = detectedHeaderIndex >= 0 ? detectedHeaderIndex : detectHeaderRow(matrix);
+  const rawHeaders = buildHeaderKeys(matrix[headerRowIndex] || []);
+  const headers = appendHeaders(rawHeaders);
+  const rows: Record<string, any>[] = [];
+  const warnings: string[] = [];
+
+  const assetCodeIndex = findColumnIndex(rawHeaders, ["AssetCode"]);
+  const modelNameIndex = findColumnIndex(rawHeaders, ["ModelName"]);
+  const assetTypeIndex = findColumnIndex(rawHeaders, ["AssetTypeName"]);
+  const purchaseDateIndex = findColumnIndex(rawHeaders, ["PurchaseDate"]);
+  const purchasePriceIndex = findColumnIndex(rawHeaders, ["PurchasePrice"]);
+  const priceIndex = findColumnIndex(rawHeaders, ["Price"]);
+  const locationIndex = findColumnIndex(rawHeaders, ["LocationName"]);
+  const statusIndex = findColumnIndex(rawHeaders, ["StatusName", "Status"]);
+
+  if (purchasePriceIndex >= 0 && priceIndex >= 0) {
+    warnings.push("ใช้ PurchasePrice เป็นมูลค่าหลัก และใช้ Price เฉพาะกรณี PurchasePrice ว่าง");
+  }
+
+  for (let index = headerRowIndex + 1; index < matrix.length; index += 1) {
+    const sourceRow = matrix[index] || [];
+    if (isRowEmpty(sourceRow) || isTotalOrSummaryRow(sourceRow)) continue;
+
+    const assetCode = cellText(valueAt(sourceRow, assetCodeIndex));
+    const assetName = cellText(valueAt(sourceRow, modelNameIndex));
+    if (!assetCode && !assetName) continue;
+
+    const purchasePrice = valueAt(sourceRow, purchasePriceIndex);
+    const fallbackPrice = valueAt(sourceRow, priceIndex);
+    const value = cellText(purchasePrice) && cellText(purchasePrice) !== "0" ? purchasePrice : fallbackPrice;
+    const sourceAssetType = cellText(valueAt(sourceRow, assetTypeIndex));
+
+    const row = withCommonMeta(
+      buildRawRow(headers, sourceRow),
+      "ASSET_DATA",
+      sheetName,
+      index + 1,
+      sourceAssetType,
+      Boolean(sourceAssetType),
+      "",
+      assetName,
+    );
+    setNormalizedFields(row, {
+      assetCode,
+      assetName,
+      assetDetail: "",
+      receivedDate: normalizeThaiDate(valueAt(sourceRow, purchaseDateIndex)),
+      value,
+      location: valueAt(sourceRow, locationIndex),
+    });
+    row[INTERNAL.status] = cellText(valueAt(sourceRow, statusIndex)) || "ปกติ";
+    row[INTERNAL.assetCategory] = deriveAssetCategoryFromText(sourceAssetType);
+    row[INTERNAL.needCount] = "True";
+    row[INTERNAL.importantFlag] = "False";
+    row[INTERNAL.depreciationFlag] = "True";
+    rows.push(row);
+  }
+
+  if (!rows.length) warnings.push("ไม่พบแถว AssetData ที่มี AssetCode หรือ ModelName");
+  return {
+    sheetName,
+    sourceProfile: "ASSET_DATA",
+    headerRowIndex,
+    headers,
+    rows,
+    rowCount: rows.length,
+    eligibility: "needsReview",
+    eligibilityReason: "pending validation",
+    confidence: 0,
     groupedAssets: [],
     warnings,
   };
@@ -969,6 +1123,9 @@ function parseUnknownSheet(
     headers,
     rows,
     rowCount: rows.length,
+    eligibility: "needsReview",
+    eligibilityReason: "unknown asset-like sheet requires manual mapping and validation",
+    confidence: 0,
     groupedAssets: [],
     warnings: rowMeta.length ? [] : [],
   };
@@ -1039,11 +1196,15 @@ export function createDataSourceWorkbook(
       ...profileDetection,
       shouldParse: profile !== "SUMMARY_SKIP",
       legacySourceProfile: profile,
+      eligibility: "needsReview",
+      decisionReason: "pending validation",
     };
     profileDebug.push(debug);
 
     if (isSheetEffectivelyEmpty(matrix)) {
       debug.shouldParse = false;
+      debug.eligibility = "skipped";
+      debug.decisionReason = "empty sheet";
       debug.skipReason = "empty sheet";
       skippedSheets.push(sheetName);
       continue;
@@ -1051,7 +1212,18 @@ export function createDataSourceWorkbook(
 
     if (profile === "SUMMARY_SKIP") {
       debug.shouldParse = false;
-      debug.skipReason = "summary sheet";
+      debug.eligibility = "skipped";
+      debug.decisionReason = `${profileDetection.profile} sheet is not an exportable asset table`;
+      debug.skipReason = debug.decisionReason;
+      skippedSheets.push(sheetName);
+      continue;
+    }
+
+    if (profile === "UNKNOWN" && !sheetLooksAssetLike(matrix)) {
+      debug.shouldParse = false;
+      debug.eligibility = "skipped";
+      debug.decisionReason = "unknown sheet does not contain an asset-like table";
+      debug.skipReason = debug.decisionReason;
       skippedSheets.push(sheetName);
       continue;
     }
@@ -1059,6 +1231,8 @@ export function createDataSourceWorkbook(
     const sheet =
       profile === "NEW_ASSET_2567"
         ? parseNewAssetSheet(sheetName, matrix)
+        : profile === "ASSET_DATA"
+          ? parseAssetDataSheet(sheetName, matrix)
         : profile === "REGISTER_3_ROW_HEADER"
           ? parseRegisterSheet(sheetName, matrix)
           : profile === "TRANSFER_2567"
@@ -1066,8 +1240,22 @@ export function createDataSourceWorkbook(
             : parseUnknownSheet(sheetName, matrix, workbookSheet.rowMeta);
 
     sheet.profileDebug = debug;
+    sheet.confidence = profileDetection.confidence;
+    sheet.eligibility =
+      profile === "UNKNOWN" || profileDetection.confidence < 0.55 ? "needsReview" : "exportable";
+    sheet.eligibilityReason =
+      sheet.eligibility === "exportable"
+        ? `matched ${profileDetection.profile} profile`
+        : profile === "UNKNOWN"
+          ? "unknown asset-like sheet requires manual review"
+          : `profile confidence ${profileDetection.confidence} is below export threshold`;
+    debug.eligibility = sheet.eligibility;
+    debug.decisionReason = sheet.eligibilityReason;
+
     if (sheet.rows.length === 0) {
       debug.shouldParse = false;
+      debug.eligibility = "skipped";
+      debug.decisionReason = "no parsed asset rows";
       debug.skipReason = "no parsed asset rows";
       skippedSheets.push(sheetName);
       continue;

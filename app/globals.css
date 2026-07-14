@@ -414,6 +414,12 @@ button {
   font-size: 18px;
   line-height: 1.25;
 }
+.sheet-decision {
+  margin: 12px 0 0;
+  color: var(--ink-soft);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
 
 .table-wrap {
   overflow-x: auto;

@@ -1,4 +1,5 @@
 import type { MappingSuggestion } from "./mapping";
+import type { SheetEligibility } from "./datasource";
 import type { SheetStatus, SheetSummary, ValidationIssue } from "./validate";
 
 export type { MappingSuggestion, SheetStatus, SheetSummary, ValidationIssue };
@@ -14,6 +15,9 @@ export interface SheetData {
   summary: SheetSummary;
   headers: string[];
   rowCount: number;
+  eligibility: SheetEligibility;
+  eligibilityReason: string;
+  confidence: number;
   groupedAssets?: unknown[];
   warnings?: string[];
   sampleRows: Record<string, any>[];
@@ -22,6 +26,7 @@ export interface SheetData {
 }
 
 export interface ParseResponse {
+  analysisId?: string;
   fileName: string;
   sheets: SheetData[];
   skippedSheets: string[];
@@ -32,6 +37,7 @@ export interface ParseResponse {
 
 export interface ExportSheetInput {
   sheetName: string;
+  eligibility?: SheetEligibility;
   rows: Record<string, any>[];
   headerRow?: number;
   autoMapping?: MappingSuggestion[];
@@ -41,6 +47,7 @@ export interface ExportSheetInput {
 
 export interface ExportRequest {
   mode?: ExportMode;
+  analysisId?: string;
   sourceFileName?: string;
   sheets?: ExportSheetInput[];
 }

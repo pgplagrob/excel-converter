@@ -45,6 +45,7 @@ export default function Page() {
     mode: "validate" | "download",
   ) => ({
     mode,
+    analysisId: parsedData.analysisId,
     sourceFileName: parsedData.fileName,
     sheets: parsedData.sheets.map((s) => ({
       sheetName: s.sheetName,
