@@ -1,13 +1,14 @@
-# Excel Template Converter
+# Latest Excel Converter
 
 เว็บแอป Next.js สำหรับแปลงข้อมูลจากไฟล์ Excel หลายรูปแบบให้เป็นไฟล์ตามเทมเพลตมาตรฐาน 44 คอลัมน์ พร้อมตรวจสอบข้อมูล แนะนำการจับคู่คอลัมน์ และดาวน์โหลดผลลัพธ์เป็นไฟล์ `.xlsx`
 
 ## ความสามารถหลัก
 
-- รองรับไฟล์ `.xlsx` และ `.xls`
+- รองรับไฟล์ `.xlsx` และ `.xls` ขนาดไม่เกิน 20 MB
 - อ่าน workbook หลายชีต พร้อมข้ามชีตว่างและชีตสรุปที่ไม่ใช่ข้อมูลสินทรัพย์
 - ตรวจจับรูปแบบชีตจากชื่อชีต header และ keyword
-- รองรับข้อมูลสินทรัพย์ใหม่ ทะเบียนครุภัณฑ์หลายแถว และข้อมูลโอน/ย้าย
+- รองรับ AssetData, ข้อมูลสินทรัพย์ใหม่, ทะเบียนครุภัณฑ์หลายแถว, ข้อมูลโอน/ย้าย และตารางรูปแบบยืดหยุ่น
+- อ่านตารางที่ไม่มี header, header สองแถว และรหัสสินทรัพย์ที่แยกอยู่หลายคอลัมน์
 - แปลงข้อมูลเป็นโครงสร้างกลาง พร้อม carry-forward หมวดหมู่จากแถวหัวกลุ่ม
 - แนะนำ mapping ไปยังเทมเพลต 44 คอลัมน์ด้วย exact, alias และ fuzzy matching
 - แสดง preview, สรุปแต่ละชีต, validation issues และ Advanced Mapping
@@ -28,6 +29,12 @@ npm run dev
 ```bash
 npm run build
 npm start
+```
+
+รันชุดทดสอบ:
+
+```bash
+npm test
 ```
 
 ## วิธีใช้งาน
@@ -76,7 +83,8 @@ app/api/v1/parse/route.ts    อ่านไฟล์ Excel และสร้�
 app/api/v1/export/route.ts   validate หรือสร้างไฟล์ Excel ปลายทาง
 lib/excel.ts                 อ่าน workbook และเก็บ metadata ของแถว
 lib/sheet-profile.ts         ตรวจจับรูปแบบของชีต
-lib/datasource.ts            normalize ข้อมูลและแปลงตามรูปแบบชีต
+lib/datasource.ts            public facade และ orchestration ของ datasource
+lib/datasource/              types, helpers, profile detection และ parser แยกตามรูปแบบชีต
 lib/mapping.ts               template columns, aliases และ logic แนะนำ mapping
 lib/transform.ts             แปลงข้อมูลเป็น template 44 คอลัมน์
 lib/validate.ts               ตรวจสอบระดับชีตและระดับแถว
@@ -86,5 +94,6 @@ lib/client-types.ts           types ที่ใช้ร่วมกันร�
 ## หมายเหตุ
 
 - ใช้ `npm run build` เพื่อตรวจสอบ TypeScript และ production build
+- จำกัดสูงสุด 100 ชีต, 50,000 แถวต่อชีต, 256 คอลัมน์ต่อชีต และ 1,000,000 เซลล์ต่อ workbook
 - ชื่อชีตในไฟล์ export จะอ้างอิงชื่อชีตต้นทางและถูกตัดให้ไม่เกินข้อจำกัดของ Excel
 - รายการที่มีรหัสสินทรัพย์ซ้ำยัง export ได้ หากข้อมูลคอลัมน์อื่นแตกต่างกัน ระบบจะแจ้งเตือนเฉพาะรายการที่ซ้ำแบบ exact duplicate

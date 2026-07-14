@@ -3,7 +3,7 @@ import type { ParseResponse, ValidationIssue } from "@/lib/client-types";
 import { saveAnalysis } from "@/lib/analysis-store";
 import type { SheetEligibility } from "@/lib/datasource";
 import { createDataSourceWorkbook } from "@/lib/datasource";
-import { readWorkbookBuffer } from "@/lib/excel";
+import { readWorkbookBuffer, WorkbookLimitError } from "@/lib/excel";
 import { mappingSuggestionsToRecord, suggestMapping } from "@/lib/mapping";
 import { transformRowsToTemplateDataset } from "@/lib/transform";
 import { loadAssetTemplateMetadata } from "@/lib/template";
@@ -11,22 +11,45 @@ import { createSheetSummary, validateMappedRows, validateSheetLevel } from "@/li
 
 export const runtime = "nodejs";
 
+const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
+const MAX_REQUEST_BYTES = MAX_UPLOAD_BYTES + 1024 * 1024;
+const WORKBOOK_FILE_PATTERN = /\.xlsx?$/i;
+
+function uploadError(message: string) {
+  return NextResponse.json({ error: message }, { status: 400 });
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const formData = await req.formData();
-    const file = formData.get("file") as File | null;
+    const contentLength = Number(req.headers.get("content-length"));
+    if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_BYTES) {
+      return uploadError("The uploaded file must be 20 MB or smaller.");
+    }
 
-    if (!file) {
-      return NextResponse.json({ error: "ไม่พบไฟล์ที่อัปโหลด" }, { status: 400 });
+    const formData = await req.formData();
+    const fileEntry = formData.get("file");
+    if (!fileEntry || typeof fileEntry === "string") {
+      return uploadError("No workbook file was uploaded.");
+    }
+
+    const file = fileEntry;
+    if (!WORKBOOK_FILE_PATTERN.test(file.name)) {
+      return uploadError("Only .xlsx and .xls files are supported.");
+    }
+    if (!file.size) {
+      return uploadError("The uploaded workbook is empty.");
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      return uploadError("The uploaded file must be 20 MB or smaller.");
     }
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const rawWorkbook = readWorkbookBuffer(buffer, file.name);
+    const rawWorkbook = await readWorkbookBuffer(buffer, file.name);
     const dataSource = createDataSourceWorkbook(rawWorkbook.fileName, rawWorkbook.sheets);
     const analysisId = saveAnalysis(dataSource);
-    const template = loadAssetTemplateMetadata();
+    const template = await loadAssetTemplateMetadata();
 
     const sheets = dataSource.sheets.map((sheet) => {
       const mapping = suggestMapping(sheet.headers);
@@ -109,7 +132,7 @@ export async function POST(req: NextRequest) {
     console.error(err);
     return NextResponse.json(
       { error: "เกิดข้อผิดพลาดในการอ่านไฟล์: " + (err?.message || "unknown error") },
-      { status: 500 }
+      { status: err instanceof WorkbookLimitError ? 400 : 500 }
     );
   }
 }

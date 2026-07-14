@@ -1,5 +1,6 @@
+import { readFile } from "fs/promises";
 import path from "path";
-import * as XLSX from "xlsx-js-style";
+import ExcelJS from "exceljs";
 
 export interface TemplateReferenceValues {
   categories: Set<string>;
@@ -19,19 +20,53 @@ export interface AssetTemplateSheetInput {
   rows: Record<string, unknown>[];
 }
 
+type TemplateLayout = {
+  columns: { width?: number; hidden?: boolean }[];
+  headerStyles: unknown[];
+  rowStyles: unknown[];
+  headerHeight?: number;
+  rowHeight?: number;
+};
+
+type WorksheetSnapshot = {
+  columns: { width?: number; hidden?: boolean }[];
+  rows: { height?: number; cells: { value: unknown; style: unknown }[] }[];
+  merges: string[];
+};
+
 const TEMPLATE_PATH = path.join(process.cwd(), "assets", "asset-template.xlsx");
 
 function cellText(value: unknown): string {
-  return value === undefined || value === null ? "" : String(value).trim();
+  if (value === undefined || value === null) return "";
+  if (typeof value === "object") {
+    const cellValue = value as { richText?: { text: string }[]; text?: string };
+    if (cellValue.richText) return cellValue.richText.map((part) => part.text).join("").trim();
+    if (cellValue.text) return cellValue.text.trim();
+  }
+  return String(value).trim();
 }
 
-function readTemplateWorkbook(): XLSX.WorkBook {
-  return XLSX.readFile(TEMPLATE_PATH, { cellDates: true, cellStyles: true });
+async function readTemplateWorkbook(): Promise<ExcelJS.Workbook> {
+  const workbook = new ExcelJS.Workbook();
+  // readFile returns a Node Buffer which may differ from ExcelJS.Buffer type
+  // cast through unknown to satisfy the ExcelJS type signature
+  await workbook.xlsx.load((await readFile(TEMPLATE_PATH)) as unknown as ExcelJS.Buffer);
+  return workbook;
 }
 
-function readSheetRows(ws: XLSX.WorkSheet | undefined): unknown[][] {
-  if (!ws) return [];
-  return XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" }) as unknown[][];
+function readSheetRows(worksheet: ExcelJS.Worksheet | undefined): unknown[][] {
+  if (!worksheet) return [];
+
+  const rows: unknown[][] = [];
+  const rowCount = worksheet.rowCount;
+  const columnCount = worksheet.columnCount;
+  for (let rowIndex = 1; rowIndex <= rowCount; rowIndex += 1) {
+    const row = worksheet.getRow(rowIndex);
+    rows.push(
+      Array.from({ length: columnCount }, (_, columnIndex) => row.getCell(columnIndex + 1).value ?? ""),
+    );
+  }
+  return rows;
 }
 
 function valuesFromReferenceColumn(rows: unknown[][], columnIndex: number): Set<string> {
@@ -43,10 +78,10 @@ function valuesFromReferenceColumn(rows: unknown[][], columnIndex: number): Set<
   );
 }
 
-export function loadAssetTemplateMetadata(): AssetTemplateMetadata {
-  const wb = readTemplateWorkbook();
-  const sheetRows = readSheetRows(wb.Sheets.Sheet1);
-  const referenceRows = readSheetRows(wb.Sheets.Reference);
+export async function loadAssetTemplateMetadata(): Promise<AssetTemplateMetadata> {
+  const workbook = await readTemplateWorkbook();
+  const sheetRows = readSheetRows(workbook.getWorksheet("Sheet1"));
+  const referenceRows = readSheetRows(workbook.getWorksheet("Reference"));
   const columns = (sheetRows[0] || []).map(cellText).filter(Boolean);
 
   return {
@@ -65,47 +100,90 @@ function cloneStyle(value: unknown): unknown {
   return value ? JSON.parse(JSON.stringify(value)) : undefined;
 }
 
-function applyTemplateStyles(
-  target: XLSX.WorkSheet,
-  source: XLSX.WorkSheet,
+function captureTemplateLayout(source: ExcelJS.Worksheet, columnCount: number): TemplateLayout {
+  const headerRow = source.getRow(1);
+  const dataRow = source.getRow(2);
+  return {
+    columns: Array.from({ length: columnCount }, (_, index) => {
+      const column = source.getColumn(index + 1);
+      return { width: column.width, hidden: column.hidden };
+    }),
+    headerStyles: Array.from({ length: columnCount }, (_, index) => cloneStyle(headerRow.getCell(index + 1).style)),
+    rowStyles: Array.from({ length: columnCount }, (_, index) => cloneStyle(dataRow.getCell(index + 1).style)),
+    headerHeight: headerRow.height,
+    rowHeight: dataRow.height,
+  };
+}
+
+function applyTemplateSheet(
+  target: ExcelJS.Worksheet,
+  rows: Record<string, unknown>[],
   columns: string[],
-  rowCount: number,
+  layout: TemplateLayout,
 ): void {
-  target["!cols"] = source["!cols"];
-  target["!rows"] = source["!rows"] ? source["!rows"].slice(0, Math.max(1, rowCount + 1)) : undefined;
+  for (let columnIndex = 0; columnIndex < columns.length; columnIndex += 1) {
+    const column = target.getColumn(columnIndex + 1);
+    column.width = layout.columns[columnIndex]?.width;
+    column.hidden = layout.columns[columnIndex]?.hidden;
 
-  for (let colIndex = 0; colIndex < columns.length; colIndex += 1) {
-    const headerAddress = XLSX.utils.encode_cell({ r: 0, c: colIndex });
-    const sampleAddress = XLSX.utils.encode_cell({ r: 1, c: colIndex });
-    const headerStyle = cloneStyle(source[headerAddress]?.s);
-    const sampleStyle = cloneStyle(source[sampleAddress]?.s);
+    const headerCell = target.getRow(1).getCell(columnIndex + 1);
+    headerCell.value = columns[columnIndex];
+    headerCell.style = cloneStyle(layout.headerStyles[columnIndex]) as any;
+  }
+  target.getRow(1).height = layout.headerHeight;
 
-    if (target[headerAddress] && headerStyle) target[headerAddress].s = headerStyle;
+  rows.forEach((row, rowOffset) => {
+    const targetRow = target.getRow(rowOffset + 2);
+    targetRow.height = layout.rowHeight;
+    columns.forEach((column, columnIndex) => {
+      const cell = targetRow.getCell(columnIndex + 1);
+      cell.value = (row[column] ?? "") as any;
+      cell.style = cloneStyle(layout.rowStyles[columnIndex]) as any;
+    });
+  });
+}
 
-    for (let rowIndex = 1; rowIndex <= rowCount; rowIndex += 1) {
-      const address = XLSX.utils.encode_cell({ r: rowIndex, c: colIndex });
-      if (!target[address]) target[address] = { t: "s", v: "" };
-      if (sampleStyle) target[address].s = cloneStyle(sampleStyle);
-    }
+function clearTemplateData(sheet: ExcelJS.Worksheet): void {
+  for (let rowIndex = 2; rowIndex <= sheet.rowCount; rowIndex += 1) {
+    sheet.getRow(rowIndex).values = [];
   }
 }
 
-function buildTemplateSheet(
-  rows: Record<string, unknown>[],
-  columns: string[],
-  sourceSheet: XLSX.WorkSheet | undefined,
-): XLSX.WorkSheet {
-  const aoa = [
-    columns,
-    ...rows.map((row) => columns.map((column) => row[column] ?? "")),
-  ];
-  const ws = XLSX.utils.aoa_to_sheet(aoa);
+function captureWorksheet(source: ExcelJS.Worksheet): WorksheetSnapshot {
+  return {
+    columns: Array.from({ length: source.columnCount }, (_, index) => {
+      const column = source.getColumn(index + 1);
+      return { width: column.width, hidden: column.hidden };
+    }),
+    rows: Array.from({ length: source.rowCount }, (_, rowIndex) => {
+      const row = source.getRow(rowIndex + 1);
+      return {
+        height: row.height,
+        cells: Array.from({ length: source.columnCount }, (_, columnIndex) => {
+          const cell = row.getCell(columnIndex + 1);
+          return { value: cell.value, style: cloneStyle(cell.style) };
+        }),
+      };
+    }),
+    merges: source.model.merges || [],
+  };
+}
 
-  if (sourceSheet) {
-    applyTemplateStyles(ws, sourceSheet, columns, rows.length);
-  }
-
-  return ws;
+function restoreWorksheet(target: ExcelJS.Worksheet, snapshot: WorksheetSnapshot): void {
+  snapshot.columns.forEach((column, index) => {
+    target.getColumn(index + 1).width = column.width;
+    target.getColumn(index + 1).hidden = column.hidden;
+  });
+  snapshot.rows.forEach((sourceRow, rowIndex) => {
+    const targetRow = target.getRow(rowIndex + 1);
+    targetRow.height = sourceRow.height;
+    sourceRow.cells.forEach((sourceCell, columnIndex) => {
+      const targetCell = targetRow.getCell(columnIndex + 1);
+      targetCell.value = sourceCell.value as any;
+      targetCell.style = sourceCell.style as any;
+    });
+  });
+  snapshot.merges.forEach((range) => target.mergeCells(range));
 }
 
 function sanitizeSheetName(value: string): string {
@@ -131,35 +209,48 @@ function uniqueSheetName(rawName: string, usedNames: Set<string>): string {
   return name;
 }
 
-export function buildAssetTemplateWorkbook(rows: Record<string, unknown>[]): XLSX.WorkBook {
-  const wb = readTemplateWorkbook();
-  const metadata = loadAssetTemplateMetadata();
-  const sourceSheet = wb.Sheets.Sheet1;
-  const ws = buildTemplateSheet(rows, metadata.columns, sourceSheet);
+export async function buildAssetTemplateWorkbook(rows: Record<string, unknown>[]): Promise<ExcelJS.Workbook> {
+  const workbook = await readTemplateWorkbook();
+  const metadata = await loadAssetTemplateMetadata();
+  const sheet = workbook.getWorksheet("Sheet1");
+  if (!sheet) throw new Error("The asset template is missing Sheet1.");
 
-  wb.Sheets.Sheet1 = ws;
-  wb.SheetNames = ["Sheet1", ...wb.SheetNames.filter((name) => name !== "Sheet1")];
-  return wb;
+  const layout = captureTemplateLayout(sheet, metadata.columns.length);
+  clearTemplateData(sheet);
+  applyTemplateSheet(sheet, rows, metadata.columns, layout);
+  return workbook;
 }
 
-export function buildAssetTemplateWorkbookBySheet(sheets: AssetTemplateSheetInput[]): XLSX.WorkBook {
-  const wb = readTemplateWorkbook();
-  const metadata = loadAssetTemplateMetadata();
-  const sourceSheet = wb.Sheets.Sheet1;
-  const preservedSheetNames = wb.SheetNames.filter((name) => name !== "Sheet1");
-  const usedNames = new Set(preservedSheetNames.map((name) => name.toLowerCase()));
-  const outputSheetNames: string[] = [];
+export async function buildAssetTemplateWorkbookBySheet(
+  sheets: AssetTemplateSheetInput[],
+): Promise<ExcelJS.Workbook> {
+  const workbook = await readTemplateWorkbook();
+  const metadata = await loadAssetTemplateMetadata();
+  const templateSheet = workbook.getWorksheet("Sheet1");
+  const referenceSheet = workbook.getWorksheet("Reference");
+  if (!templateSheet) throw new Error("The asset template is missing Sheet1.");
 
-  delete wb.Sheets.Sheet1;
+  const layout = captureTemplateLayout(templateSheet, metadata.columns.length);
+  const referenceSnapshot = referenceSheet ? captureWorksheet(referenceSheet) : undefined;
+  const usedNames = new Set<string>();
 
-  for (const sheet of sheets) {
-    const safeName = uniqueSheetName(sheet.sheetName, usedNames);
-    wb.Sheets[safeName] = buildTemplateSheet(sheet.rows, metadata.columns, sourceSheet);
-    outputSheetNames.push(safeName);
+  sheets.forEach((sheet, index) => {
+    const sheetName = uniqueSheetName(sheet.sheetName, usedNames);
+    const target = index === 0 ? templateSheet : workbook.addWorksheet(sheetName);
+    if (index === 0) {
+      target.name = sheetName;
+      clearTemplateData(target);
+    }
+    applyTemplateSheet(target, sheet.rows, metadata.columns, layout);
+  });
+
+  if (referenceSheet && referenceSnapshot) {
+    workbook.removeWorksheet(referenceSheet.id);
+    const restoredReference = workbook.addWorksheet("Reference");
+    restoreWorksheet(restoredReference, referenceSnapshot);
   }
 
-  wb.SheetNames = [...outputSheetNames, ...preservedSheetNames];
-  return wb;
+  return workbook;
 }
 
 export function getAssetTemplatePath(): string {

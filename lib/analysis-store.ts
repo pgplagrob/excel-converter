@@ -8,6 +8,7 @@ export interface AnalysisRecord {
 }
 
 const TTL_MS = 30 * 60 * 1000;
+const MAX_ANALYSES = 20;
 const store = new Map<string, AnalysisRecord>();
 
 function cleanupExpired(now = Date.now()): void {
@@ -18,6 +19,12 @@ function cleanupExpired(now = Date.now()): void {
 
 export function saveAnalysis(dataSource: DataSourceWorkbook): string {
   cleanupExpired();
+  while (store.size >= MAX_ANALYSES) {
+    const oldestId = store.keys().next().value as string | undefined;
+    if (!oldestId) break;
+    store.delete(oldestId);
+  }
+
   const id = crypto.randomUUID();
   const now = Date.now();
   store.set(id, {
@@ -32,5 +39,12 @@ export function saveAnalysis(dataSource: DataSourceWorkbook): string {
 export function getAnalysis(id: string | null | undefined): AnalysisRecord | null {
   if (!id) return null;
   cleanupExpired();
-  return store.get(id) ?? null;
+  const record = store.get(id);
+  if (!record) return null;
+
+  // Keep an active conversion available while the user reviews its mappings.
+  record.expiresAt = Date.now() + TTL_MS;
+  store.delete(id);
+  store.set(id, record);
+  return record;
 }

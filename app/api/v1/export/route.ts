@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as XLSX from "xlsx-js-style";
 import type { ExportMode, ExportRequest, ExportSheetInput } from "@/lib/client-types";
 import { getAnalysis } from "@/lib/analysis-store";
 import { mappingSuggestionsToRecord, mergeMapping } from "@/lib/mapping";
@@ -28,7 +27,7 @@ export async function POST(req: NextRequest) {
     const sheetsInput: ExportSheetInput[] = body.sheets || [];
     const mode: ExportMode = body.mode || "download";
     const analysis = getAnalysis(body.analysisId);
-    const template = loadAssetTemplateMetadata();
+    const template = await loadAssetTemplateMetadata();
 
     if (!analysis && !sheetsInput.length) {
       return NextResponse.json({ error: "ไม่พบข้อมูลสำหรับสร้างไฟล์" }, { status: 400 });
@@ -131,8 +130,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const wb = buildAssetTemplateWorkbookBySheet(exportableSheets);
-    const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+    const wb = await buildAssetTemplateWorkbookBySheet(exportableSheets);
+    const buffer = Buffer.from(await wb.xlsx.writeBuffer());
     const fileName = buildExportFileName(sourceFileName);
 
     return new NextResponse(buffer, {

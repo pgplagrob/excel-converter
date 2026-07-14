@@ -13,6 +13,9 @@ const STEP_LABELS = [
   "4. Export",
 ];
 
+const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
+const WORKBOOK_FILE_PATTERN = /\.xlsx?$/i;
+
 export default function Page() {
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -36,6 +39,21 @@ export default function Page() {
 
   const handleFile = useCallback((f: File) => {
     setError(null);
+    if (!WORKBOOK_FILE_PATTERN.test(f.name)) {
+      setFile(null);
+      setError("รองรับเฉพาะไฟล์ .xlsx และ .xls");
+      return;
+    }
+    if (!f.size) {
+      setFile(null);
+      setError("ไฟล์ที่เลือกไม่มีข้อมูล");
+      return;
+    }
+    if (f.size > MAX_UPLOAD_BYTES) {
+      setFile(null);
+      setError("ไฟล์ต้องมีขนาดไม่เกิน 20 MB");
+      return;
+    }
     setFile(f);
   }, []);
 

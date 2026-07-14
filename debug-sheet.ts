@@ -14,7 +14,7 @@ import { transformRowsToTemplateDataset } from "./lib/transform";
 const FILE = "ครุภัณฑ์สำนักปลัดเทศบาล67-แบบ-กข-แก้ไข15-11-67.xlsx";
 const TARGET = process.argv[2] ?? "สำนักงาน";
 
-const raw = readWorkbookBuffer(readFileSync(FILE), FILE);
+const raw = await readWorkbookBuffer(readFileSync(FILE), FILE);
 const ds = createDataSourceWorkbook(raw.fileName, raw.sheets);
 
 const sheet = ds.sheets.find((s) => s.sheetName === TARGET);

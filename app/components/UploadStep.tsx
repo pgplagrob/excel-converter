@@ -30,7 +30,7 @@ export function UploadStep({
       <p className="eyebrow">Step 1</p>
       <h2>อัปโหลดไฟล์ Excel</h2>
       <p className="lead">
-        รองรับไฟล์ .xlsx / .xls ที่มีหลายชีต
+        รองรับไฟล์ .xlsx และ .xls ที่มีหลายชีต
         ระบบจะตรวจหาชีตที่มีข้อมูลสินทรัพย์ให้อัตโนมัติ
       </p>
 
@@ -46,7 +46,7 @@ export function UploadStep({
         >
           <div className="icon" />
           <div className="main">ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์</div>
-          <div className="sub">.xlsx, .xls — ไม่จำกัดจำนวนชีต</div>
+          <div className="sub">.xlsx / .xls — ไม่จำกัดจำนวนชีต</div>
           <input
             ref={inputRef}
             type="file"

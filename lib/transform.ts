@@ -304,6 +304,17 @@ function mapFallbackRow(sourceRow: Record<string, any>, mapping: TemplateMapping
     templateRow["ประเภทสินทรัพย์"] = deriveAssetCategory(sourceRow, visibleSourceAssetType);
     templateRow["มูลค่า"] = cleanMoneyValue(sourceRow.value ?? templateRow["มูลค่า"]);
     templateRow["วันที่ได้รับ"] = sourceRow.receivedDate ?? templateRow["วันที่ได้รับ"] ?? "";
+    templateRow["งานที่รับผิดชอบ"] = sourceRow.responsibleUnit ?? templateRow["งานที่รับผิดชอบ"] ?? "";
+    templateRow["อาคาร"] = sourceRow.location ?? templateRow["อาคาร"] ?? "";
+    templateRow["ได้มาโดย"] = sourceRow.acquiredBy ?? templateRow["ได้มาโดย"] ?? "";
+    templateRow["ได้มาจาก"] = sourceRow.acquiredFrom ?? templateRow["ได้มาจาก"] ?? "";
+    templateRow["แหล่งงบประมาณ"] = sourceRow.budgetSource ?? templateRow["แหล่งงบประมาณ"] ?? "";
+    templateRow["ระบุอื่น ๆ"] = sourceRow.note ?? templateRow["ระบุอื่น ๆ"] ?? "";
+    templateRow["สถานะ"] = sourceRow[INTERNAL.status] ?? templateRow["สถานะ"] ?? "";
+    templateRow["ต้องตรวจนับ"] = sourceRow[INTERNAL.needCount] ?? templateRow["ต้องตรวจนับ"] ?? "";
+    templateRow["คิดค่าเสื่อม"] =
+      sourceRow[INTERNAL.depreciationFlag] ?? templateRow["คิดค่าเสื่อม"] ?? "";
+    templateRow["ของสำคัญ"] = sourceRow[INTERNAL.importantFlag] ?? templateRow["ของสำคัญ"] ?? "";
   }
 
   applyAuthoritativeAssetFields(templateRow, sourceRow);

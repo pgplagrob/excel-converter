@@ -1,8 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ["xlsx"]
-  }
+  serverExternalPackages: ["xlsx-js-style"],
+  turbopack: {
+    root: __dirname,
+  },
 };
 
 module.exports = nextConfig;
