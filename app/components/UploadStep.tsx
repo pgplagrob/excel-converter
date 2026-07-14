@@ -7,7 +7,7 @@ interface UploadStepProps {
   dragActive: boolean;
   setDragActive: (active: boolean) => void;
   onDrop: (event: DragEvent) => void;
-  inputRef: RefObject<HTMLInputElement>;
+  inputRef: RefObject<HTMLInputElement | null>;
   handleFile: (file: File) => void;
   setFile: (file: File | null) => void;
   onNext: () => void;

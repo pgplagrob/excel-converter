@@ -6,7 +6,7 @@ import { readWorkbookBuffer, safeCellText, WorkbookLimitError } from "../lib/exc
 import { createDataSourceWorkbook } from "../lib/datasource";
 import { decideProfileEligibility } from "../lib/datasource/eligibility";
 import { detectSourceProfile } from "../lib/datasource/profile";
-import { COLUMN_ALIASES, mappingSuggestionsToRecord, suggestMapping } from "../lib/mapping";
+import { COLUMN_ALIASES, mappingSuggestionsToRecord, mergeMapping, suggestMapping } from "../lib/mapping";
 import { buildAssetTemplateWorkbook, buildAssetTemplateWorkbookBySheet, loadAssetTemplateMetadata } from "../lib/template";
 import { transformRowsToTemplateDataset } from "../lib/transform";
 import { shouldValidateSheet, validateMappedRows, validateSheetLevel } from "../lib/validate";
@@ -194,6 +194,7 @@ test("assetData mapping uses normalized fields and PurchasePrice fallback rule",
           "Price",
           "LocationName",
           "Status",
+          "BrandName",
         ],
         [
           "A-001",
@@ -204,6 +205,7 @@ test("assetData mapping uses normalized fields and PurchasePrice fallback rule",
           25000,
           "อาคาร 1",
           "เสื่อมสภาพ",
+          "SAMSUNG",
         ],
       ],
     },
@@ -211,6 +213,17 @@ test("assetData mapping uses normalized fields and PurchasePrice fallback rule",
   const sheet = workbook.sheets[0];
   const mapping = mappingSuggestionsToRecord(suggestMapping(sheet.headers));
   const rows = transformRowsToTemplateDataset(sheet.rows, mapping);
+  const manualMapping = { "ชื่อสินทรัพย์": "BrandName" };
+  const manualRows = transformRowsToTemplateDataset(
+    sheet.rows,
+    mergeMapping(mapping, manualMapping),
+    manualMapping,
+  );
+  const clearedRows = transformRowsToTemplateDataset(
+    sheet.rows,
+    mergeMapping(mapping, { "ชื่อสินทรัพย์": "" }),
+    { "ชื่อสินทรัพย์": "" },
+  );
 
   assert.equal(rows[0]["รหัสสินทรัพย์"], "A-001");
   assert.equal(rows[0]["ชื่อสินทรัพย์"], "เครื่องคอมพิวเตอร์");
@@ -218,6 +231,8 @@ test("assetData mapping uses normalized fields and PurchasePrice fallback rule",
   assert.equal(rows[0]["มูลค่า"], 25000);
   assert.equal(rows[0]["อาคาร"], "อาคาร 1");
   assert.equal(rows[0]["สถานะ"], "รอจำหน่าย");
+  assert.equal(manualRows[0]["ชื่อสินทรัพย์"], "SAMSUNG");
+  assert.equal(clearedRows[0]["ชื่อสินทรัพย์"], "");
 });
 
 test("mapping aliases cover source-system headers without crossing authoritative fields", () => {
@@ -487,6 +502,36 @@ test("registry parser reads split day month year before value and responsible un
   assert.equal(rows[0]["มูลค่า"], 75435);
   assert.equal(rows[0]["งานที่รับผิดชอบ"], "งานแผนที่");
   assert.equal(rows[0]["สถานะ"], "ปกติ");
+});
+
+test("manual mapping overrides profile-derived responsible unit and can explicitly clear it", () => {
+  const workbook = createDataSourceWorkbook("manual-register.xlsx", [
+    {
+      sheetName: "ทะเบียน",
+      matrix: [
+        ["ลำดับ", "รายการ", "รหัสครุภัณฑ์", "วันเดือนปี", "ราคาที่ได้มา", "หน่วยงาน", "สภาพครุภัณฑ์", "", "", "", "", "", "หมายเหตุ"],
+        ["", "", "", "", "", "", "ปกติ", "ชำรุด", "เสื่อม", "สูญหาย", "เก็บไว้นาน", "ไม่จำเป็น", ""],
+        ["", "", "", "", "", "", "", "", "", "", "", "", ""],
+        [1, "โต๊ะทำงาน", "400-67-0001", "1/5/2567", 1200, "กองการเจ้าหน้าที่", "x", "", "", "", "", "", "งานพัสดุ"],
+      ],
+    },
+  ]);
+  const sheet = workbook.sheets[0];
+  const autoMapping = mappingSuggestionsToRecord(suggestMapping(sheet.headers));
+
+  const remappedRows = transformRowsToTemplateDataset(
+    sheet.rows,
+    { ...autoMapping, "งานที่รับผิดชอบ": "note" },
+    { "งานที่รับผิดชอบ": "note" },
+  );
+  const clearedRows = transformRowsToTemplateDataset(
+    sheet.rows,
+    { ...autoMapping, "งานที่รับผิดชอบ": "" },
+    { "งานที่รับผิดชอบ": "" },
+  );
+
+  assert.equal(remappedRows[0]["งานที่รับผิดชอบ"], "งานพัสดุ");
+  assert.equal(clearedRows[0]["งานที่รับผิดชอบ"], "");
 });
 
 test("template output keeps Sheet1 at 44 columns and preserves Reference sheet", async () => {

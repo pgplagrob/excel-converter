@@ -19,6 +19,7 @@ export interface TransformSheetInput {
   sheetName: string;
   rows: Record<string, any>[];
   mapping: TemplateMapping;
+  manualMapping?: TemplateMapping;
 }
 
 function cellText(value: any): string {
@@ -280,6 +281,18 @@ function resolveFallbackValue(
     : sourceRow[sourceColumn] ?? "";
 }
 
+function applyManualMapping(
+  templateRow: Record<string, any>,
+  sourceRow: Record<string, any>,
+  manualMapping: TemplateMapping,
+): Record<string, any> {
+  for (const [templateColumn, sourceColumn] of Object.entries(manualMapping)) {
+    if (!TEMPLATE_COLUMNS.includes(templateColumn)) continue;
+    templateRow[templateColumn] = resolveFallbackValue(sourceRow, templateColumn, sourceColumn);
+  }
+  return templateRow;
+}
+
 function mapFallbackRow(sourceRow: Record<string, any>, mapping: TemplateMapping): Record<string, any> {
   const templateRow = emptyTemplateRow();
   for (const templateColumn of TEMPLATE_COLUMNS) {
@@ -324,12 +337,15 @@ function mapFallbackRow(sourceRow: Record<string, any>, mapping: TemplateMapping
 export function transformRowsToTemplateDataset(
   rows: Record<string, any>[],
   mapping: TemplateMapping,
+  manualMapping: TemplateMapping = {},
 ): Record<string, any>[] {
   const rowsWithEmitFlags = backfillRegisterAssetTypeEmitFlags(rows);
   return rowsWithEmitFlags.map((sourceRow) => {
     const profile = cellText(sourceRow[SOURCE_PROFILE_COLUMN]);
-    if (isKnownProfile(profile)) return mapProfileRow(sourceRow, profile);
-    return mapFallbackRow(sourceRow, mapping);
+    const templateRow = isKnownProfile(profile)
+      ? mapProfileRow(sourceRow, profile)
+      : mapFallbackRow(sourceRow, mapping);
+    return applyManualMapping(templateRow, sourceRow, manualMapping);
   });
 }
 

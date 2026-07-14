@@ -9,7 +9,15 @@ export interface AnalysisRecord {
 
 const TTL_MS = 30 * 60 * 1000;
 const MAX_ANALYSES = 20;
-const store = new Map<string, AnalysisRecord>();
+
+declare global {
+  var __excelConverterAnalysisStore: Map<string, AnalysisRecord> | undefined;
+}
+
+// Route handlers may be emitted as separate bundles. Keeping the store on
+// globalThis makes parse/export share one cache for the lifetime of a process.
+const store = globalThis.__excelConverterAnalysisStore ?? new Map<string, AnalysisRecord>();
+globalThis.__excelConverterAnalysisStore = store;
 
 function cleanupExpired(now = Date.now()): void {
   for (const [id, record] of store.entries()) {

@@ -52,7 +52,7 @@ export interface ParseResponse {
 export interface ExportSheetInput {
   sheetName: string;
   eligibility?: SheetEligibility;
-  rows: Record<string, any>[];
+  rows?: Record<string, unknown>[];
   headerRow?: number;
   autoMapping?: MappingSuggestion[];
   manualMapping?: Record<string, string | null>;

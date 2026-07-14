@@ -536,6 +536,12 @@ td.cell-error { color: var(--error); font-weight: 600; }
   background: #fff;
   font-family: var(--mono);
 }
+.mapping-preview {
+  margin-top: 5px;
+  color: var(--ink-soft);
+  font-size: 11.5px;
+  overflow-wrap: anywhere;
+}
 .badge {
   font-family: var(--mono);
   font-size: 10.5px;

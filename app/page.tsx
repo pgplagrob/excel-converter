@@ -74,7 +74,6 @@ export default function Page() {
     sourceFileName: parsedData.fileName,
     sheets: parsedData.sheets.filter((s) => selection[s.sheetName]).map((s) => ({
       sheetName: s.sheetName,
-      rows: s.rows,
       headerRow: s.headerRowIndex + 1,
       autoMapping: s.mapping,
       manualMapping: manualMappingState[s.sheetName] || {},

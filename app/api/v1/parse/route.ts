@@ -160,10 +160,13 @@ export async function POST(req: NextRequest) {
     };
 
     return NextResponse.json(response);
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error(err);
+    const message = err instanceof WorkbookLimitError
+      ? err.message
+      : "ระบบไม่สามารถอ่านไฟล์ได้ กรุณาตรวจสอบว่าไฟล์ Excel ไม่เสียหาย";
     return NextResponse.json(
-      { error: "เกิดข้อผิดพลาดในการอ่านไฟล์: " + (err?.message || "unknown error") },
+      { error: "เกิดข้อผิดพลาดในการอ่านไฟล์: " + message },
       { status: err instanceof WorkbookLimitError ? 400 : 500 }
     );
   }

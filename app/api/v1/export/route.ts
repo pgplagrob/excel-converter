@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { ExportMode, ExportRequest, ExportSheetInput } from "@/lib/client-types";
 import { getAnalysis } from "@/lib/analysis-store";
+import { ExportRequestValidationError, parseExportRequest } from "@/lib/export-request";
 import { mappingSuggestionsToRecord, mergeMapping } from "@/lib/mapping";
 import { buildAssetTemplateWorkbookBySheet, loadAssetTemplateMetadata } from "@/lib/template";
 import { transformRowsToTemplateDataset } from "@/lib/transform";
@@ -22,7 +23,7 @@ function findSheetInput(sheetsInput: ExportSheetInput[], sheetName: string): Exp
 
 export async function POST(req: NextRequest) {
   try {
-    const body = (await req.json()) as ExportRequest;
+    const body: ExportRequest = parseExportRequest(await req.json());
     const sourceFileName = body.sourceFileName || "output.xlsx";
     const sheetsInput: ExportSheetInput[] = body.sheets || [];
     const mode: ExportMode = body.mode || "download";
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const allIssues: any[] = [];
+    const allIssues: ReturnType<typeof validateMappedRows> = [];
     const exportableSheets: { sheetName: string; rows: Record<string, any>[] }[] = [];
     const transformedSheets: {
       sheetName: string;
@@ -63,7 +64,8 @@ export async function POST(req: NextRequest) {
       const autoMapping = Array.isArray(sheet.autoMapping)
         ? mappingSuggestionsToRecord(sheet.autoMapping)
         : sheet.mapping || {};
-      const finalMapping = mergeMapping(autoMapping, sheet.manualMapping || sheet.mapping || {});
+      const manualMapping = sheet.manualMapping || sheet.mapping || {};
+      const finalMapping = mergeMapping(autoMapping, manualMapping);
       const validationContext = {
         sourceProfile: sourceSheet.sourceProfile,
         eligibility: sourceSheet.eligibility,
@@ -76,7 +78,7 @@ export async function POST(req: NextRequest) {
         sourceSheet.rows,
         validationContext,
       );
-      const mappedRows = transformRowsToTemplateDataset(sourceSheet.rows, finalMapping);
+      const mappedRows = transformRowsToTemplateDataset(sourceSheet.rows, finalMapping, manualMapping);
       transformedSheets.push({
         sheetName: sourceSheet.sheetName,
         rowCount: mappedRows.length,
@@ -94,7 +96,7 @@ export async function POST(req: NextRequest) {
           validationContext,
         ),
       ];
-      if (sourceSheet.sourceProfile === "UNKNOWN" && !Object.keys(sheet.manualMapping || {}).length) {
+      if (sourceSheet.sourceProfile === "UNKNOWN" && !Object.keys(manualMapping).length) {
         issues.push({
           sheetName: sourceSheet.sheetName,
           rowIndex: -1,
@@ -150,11 +152,17 @@ export async function POST(req: NextRequest) {
         "Content-Disposition": `attachment; filename=\"${encodeURIComponent(fileName)}\"; filename*=UTF-8''${encodeURIComponent(fileName)}`,
 }
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error(err);
+    const isBadRequest = err instanceof ExportRequestValidationError || err instanceof SyntaxError;
+    const message = err instanceof ExportRequestValidationError
+      ? err.message
+      : err instanceof SyntaxError
+        ? "Request body must be valid JSON."
+        : "ระบบไม่สามารถสร้างไฟล์ได้ในขณะนี้";
     return NextResponse.json(
-      { error: "เกิดข้อผิดพลาดในการสร้างไฟล์: " + (err?.message || "unknown error") },
-      { status: 500 }
+      { error: "เกิดข้อผิดพลาดในการสร้างไฟล์: " + message },
+      { status: isBadRequest ? 400 : 500 }
     );
   }
 }

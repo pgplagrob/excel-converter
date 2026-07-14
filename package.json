@@ -6,6 +6,7 @@
     "audit:assets": "tsc -p tsconfig.audit.json && node .tmp-audit/dist/scripts/audit-assets.js",
     "dev": "next dev",
     "build": "next build",
+    "typecheck": "tsc --noEmit",
     "test": "tsc -p tsconfig.test.json && node --test .tmp-tests/dist/tests/*.test.js",
     "start": "next start"
   },

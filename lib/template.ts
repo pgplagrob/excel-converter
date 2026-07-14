@@ -123,18 +123,19 @@ function applyTemplateSheet(
 ): void {
   for (let columnIndex = 0; columnIndex < columns.length; columnIndex += 1) {
     const column = target.getColumn(columnIndex + 1);
-    column.width = layout.columns[columnIndex]?.width;
-    column.hidden = layout.columns[columnIndex]?.hidden;
+    const columnLayout = layout.columns[columnIndex];
+    if (columnLayout?.width !== undefined) column.width = columnLayout.width;
+    if (columnLayout?.hidden !== undefined) column.hidden = columnLayout.hidden;
 
     const headerCell = target.getRow(1).getCell(columnIndex + 1);
     headerCell.value = columns[columnIndex];
     headerCell.style = cloneStyle(layout.headerStyles[columnIndex]) as any;
   }
-  target.getRow(1).height = layout.headerHeight;
+  if (layout.headerHeight !== undefined) target.getRow(1).height = layout.headerHeight;
 
   rows.forEach((row, rowOffset) => {
     const targetRow = target.getRow(rowOffset + 2);
-    targetRow.height = layout.rowHeight;
+    if (layout.rowHeight !== undefined) targetRow.height = layout.rowHeight;
     columns.forEach((column, columnIndex) => {
       const cell = targetRow.getCell(columnIndex + 1);
       cell.value = (row[column] ?? "") as any;
@@ -171,12 +172,13 @@ function captureWorksheet(source: ExcelJS.Worksheet): WorksheetSnapshot {
 
 function restoreWorksheet(target: ExcelJS.Worksheet, snapshot: WorksheetSnapshot): void {
   snapshot.columns.forEach((column, index) => {
-    target.getColumn(index + 1).width = column.width;
-    target.getColumn(index + 1).hidden = column.hidden;
+    const targetColumn = target.getColumn(index + 1);
+    if (column.width !== undefined) targetColumn.width = column.width;
+    if (column.hidden !== undefined) targetColumn.hidden = column.hidden;
   });
   snapshot.rows.forEach((sourceRow, rowIndex) => {
     const targetRow = target.getRow(rowIndex + 1);
-    targetRow.height = sourceRow.height;
+    if (sourceRow.height !== undefined) targetRow.height = sourceRow.height;
     sourceRow.cells.forEach((sourceCell, columnIndex) => {
       const targetCell = targetRow.getCell(columnIndex + 1);
       targetCell.value = sourceCell.value as any;
