@@ -1,0 +1,2468 @@
+{
+  "summary": {
+    "totalFiles": 21,
+    "readableFiles": 21,
+    "unreadableFiles": 0,
+    "totalSheets": 198,
+    "exportableSheets": 166,
+    "readySheets": 81,
+    "warningSheets": 85,
+    "reviewSheets": 0,
+    "unsupportedSheets": 3,
+    "skippedSheets": 29,
+    "totalRows": 79588,
+    "totalErrors": 0,
+    "totalWarnings": 150
+  },
+  "topIssueTypes": [
+    {
+      "type": "warning:มูลค่า:ค่าควรเป็นตัวเลขในคอลัมน์ \"มูลค่า\" (พบค่า: กรมฯ ให้)",
+      "count": 6
+    },
+    {
+      "type": "warning:มูลค่า:ค่าควรเป็นตัวเลขในคอลัมน์ \"มูลค่า\" (พบค่า:  งานธุรการ สำนักปลัดเทศบาล)",
+      "count": 6
+    },
+    {
+      "type": "warning:แหล่งงบประมาณ:ค่าแหล่งงบประมาณไม่อยู่ใน Reference: เงินงบประมาณค้างจ่าย",
+      "count": 6
+    },
+    {
+      "type": "warning:row:แถวส่งออกซ้ำกับแถวที่ 1 แบบทั้งแถว ระบบอนุญาตให้รหัสสินทรัพย์ซ้ำได้เฉพาะกรณีที่ข้อมูลช่องอื่นแตกต่างกัน",
+      "count": 6
+    },
+    {
+      "type": "warning:sheet:ข้าม 1 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
+      "count": 5
+    },
+    {
+      "type": "warning:sheet:ข้าม 8 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
+      "count": 5
+    },
+    {
+      "type": "warning:มูลค่า:ค่าควรเป็นตัวเลขในคอลัมน์ \"มูลค่า\" (พบค่า: บริจาค)",
+      "count": 4
+    },
+    {
+      "type": "warning:sheet:ข้าม 2 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
+      "count": 4
+    },
+    {
+      "type": "warning:sheet:ข้าม 4 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
+      "count": 4
+    },
+    {
+      "type": "warning:sheet:ข้าม 5 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
+      "count": 4
+    },
+    {
+      "type": "warning:sheet:ข้าม 16 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
+      "count": 3
+    },
+    {
+      "type": "warning:sheet:ข้าม 23 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
+      "count": 3
+    },
+    {
+      "type": "warning:sheet:ข้าม 3 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
+      "count": 3
+    },
+    {
+      "type": "warning:sheet:ข้าม 7 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
+      "count": 3
+    },
+    {
+      "type": "warning:มูลค่า:ค่าควรเป็นตัวเลขในคอลัมน์ \"มูลค่า\" (พบค่า: มิวเซียมลำปาง)",
+      "count": 2
+    },
+    {
+      "type": "warning:row:แถวส่งออกซ้ำกับแถวที่ 285 แบบทั้งแถว ระบบอนุญาตให้รหัสสินทรัพย์ซ้ำได้เฉพาะกรณีที่ข้อมูลช่องอื่นแตกต่างกัน",
+      "count": 2
+    },
+    {
+      "type": "warning:row:แถวส่งออกซ้ำกับแถวที่ 9 แบบทั้งแถว ระบบอนุญาตให้รหัสสินทรัพย์ซ้ำได้เฉพาะกรณีที่ข้อมูลช่องอื่นแตกต่างกัน",
+      "count": 2
+    },
+    {
+      "type": "warning:sheet:ข้าม 10 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
+      "count": 2
+    },
+    {
+      "type": "warning:sheet:ข้าม 14 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
+      "count": 2
+    },
+    {
+      "type": "warning:sheet:ข้าม 15 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
+      "count": 2
+    }
+  ],
+  "files": [
+    {
+      "fileName": "3 งบทรัพย์สินกองการเจ้าหน้าที่ ปี 67 อัพเดท 13 .xlsx",
+      "relativePath": "3 งบทรัพย์สินกองการเจ้าหน้าที่ ปี 67 อัพเดท 13 .xlsx",
+      "readable": true,
+      "sheetCount": 4,
+      "rowCount": 133,
+      "sheets": [
+        {
+          "sheetName": "สำนักงาน",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 59,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "คอมพิวเตอร์",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 65,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "วิทยาศาสตร์และการแพทย์",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 1,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "ต่ำกว่าเกณฑ์",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 8,
+          "errorCount": 0,
+          "warningCount": 0
+        }
+      ]
+    },
+    {
+      "fileName": "ครุภัณฑ์ สำนัก 67 131167 รอส่ง ใช้อันนี้รายงาน.xlsx",
+      "relativePath": "ครุภัณฑ์ สำนัก 67 131167 รอส่ง ใช้อันนี้รายงาน.xlsx",
+      "readable": true,
+      "sheetCount": 16,
+      "rowCount": 1810,
+      "sheets": [
+        {
+          "sheetName": "งบทรัพย์สิน 67",
+          "detectedProfile": "unknown",
+          "sourceProfile": "UNKNOWN",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "unknown sheet does not contain an asset-like table",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "ต่ำกว่าเกณฑ์67",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 77,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "งบ67",
+          "detectedProfile": "summary",
+          "sourceProfile": "SUMMARY_SKIP",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "summary sheet is not an exportable asset table",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "สำนักงาน",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 865,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "คอมพิวเตอร์",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 290,
+          "errorCount": 0,
+          "warningCount": 3
+        },
+        {
+          "sheetName": "ไฟฟ้าและวิทยุ",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 175,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "การศึกษา",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 5,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "ยานพาหนะ",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 1,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "งานบ้าน",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 45,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "โฆษณา",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 46,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "การเกษตร",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 3,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "วิทยาศาสตร์",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 12,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "ก่อสร้าง",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 1,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "กีฬา",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 277,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "โรงงาน",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 2,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "อื่นๆ",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 11,
+          "errorCount": 0,
+          "warningCount": 1
+        }
+      ]
+    },
+    {
+      "fileName": "ครุภัณฑ์สำนักปลัดเทศบาล67 แบบ กข แก้ไข15-11-67.xlsx",
+      "relativePath": "ครุภัณฑ์สำนักปลัดเทศบาล67 แบบ กข แก้ไข15-11-67.xlsx",
+      "readable": true,
+      "sheetCount": 21,
+      "rowCount": 2596,
+      "sheets": [
+        {
+          "sheetName": "ครุภัณฑ์ใหม่2567",
+          "detectedProfile": "newAsset",
+          "sourceProfile": "NEW_ASSET_2567",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 25,
+          "errorCount": 0,
+          "warningCount": 3
+        },
+        {
+          "sheetName": "ตัดจำหน่าย2567",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 137,
+          "errorCount": 0,
+          "warningCount": 2
+        },
+        {
+          "sheetName": "โอน2567",
+          "detectedProfile": "transfer",
+          "sourceProfile": "TRANSFER_2567",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 115,
+          "errorCount": 0,
+          "warningCount": 7
+        },
+        {
+          "sheetName": "ครุภัณฑ์ใหม่2567 ต่ำกว่าเกณฑ์",
+          "detectedProfile": "newAsset",
+          "sourceProfile": "NEW_ASSET_2567",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 136,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "โอนอาคาร2567",
+          "detectedProfile": "transfer",
+          "sourceProfile": "TRANSFER_2567",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 1,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "แบบกข.",
+          "detectedProfile": "form",
+          "sourceProfile": "SUMMARY_SKIP",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "summary sheet is not an exportable asset table",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "อาคาร",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "no parsed asset rows",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "สิ่งปลูกสร้าง",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 125,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "สำนักงาน",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 1212,
+          "errorCount": 0,
+          "warningCount": 8
+        },
+        {
+          "sheetName": "ยานพาหนะฯ",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 58,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "การเกษตร",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 25,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "ไฟฟ้าและวิทยุ",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 155,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "โฆษณา",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 46,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "วิทยาศาสตร์",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 20,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "งานบ้านงานครัว",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 71,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "โรงงาน",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 12,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "อื่นๆ",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 20,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "กีฬา",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 5,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "ศึกษา",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 6,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "คอมพิวเตอร์",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 210,
+          "errorCount": 0,
+          "warningCount": 4
+        },
+        {
+          "sheetName": "ส่งคลัง (ต)",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 217,
+          "errorCount": 0,
+          "warningCount": 1
+        }
+      ]
+    },
+    {
+      "fileName": "แบบฟอร์มกรอก.xlsx",
+      "relativePath": "พร้อมทำ\\แบบฟอร์มกรอก.xlsx",
+      "readable": true,
+      "sheetCount": 3,
+      "rowCount": 29491,
+      "sheets": [
+        {
+          "sheetName": "Sheet1",
+          "detectedProfile": "unknown",
+          "sourceProfile": "FLEXIBLE_ASSET_TABLE",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 14933,
+          "errorCount": 0,
+          "warningCount": 5
+        },
+        {
+          "sheetName": "Sheet2",
+          "detectedProfile": "summary",
+          "sourceProfile": "SUMMARY_SKIP",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "summary sheet is not an exportable asset table",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "Sheet3",
+          "detectedProfile": "newAsset",
+          "sourceProfile": "FLEXIBLE_ASSET_TABLE",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 14558,
+          "errorCount": 0,
+          "warningCount": 2
+        }
+      ]
+    },
+    {
+      "fileName": "โยธา สำนักงานช่าง.xlsx",
+      "relativePath": "พร้อมทำ\\โยธา สำนักงานช่าง.xlsx",
+      "readable": true,
+      "sheetCount": 2,
+      "rowCount": 7282,
+      "sheets": [
+        {
+          "sheetName": "Sheet1",
+          "detectedProfile": "unknown",
+          "sourceProfile": "FLEXIBLE_ASSET_TABLE",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 1157,
+          "errorCount": 0,
+          "warningCount": 2
+        },
+        {
+          "sheetName": "คุรุภัณพ์สำนักงาน รวมทุกงาน",
+          "detectedProfile": "unknown",
+          "sourceProfile": "FLEXIBLE_ASSET_TABLE",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 6125,
+          "errorCount": 0,
+          "warningCount": 4
+        }
+      ]
+    },
+    {
+      "fileName": "กองการเจ้าหน้าที่.xlsx",
+      "relativePath": "พร้อมทำ\\เสร็จแล้ว\\กองการเจ้าหน้าที่.xlsx",
+      "readable": true,
+      "sheetCount": 4,
+      "rowCount": 133,
+      "sheets": [
+        {
+          "sheetName": "สำนักงาน",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 59,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "คอมพิวเตอร์",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 65,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "วิทยาศาสตร์และการแพทย์",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 1,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "ต่ำกว่าเกณฑ์",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 8,
+          "errorCount": 0,
+          "warningCount": 0
+        }
+      ]
+    },
+    {
+      "fileName": "กองคลัง.xlsx",
+      "relativePath": "พร้อมทำ\\เสร็จแล้ว\\กองคลัง.xlsx",
+      "readable": true,
+      "sheetCount": 13,
+      "rowCount": 1067,
+      "sheets": [
+        {
+          "sheetName": "งบทรัพย์สิน 2567",
+          "detectedProfile": "summary",
+          "sourceProfile": "SUMMARY_SKIP",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "summary sheet is not an exportable asset table",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "งบทรัพย์สิน",
+          "detectedProfile": "unknown",
+          "sourceProfile": "UNKNOWN",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "unknown sheet does not contain an asset-like table",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "งบปี 67",
+          "detectedProfile": "unknown",
+          "sourceProfile": "UNKNOWN",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "unknown sheet does not contain an asset-like table",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "อสังหาริมทรัพย์ (2)",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 3,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "สำนักงาน (2)",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 502,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": " ยานพาหนะและขนส่ง (2)",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 7,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "โฆษณาและเผยแพร่ (2)",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 11,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "สำรวจ (2)",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 2,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "งานบ้านงานครัว (2)",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 6,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "คอมพิวเตอร์ (2)",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 301,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "จำหน่าย (2)",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 36,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "กองคลัง (รวม) (ต) (2)",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 191,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "จำหน่าย (ต) (2)",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 8,
+          "errorCount": 0,
+          "warningCount": 0
+        }
+      ]
+    },
+    {
+      "fileName": "1. ครุภัณฑ์งานธุรการ ปี2567.xlsx",
+      "relativePath": "พร้อมทำ\\เสร็จแล้ว\\กองยุทธศาสตร์และงบประมาณ\\1. ครุภัณฑ์งานธุรการ ปี2567.xlsx",
+      "readable": true,
+      "sheetCount": 4,
+      "rowCount": 143,
+      "sheets": [
+        {
+          "sheetName": "สำนักงาน",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 120,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "คอมพิวเตอร์",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 20,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "ต่ำกว่าเกณฑ์",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 3,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "Sheet1",
+          "detectedProfile": "unknown",
+          "sourceProfile": "UNKNOWN",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "unknown sheet does not contain an asset-like table",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        }
+      ]
+    },
+    {
+      "fileName": "2. ทะเบียนทรัพย์สินวิเคราะห์ ปี 2567.xlsx",
+      "relativePath": "พร้อมทำ\\เสร็จแล้ว\\กองยุทธศาสตร์และงบประมาณ\\2. ทะเบียนทรัพย์สินวิเคราะห์ ปี 2567.xlsx",
+      "readable": true,
+      "sheetCount": 5,
+      "rowCount": 32,
+      "sheets": [
+        {
+          "sheetName": "1.สำนักงาน",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 12,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "5.คอมพิวเตอร์",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 16,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "ต่ำกว่าเกณฑ์",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 4,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "Sheet1",
+          "detectedProfile": "empty",
+          "sourceProfile": "HELP_OR_TEMPLATE_SKIP",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "empty sheet",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "Sheet2",
+          "detectedProfile": "empty",
+          "sourceProfile": "HELP_OR_TEMPLATE_SKIP",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "empty sheet",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        }
+      ]
+    },
+    {
+      "fileName": "3. งานงบฯ2567.xlsx",
+      "relativePath": "พร้อมทำ\\เสร็จแล้ว\\กองยุทธศาสตร์และงบประมาณ\\3. งานงบฯ2567.xlsx",
+      "readable": true,
+      "sheetCount": 3,
+      "rowCount": 28,
+      "sheets": [
+        {
+          "sheetName": "สำนักงาน",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 16,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "คอมพิวเตอร์",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 11,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "ต่ำกว่าเกณฑ์",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 1,
+          "errorCount": 0,
+          "warningCount": 0
+        }
+      ]
+    },
+    {
+      "fileName": "4. ครุภัณฑ์งานวิจัย ปี 2567.xlsx",
+      "relativePath": "พร้อมทำ\\เสร็จแล้ว\\กองยุทธศาสตร์และงบประมาณ\\4. ครุภัณฑ์งานวิจัย ปี 2567.xlsx",
+      "readable": true,
+      "sheetCount": 2,
+      "rowCount": 29,
+      "sheets": [
+        {
+          "sheetName": "ครุภัณฑ์งานวิจัย2566",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 18,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "Sheet1",
+          "detectedProfile": "unknown",
+          "sourceProfile": "FLEXIBLE_ASSET_TABLE",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 11,
+          "errorCount": 0,
+          "warningCount": 0
+        }
+      ]
+    },
+    {
+      "fileName": "5. ครุภัณฑ์งานศูนย์เทคโนโลยีและสารสนเทศ 67.xlsx",
+      "relativePath": "พร้อมทำ\\เสร็จแล้ว\\กองยุทธศาสตร์และงบประมาณ\\5. ครุภัณฑ์งานศูนย์เทคโนโลยีและสารสนเทศ 67.xlsx",
+      "readable": true,
+      "sheetCount": 3,
+      "rowCount": 65,
+      "sheets": [
+        {
+          "sheetName": "สำนักงาน",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 15,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "คอมพิวเตอร์",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 49,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "ต่ำกว่าเกณฑ์",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 1,
+          "errorCount": 0,
+          "warningCount": 0
+        }
+      ]
+    },
+    {
+      "fileName": "6. ครุภัณฑ์ประชาสัมพันธ์ 67.xlsx",
+      "relativePath": "พร้อมทำ\\เสร็จแล้ว\\กองยุทธศาสตร์และงบประมาณ\\6. ครุภัณฑ์ประชาสัมพันธ์ 67.xlsx",
+      "readable": true,
+      "sheetCount": 10,
+      "rowCount": 824,
+      "sheets": [
+        {
+          "sheetName": "ค่าที่ดิน",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 37,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "1.สำนักงาน",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 80,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "2.ไฟฟ้า",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 565,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "3.โฆษณา",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 44,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "5.คอมพิวเตอร์",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 26,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "6.ยานพาหนะ",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 1,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "ต่ำกว่าเกณฑ์ ",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 63,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "Sheet1",
+          "detectedProfile": "unknown",
+          "sourceProfile": "UNKNOWN",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "unknown sheet does not contain an asset-like table",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "Sheet2",
+          "detectedProfile": "unknown",
+          "sourceProfile": "UNKNOWN",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "unknown sheet does not contain an asset-like table",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "Sheet3",
+          "detectedProfile": "unknown",
+          "sourceProfile": "FLEXIBLE_ASSET_TABLE",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 8,
+          "errorCount": 0,
+          "warningCount": 0
+        }
+      ]
+    },
+    {
+      "fileName": "กองสาธารณสุขและสิ่งแวดล้อม.xls",
+      "relativePath": "พร้อมทำ\\เสร็จแล้ว\\กองสาธารณสุขและสิ่งแวดล้อม.xls",
+      "readable": true,
+      "sheetCount": 19,
+      "rowCount": 3539,
+      "sheets": [
+        {
+          "sheetName": "1.อสังหาริมทรัพย์",
+          "detectedProfile": "realEstate",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "no parsed asset rows",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "2.ปกติ",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 1544,
+          "errorCount": 0,
+          "warningCount": 2
+        },
+        {
+          "sheetName": "ปกติ(ชำรุด)",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 95,
+          "errorCount": 0,
+          "warningCount": 2
+        },
+        {
+          "sheetName": "3.ตำกว่าเกณฑ์",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 204,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "ต่ำกว่าเกณฑ์(ชำรุด)",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 10,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "สรุป",
+          "detectedProfile": "summary",
+          "sourceProfile": "SUMMARY_SKIP",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "summary sheet is not an exportable asset table",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "1.สำนักงาน",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 1200,
+          "errorCount": 0,
+          "warningCount": 2
+        },
+        {
+          "sheetName": "3.ยานพาหนะ",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 39,
+          "errorCount": 0,
+          "warningCount": 2
+        },
+        {
+          "sheetName": "4.เกษตร",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 20,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "5.ก่อสร้าง",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 49,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "6.ไฟฟ้า",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 26,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "7.โมษณา",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 9,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "8.วิทยาศาสตร์",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 134,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "9.งานบ้าน",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 85,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "10.โรงงาน",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 1,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "12.กีฬา",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 46,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "15.คอม",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 77,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "หน้าคั่น",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "no parsed asset rows",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "Sheet1",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "no parsed asset rows",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        }
+      ]
+    },
+    {
+      "fileName": "สำนักการศึกษา.xlsx",
+      "relativePath": "พร้อมทำ\\เสร็จแล้ว\\สำนักการศึกษา.xlsx",
+      "readable": true,
+      "sheetCount": 16,
+      "rowCount": 1810,
+      "sheets": [
+        {
+          "sheetName": "งบทรัพย์สิน 67",
+          "detectedProfile": "unknown",
+          "sourceProfile": "UNKNOWN",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "unknown sheet does not contain an asset-like table",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "ต่ำกว่าเกณฑ์67",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 77,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "งบ67",
+          "detectedProfile": "summary",
+          "sourceProfile": "SUMMARY_SKIP",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "summary sheet is not an exportable asset table",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "สำนักงาน",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 865,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "คอมพิวเตอร์",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 290,
+          "errorCount": 0,
+          "warningCount": 3
+        },
+        {
+          "sheetName": "ไฟฟ้าและวิทยุ",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 175,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "การศึกษา",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 5,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "ยานพาหนะ",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 1,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "งานบ้าน",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 45,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "โฆษณา",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 46,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "การเกษตร",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 3,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "วิทยาศาสตร์",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 12,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "ก่อสร้าง",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 1,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "กีฬา",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 277,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "โรงงาน",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 2,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "อื่นๆ",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 11,
+          "errorCount": 0,
+          "warningCount": 1
+        }
+      ]
+    },
+    {
+      "fileName": "ครุภัณฑ์ 2567 ส่วนก่อสร้าง ณ 21 ตค 67.xlsx",
+      "relativePath": "พร้อมทำ\\เสร็จแล้ว\\สำนักช่าง\\ครุภัณฑ์ 2567 ส่วนก่อสร้าง ณ 21 ตค 67.xlsx",
+      "readable": true,
+      "sheetCount": 7,
+      "rowCount": 432,
+      "sheets": [
+        {
+          "sheetName": "ครุภัณฑ์67 (2)",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 171,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "ซ่อมบำรุงครุภัณฑ์66 ต่ำเกณ",
+          "detectedProfile": "maintenance",
+          "sourceProfile": "REVIEW_MAINTENANCE",
+          "status": "unsupported",
+          "eligibility": "unsupported",
+          "reason": "maintenance sheet requires a dedicated conversion policy",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "ซ่อมบำรุงครุภัณฑ์68",
+          "detectedProfile": "maintenance",
+          "sourceProfile": "REVIEW_MAINTENANCE",
+          "status": "unsupported",
+          "eligibility": "unsupported",
+          "reason": "maintenance sheet requires a dedicated conversion policy",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "ซ่อมบำรุงต่ำเกณฑ์ 68",
+          "detectedProfile": "maintenance",
+          "sourceProfile": "REVIEW_MAINTENANCE",
+          "status": "unsupported",
+          "eligibility": "unsupported",
+          "reason": "maintenance sheet requires a dedicated conversion policy",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "งบทรัพย์สิน 67",
+          "detectedProfile": "summary",
+          "sourceProfile": "SUMMARY_SKIP",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "summary sheet is not an exportable asset table",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "ต่ำกว่าเกณฑ์67",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 21,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "ครุภัณฑ์67",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 240,
+          "errorCount": 0,
+          "warningCount": 1
+        }
+      ]
+    },
+    {
+      "fileName": "ฝ่ายบริหารงานทั่วไป ปี 67.xlsx",
+      "relativePath": "พร้อมทำ\\เสร็จแล้ว\\สำนักช่าง\\ฝ่ายบริหารงานทั่วไป ปี 67.xlsx",
+      "readable": true,
+      "sheetCount": 4,
+      "rowCount": 89,
+      "sheets": [
+        {
+          "sheetName": "ครุภัณฑ์ 67 ตามรหัส",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 57,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "ครุภัณฑ์ต่ำกว่าเกณฑ์ ตามรหัส",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 30,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "จำหน่าย",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 2,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "งบทรัพย์สิน",
+          "detectedProfile": "summary",
+          "sourceProfile": "SUMMARY_SKIP",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "summary sheet is not an exportable asset table",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        }
+      ]
+    },
+    {
+      "fileName": "โยธา (สมบูรณ์).xlsx",
+      "relativePath": "พร้อมทำ\\เสร็จแล้ว\\สำนักช่าง\\โยธา (สมบูรณ์).xlsx",
+      "readable": true,
+      "sheetCount": 20,
+      "rowCount": 8790,
+      "sheets": [
+        {
+          "sheetName": "รวมงบทรัพย์สินทั้งหมด",
+          "detectedProfile": "summary",
+          "sourceProfile": "SUMMARY_SKIP",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "summary sheet is not an exportable asset table",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "1.ครุภัณฑ์สำนักงาน (รวมทุกงาน)",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 1742,
+          "errorCount": 0,
+          "warningCount": 2
+        },
+        {
+          "sheetName": "2.ครุภัณฑ์ยานพาหนะฯ (รวมทุกงาน)",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 113,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "3. ครุภัณฑ์การเกษตร(รวมทุกงาน)",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 140,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "4.ครุภัณฑ์ก่อสร้าง",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 61,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "5. ครุภัณฑ์ไฟฟ้าฯ",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 3065,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "6. ครุภัณฑ์โฆษณาและเผยแพร่",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 13,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "7.ครุภัณฑ์วิทยาศาสตร์ฯ",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 12,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "8.ครุภัณฑ์งานบ้านฯ",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 54,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "9.ครุภัณฑ์โรงงาน",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 81,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "10.ครุภัณฑ์กีฬา",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 115,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "11.ครุภัณฑ์สำรวจ",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 6,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "12.ครุภัณฑ์คอมฯ",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 99,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "13.ครุภัณฑ์อื่น",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 69,
+          "errorCount": 0,
+          "warningCount": 3
+        },
+        {
+          "sheetName": "14.ครุภัณฑ์ต่ำกว่าเกณฑ์",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 362,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "15.ครุภัณฑ์ไม่แสดงในงบ",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 625,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "16.ที่ดินและสิ่งก่อสร้าง",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 26,
+          "errorCount": 0,
+          "warningCount": 2
+        },
+        {
+          "sheetName": "ชำรุด_จำหน่าย 67",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 41,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "เสื่อมสภาพ_จำหน่าย 67",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 2161,
+          "errorCount": 0,
+          "warningCount": 2
+        },
+        {
+          "sheetName": "อื่นๆ_จำหน่าย 67",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 5,
+          "errorCount": 0,
+          "warningCount": 1
+        }
+      ]
+    },
+    {
+      "fileName": "สำนักปลัดเทศบาล.xlsx",
+      "relativePath": "พร้อมทำ\\เสร็จแล้ว\\สำนักปลัดเทศบาล.xlsx",
+      "readable": true,
+      "sheetCount": 21,
+      "rowCount": 2596,
+      "sheets": [
+        {
+          "sheetName": "ครุภัณฑ์ใหม่2567",
+          "detectedProfile": "newAsset",
+          "sourceProfile": "NEW_ASSET_2567",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 25,
+          "errorCount": 0,
+          "warningCount": 3
+        },
+        {
+          "sheetName": "ตัดจำหน่าย2567",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 137,
+          "errorCount": 0,
+          "warningCount": 2
+        },
+        {
+          "sheetName": "โอน2567",
+          "detectedProfile": "transfer",
+          "sourceProfile": "TRANSFER_2567",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 115,
+          "errorCount": 0,
+          "warningCount": 7
+        },
+        {
+          "sheetName": "ครุภัณฑ์ใหม่2567 ต่ำกว่าเกณฑ์",
+          "detectedProfile": "newAsset",
+          "sourceProfile": "NEW_ASSET_2567",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 136,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "โอนอาคาร2567",
+          "detectedProfile": "transfer",
+          "sourceProfile": "TRANSFER_2567",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 1,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "แบบกข.",
+          "detectedProfile": "form",
+          "sourceProfile": "SUMMARY_SKIP",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "summary sheet is not an exportable asset table",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "อาคาร",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "no parsed asset rows",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "สิ่งปลูกสร้าง",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 125,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "สำนักงาน",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 1212,
+          "errorCount": 0,
+          "warningCount": 8
+        },
+        {
+          "sheetName": "ยานพาหนะฯ",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 58,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "การเกษตร",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 25,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "ไฟฟ้าและวิทยุ",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 155,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "โฆษณา",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 46,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "วิทยาศาสตร์",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 20,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "งานบ้านงานครัว",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 71,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "โรงงาน",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 12,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "อื่นๆ",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 20,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "กีฬา",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 5,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "ศึกษา",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 6,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "คอมพิวเตอร์",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 210,
+          "errorCount": 0,
+          "warningCount": 4
+        },
+        {
+          "sheetName": "ส่งคลัง (ต)",
+          "detectedProfile": "registry",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 217,
+          "errorCount": 0,
+          "warningCount": 1
+        }
+      ]
+    },
+    {
+      "fileName": "AssetData (2).xlsx",
+      "relativePath": "พร้อมทำ\\AssetData (2).xlsx",
+      "readable": true,
+      "sheetCount": 2,
+      "rowCount": 15160,
+      "sheets": [
+        {
+          "sheetName": "Data",
+          "detectedProfile": "assetData",
+          "sourceProfile": "ASSET_DATA",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 15160,
+          "errorCount": 0,
+          "warningCount": 2
+        },
+        {
+          "sheetName": "Help",
+          "detectedProfile": "help",
+          "sourceProfile": "HELP_OR_TEMPLATE_SKIP",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "help, reference, form, or template sheet is not asset data",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        }
+      ]
+    },
+    {
+      "fileName": "รายงานครุภัณฑ์ปี 2567(30 ก.ย. 67) - Copy.xls",
+      "relativePath": "รายงานครุภัณฑ์ปี 2567(30 ก.ย. 67) - Copy.xls",
+      "readable": true,
+      "sheetCount": 19,
+      "rowCount": 3539,
+      "sheets": [
+        {
+          "sheetName": "1.อสังหาริมทรัพย์",
+          "detectedProfile": "realEstate",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "no parsed asset rows",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "2.ปกติ",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 1544,
+          "errorCount": 0,
+          "warningCount": 2
+        },
+        {
+          "sheetName": "ปกติ(ชำรุด)",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 95,
+          "errorCount": 0,
+          "warningCount": 2
+        },
+        {
+          "sheetName": "3.ตำกว่าเกณฑ์",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 204,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "ต่ำกว่าเกณฑ์(ชำรุด)",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 10,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "สรุป",
+          "detectedProfile": "summary",
+          "sourceProfile": "SUMMARY_SKIP",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "summary sheet is not an exportable asset table",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "1.สำนักงาน",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 1200,
+          "errorCount": 0,
+          "warningCount": 2
+        },
+        {
+          "sheetName": "3.ยานพาหนะ",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 39,
+          "errorCount": 0,
+          "warningCount": 2
+        },
+        {
+          "sheetName": "4.เกษตร",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 20,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "5.ก่อสร้าง",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 49,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "6.ไฟฟ้า",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 26,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "7.โมษณา",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 9,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "8.วิทยาศาสตร์",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 134,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "9.งานบ้าน",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 85,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "10.โรงงาน",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 1,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "12.กีฬา",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "ready",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 46,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "15.คอม",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 77,
+          "errorCount": 0,
+          "warningCount": 1
+        },
+        {
+          "sheetName": "หน้าคั่น",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "no parsed asset rows",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        },
+        {
+          "sheetName": "Sheet1",
+          "detectedProfile": "disposal",
+          "sourceProfile": "REGISTER_3_ROW_HEADER",
+          "status": "skipped",
+          "eligibility": "skipped",
+          "reason": "no parsed asset rows",
+          "rowCount": 0,
+          "errorCount": 0,
+          "warningCount": 0
+        }
+      ]
+    }
+  ]
+}

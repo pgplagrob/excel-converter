@@ -1,6 +1,7 @@
 import type { WorkbookRowMeta } from "./excel";
 import { detectSheetProfile } from "./sheet-profile";
 import { appendDataQualityWarnings } from "./datasource/data-quality";
+import { decideProfileEligibility } from "./datasource/eligibility";
 import { parseNewAssetSheet } from "./datasource/parsers/new-asset";
 import { parseRegisterSheet } from "./datasource/parsers/register";
 import { parseTransferSheet } from "./datasource/parsers/transfer";
@@ -55,16 +56,17 @@ export function createDataSourceWorkbook(
     const profile = detectSourceProfile(sheetName, matrix, profileDetection);
     const flexibleLayout = profile === "FLEXIBLE_ASSET_TABLE" ? findFlexibleAssetLayout(matrix) : null;
     const effectiveConfidence = flexibleLayout?.confidence ?? profileDetection.confidence;
+    const profileDecision = decideProfileEligibility(profile, effectiveConfidence);
     const debug: SheetProfileDebug = {
       sheetName,
       ...profileDetection,
       reasons: flexibleLayout
         ? [...profileDetection.reasons, `matched flexible layout: ${flexibleLayout.kind}`]
         : profileDetection.reasons,
-      shouldParse: profile !== "SUMMARY_SKIP",
+      shouldParse: profileDecision.shouldParse,
       legacySourceProfile: profile,
-      eligibility: "needsReview",
-      decisionReason: "pending validation",
+      eligibility: profileDecision.eligibility,
+      decisionReason: profileDecision.reason,
     };
     profileDebug.push(debug);
 
@@ -77,10 +79,10 @@ export function createDataSourceWorkbook(
       continue;
     }
 
-    if (profile === "SUMMARY_SKIP") {
+    if (!profileDecision.shouldParse) {
       debug.shouldParse = false;
-      debug.eligibility = "skipped";
-      debug.decisionReason = `${profileDetection.profile} sheet is not an exportable asset table`;
+      debug.eligibility = profileDecision.eligibility;
+      debug.decisionReason = profileDecision.reason;
       debug.skipReason = debug.decisionReason;
       skippedSheets.push(sheetName);
       continue;
@@ -110,16 +112,13 @@ export function createDataSourceWorkbook(
 
     sheet.profileDebug = debug;
     sheet.confidence = effectiveConfidence;
-    sheet.eligibility =
-      profile === "UNKNOWN" || effectiveConfidence < 0.55 ? "needsReview" : "exportable";
+    sheet.eligibility = profileDecision.eligibility;
     sheet.eligibilityReason =
-      sheet.eligibility === "exportable"
+      profileDecision.eligibility === "exportable"
         ? flexibleLayout
           ? `matched flexible ${flexibleLayout.kind} layout`
           : `matched ${profileDetection.profile} profile`
-        : profile === "UNKNOWN"
-          ? "unknown asset-like sheet requires manual review"
-          : `profile confidence ${effectiveConfidence} is below export threshold`;
+        : profileDecision.reason;
     debug.eligibility = sheet.eligibility;
     debug.decisionReason = sheet.eligibilityReason;
 

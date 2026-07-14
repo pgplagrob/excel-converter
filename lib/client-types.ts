@@ -25,12 +25,26 @@ export interface SheetData {
   mapping: MappingSuggestion[];
 }
 
+export interface SheetOverview {
+  sheetName: string;
+  sourceProfile: string;
+  detectedProfile: string;
+  eligibility: SheetEligibility;
+  reason: string;
+  rowCount: number;
+  errorCount: number;
+  warningCount: number;
+  confidence: number;
+  parsedSheetIndex?: number;
+}
+
 export interface ParseResponse {
   analysisId?: string;
   fileName: string;
   sheets: SheetData[];
   skippedSheets: string[];
   skippedSheetSummaries: SheetSummary[];
+  sheetOverview: SheetOverview[];
   sheetProfileDebug?: unknown[];
   error?: string;
 }

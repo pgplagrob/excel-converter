@@ -5,6 +5,11 @@ import { DownloadStep } from "./components/DownloadStep";
 import { PreviewStep } from "./components/PreviewStep";
 import { UploadStep } from "./components/UploadStep";
 import type { IssueSummary, ParseResponse, ValidationIssue } from "@/lib/client-types";
+import {
+  createDefaultSheetSelection,
+  selectedSheetCount,
+  type SheetSelection,
+} from "@/lib/sheet-selection";
 
 const STEP_LABELS = [
   "1. อัปโหลดไฟล์",
@@ -30,6 +35,7 @@ export default function Page() {
   const [mappingState, setMappingState] = useState<
     Record<string, Record<string, string>>
   >({});
+  const [sheetSelection, setSheetSelection] = useState<SheetSelection>({});
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
   const [issues, setIssues] = useState<ValidationIssue[] | null>(null);
@@ -61,11 +67,12 @@ export default function Page() {
     parsedData: ParseResponse,
     manualMappingState: Record<string, Record<string, string>>,
     mode: "validate" | "download",
+    selection: SheetSelection,
   ) => ({
     mode,
     analysisId: parsedData.analysisId,
     sourceFileName: parsedData.fileName,
-    sheets: parsedData.sheets.map((s) => ({
+    sheets: parsedData.sheets.filter((s) => selection[s.sheetName]).map((s) => ({
       sheetName: s.sheetName,
       rows: s.rows,
       headerRow: s.headerRowIndex + 1,
@@ -77,11 +84,12 @@ export default function Page() {
   const validateWorkbook = async (
     parsedData: ParseResponse,
     manualMappingState: Record<string, Record<string, string>>,
+    selection: SheetSelection,
   ) => {
     const res = await fetch("/api/v1/export", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(buildExportPayload(parsedData, manualMappingState, "validate")),
+      body: JSON.stringify(buildExportPayload(parsedData, manualMappingState, "validate", selection)),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "ตรวจสอบข้อมูลไม่สำเร็จ");
@@ -121,8 +129,10 @@ export default function Page() {
       for (const sheet of data.sheets) {
         initMapping[sheet.sheetName] = {};
       }
+      const initSelection = createDefaultSheetSelection(data.sheetOverview || []);
       setMappingState(initMapping);
-      await validateWorkbook(data, initMapping);
+      setSheetSelection(initSelection);
+      await validateWorkbook(data, initMapping, initSelection);
       setStep(1);
     } catch (e: any) {
       setError("เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ: " + e.message);
@@ -132,11 +142,11 @@ export default function Page() {
   };
 
   const runValidation = async () => {
-    if (!parsed) return;
+    if (!parsed || selectedSheetCount(sheetSelection) === 0) return;
     setLoading(true);
     setError(null);
     try {
-      await validateWorkbook(parsed, mappingState);
+      await validateWorkbook(parsed, mappingState, sheetSelection);
       setStep(3);
     } catch (e: any) {
       setError(e.message || "เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ");
@@ -146,14 +156,14 @@ export default function Page() {
   };
 
   const downloadFile = async () => {
-    if (!parsed) return;
+    if (!parsed || selectedSheetCount(sheetSelection) === 0) return;
     setLoading(true);
     setError(null);
     try {
       const res = await fetch("/api/v1/export", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildExportPayload(parsed, mappingState, "download")),
+        body: JSON.stringify(buildExportPayload(parsed, mappingState, "download", sheetSelection)),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -181,13 +191,12 @@ export default function Page() {
     setFile(null);
     setParsed(null);
     setMappingState({});
+    setSheetSelection({});
     setAdvancedOpen(false);
     setIssues(null);
     setIssueSummary(null);
     setError(null);
   };
-
-  const activeSheet = parsed?.sheets[activeSheetIdx];
 
   const updateMapping = (
     sheetName: string,
@@ -208,6 +217,14 @@ export default function Page() {
     );
     return Object.values({ ...autoMap, ...m }).filter(Boolean).length;
   };
+
+  const updateSheetSelection = (sheetName: string, selected: boolean) => {
+    setSheetSelection((previous) => ({ ...previous, [sheetName]: selected }));
+    setIssues(null);
+    setIssueSummary(null);
+  };
+
+  const selectedCount = selectedSheetCount(sheetSelection);
 
   return (
     <div className="page">
@@ -255,7 +272,7 @@ export default function Page() {
           />
         )}
 
-        {step === 1 && parsed && activeSheet && (
+        {step === 1 && parsed && (
           <PreviewStep
             parsed={parsed}
             activeSheetIdx={activeSheetIdx}
@@ -267,11 +284,14 @@ export default function Page() {
             onBack={() => setStep(0)}
             updateMapping={updateMapping}
             mappedCountForSheet={mappedCountForSheet}
+            sheetSelection={sheetSelection}
+            updateSheetSelection={updateSheetSelection}
             issues={issues}
             issueSummary={issueSummary}
             advancedOpen={advancedOpen}
             setAdvancedOpen={setAdvancedOpen}
             onNext={runValidation}
+            canContinue={selectedCount > 0}
             loading={loading}
           />
         )}
@@ -285,6 +305,7 @@ export default function Page() {
             onDownload={downloadFile}
             onReset={reset}
             loading={loading}
+            selectedSheetCount={selectedCount}
           />
         )}
       </div>

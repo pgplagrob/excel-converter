@@ -59,6 +59,28 @@ function combineFlexibleHeaders(primaryHeaders: any[], secondaryHeaders: any[] =
   return combined;
 }
 
+function deriveBudgetSourceFromFundColumns(sourceRow: any[], secondaryHeaders: any[]): string {
+  const supportedFundNames: Array<[RegExp, string]> = [
+    [/เงินงบประมาณ/, "เงินงบประมาณ"],
+    [/เงินรายได้/, "เงินรายได้"],
+    [/เงินอุดหนุน/, "เงินอุดหนุน"],
+    [/เงินสะสม|เงินทุนสำรองเงินสะสม/, "เงินสะสม"],
+    [/เงินกู้/, "เงินกู้"],
+  ];
+
+  for (let index = 0; index < secondaryHeaders.length; index += 1) {
+    const amountText = cellText(sourceRow[index]).replace(/,/g, "");
+    const amount = Number(amountText);
+    if (!amountText || !Number.isFinite(amount) || amount <= 0) continue;
+
+    const header = compactText(secondaryHeaders[index]);
+    const matchedFund = supportedFundNames.find(([pattern]) => pattern.test(header));
+    if (matchedFund) return matchedFund[1];
+  }
+
+  return "";
+}
+
 export function findFlexibleAssetLayout(matrix: any[][]): FlexibleAssetLayout | null {
   const headerScanLimit = Math.min(matrix.length, 8);
   for (let rowIndex = 0; rowIndex < headerScanLimit; rowIndex += 1) {
@@ -217,7 +239,9 @@ export function parseFlexibleAssetSheet(
         location: valueAt(sourceRow, locationIndex),
         acquiredBy: valueAt(sourceRow, acquiredByIndex),
         acquiredFrom: valueAt(sourceRow, acquiredFromIndex),
-        budgetSource: valueAt(sourceRow, budgetSourceIndex),
+        budgetSource: hasSecondaryHeader
+          ? deriveBudgetSourceFromFundColumns(sourceRow, secondaryHeaders)
+          : valueAt(sourceRow, budgetSourceIndex),
         status: valueAt(sourceRow, statusIndex) || valueAt(sourceRow, conditionIndex),
         assetCategory: cellText(valueAt(sourceRow, assetCategoryIndex)),
       });

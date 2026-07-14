@@ -28,20 +28,49 @@ import {
 } from "../types";
 
 function findRegisterDateIndex(sourceRow: any[]): number {
+  const hasFullAssetCode = looksLikeAssetCode(sourceRow[2]);
+
+  if (hasFullAssetCode) {
+    for (let index = 3; index <= Math.min(sourceRow.length - 3, 8); index += 1) {
+      if (normalizeThaiDate(sourceRow[index], sourceRow[index + 1], sourceRow[index + 2])) {
+        return index;
+      }
+    }
+  }
+
   for (let index = 3; index <= Math.min(sourceRow.length - 1, 8); index += 1) {
     const value = sourceRow[index];
     const text = cellText(value);
-    if (normalizeThaiDate(value)) return index;
+    const isFiveDigitCodePart = /^\d{5}$/.test(compactText(value));
+    if (!isFiveDigitCodePart && normalizeThaiDate(value)) return index;
     if (/^(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s+[A-Z][a-z]{2}\s+\d{1,2}\s+\d{4}/.test(text)) {
       return index;
+    }
+  }
+
+  if (hasFullAssetCode) {
+    for (let index = 3; index <= Math.min(sourceRow.length - 1, 8); index += 1) {
+      if (normalizeThaiDate(sourceRow[index])) return index;
     }
   }
   return -1;
 }
 
+function registerDateSpan(sourceRow: any[], dateIndex: number): number {
+  return normalizeThaiDate(
+    sourceRow[dateIndex],
+    sourceRow[dateIndex + 1],
+    sourceRow[dateIndex + 2],
+  )
+    ? 3
+    : 1;
+}
+
 function composeRegisterAssetCode(sourceRow: any[], dateIndex: number): string {
   const fullCode = cellText(sourceRow[2]);
   if (looksLikeAssetCode(fullCode)) return fullCode;
+  if (!compactText(sourceRow[2])) return "";
+  if (!isNumericSequence(sourceRow[0])) return "";
 
   const endIndex = dateIndex > 2 ? dateIndex : Math.min(sourceRow.length, 6);
   const parts = sourceRow
@@ -57,7 +86,15 @@ function composeRegisterAssetCode(sourceRow: any[], dateIndex: number): string {
   return "";
 }
 
-function normalizeRegisterDate(value: any, assetCode: string): string {
+function normalizeRegisterDate(sourceRow: any[], dateIndex: number, assetCode: string): string {
+  const combined = normalizeThaiDate(
+    sourceRow[dateIndex],
+    sourceRow[dateIndex + 1],
+    sourceRow[dateIndex + 2],
+  );
+  if (combined) return combined;
+
+  const value = sourceRow[dateIndex];
   const normalized = normalizeThaiDate(value);
   if (normalized) return normalized;
 
@@ -70,6 +107,17 @@ function normalizeRegisterDate(value: any, assetCode: string): string {
   const codeParts = assetCode.split("-");
   const codeYear = codeParts.length >= 2 ? codeParts[codeParts.length - 2].match(/\d{2}/)?.[0] : "";
   return normalizeThaiDate(jsDate[2], jsDate[1], codeYear || jsDate[3]);
+}
+
+function findRegisterDataStartIndex(matrix: any[][], headerRowIndex: number): number {
+  const hasEarlyAssetRow = [1, 2].some((offset) => {
+    const sourceRow = matrix[headerRowIndex + offset] || [];
+    const dateIndex = findRegisterDateIndex(sourceRow);
+    const assetCode = composeRegisterAssetCode(sourceRow, dateIndex);
+    return Boolean(cellText(sourceRow[1])) && looksLikeAssetCode(assetCode);
+  });
+
+  return headerRowIndex + (hasEarlyAssetRow ? 1 : 3);
 }
 
 export function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSourceSheet {
@@ -87,8 +135,9 @@ export function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSour
   let currentAssetItemWasEmitted = false;
   let previousDataRow: Record<string, any> | null = null;
   let skippedIncompleteRows = 0;
+  const dataStartIndex = findRegisterDataStartIndex(matrix, headerRowIndex);
 
-  for (let index = headerRowIndex + 3; index < matrix.length; index += 1) {
+  for (let index = dataStartIndex; index < matrix.length; index += 1) {
     const sourceRow = matrix[index] || [];
     if (isRowEmpty(sourceRow) || isTotalOrSummaryRow(sourceRow)) continue;
 
@@ -97,7 +146,10 @@ export function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSour
     const detectedDateIndex = findRegisterDateIndex(sourceRow);
     const assetCode = composeRegisterAssetCode(sourceRow, detectedDateIndex);
     const dateIndex = detectedDateIndex >= 0 ? detectedDateIndex : 3;
-    const statusStartIndex = dateIndex + 3;
+    const dateSpan = registerDateSpan(sourceRow, dateIndex);
+    const valueIndex = dateIndex + dateSpan;
+    const responsibleUnitIndex = valueIndex + 1;
+    const statusStartIndex = responsibleUnitIndex + 1;
     const noteIndex = statusStartIndex + 6;
     const note = cellText(sourceRow[noteIndex]);
 
@@ -178,9 +230,9 @@ export function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSour
       assetCode,
       assetName: itemName,
       assetDetail: "",
-      receivedDate: normalizeRegisterDate(sourceRow[dateIndex], assetCode),
-      value: sourceRow[dateIndex + 1] ?? "",
-      responsibleUnit: sourceRow[dateIndex + 2] ?? "",
+      receivedDate: normalizeRegisterDate(sourceRow, dateIndex, assetCode),
+      value: sourceRow[valueIndex] ?? "",
+      responsibleUnit: sourceRow[responsibleUnitIndex] ?? "",
       note: sourceRow[noteIndex] ?? "",
       statusNormal: sourceRow[statusStartIndex],
       statusBroken: sourceRow[statusStartIndex + 1],

@@ -6,10 +6,12 @@ import type {
   ParseResponse,
   ValidationIssue,
 } from "@/lib/client-types";
+import type { SheetSelection } from "@/lib/sheet-selection";
 import { createRuntimeSheetSummary } from "./display";
 import { IssueList } from "./IssueList";
 import { MappingSummary } from "./MappingSummary";
 import { SheetSummaryPanel } from "./SheetSummaryPanel";
+import { SheetSelectionOverview } from "./SheetSelectionOverview";
 import { SheetTabs } from "./SheetTabs";
 import { SourcePreviewTable } from "./SourcePreviewTable";
 
@@ -20,12 +22,15 @@ interface PreviewStepProps {
   mappingState: Record<string, Record<string, string>>;
   updateMapping: (sheetName: string, templateColumn: string, sourceColumn: string) => void;
   mappedCountForSheet: (sheetName: string) => number;
+  sheetSelection: SheetSelection;
+  updateSheetSelection: (sheetName: string, selected: boolean) => void;
   issues: ValidationIssue[] | null;
   issueSummary: IssueSummary | null;
   advancedOpen: boolean;
   setAdvancedOpen: (open: boolean) => void;
   onBack: () => void;
   onNext: () => void;
+  canContinue: boolean;
   loading: boolean;
 }
 
@@ -38,15 +43,42 @@ export function PreviewStep({
   mappingState,
   updateMapping,
   mappedCountForSheet,
+  sheetSelection,
+  updateSheetSelection,
   issues,
   issueSummary,
   advancedOpen,
   setAdvancedOpen,
   onBack,
   onNext,
+  canContinue,
   loading,
 }: PreviewStepProps) {
   const sheet = parsed.sheets[activeSheetIdx];
+  if (!sheet) {
+    return (
+      <>
+        <p className="eyebrow">Sheet overview</p>
+        <h2>ไม่พบชีตข้อมูลสินทรัพย์ที่พร้อมแปลง</h2>
+        <p className="lead">
+          ระบบแสดงผลการจำแนกทุกชีตไว้ด้านล่าง แต่ไม่มีชีตที่ผ่านนโยบายสำหรับ Validate หรือ Export
+        </p>
+        <SheetSelectionOverview
+          sheets={parsed.sheetOverview}
+          selection={sheetSelection}
+          onToggle={updateSheetSelection}
+          onOpenSheet={setActiveSheetIdx}
+        />
+        <div className="empty-export-message">
+          UNKNOWN, help/template/summary และ maintenance จะไม่ถูก Export อัตโนมัติ กรุณาตรวจไฟล์ต้นทางหรือเพิ่ม parser ที่รองรับก่อน
+        </div>
+        <div className="actions">
+          <button className="btn secondary" onClick={onBack}>← ย้อนกลับ</button>
+          <button className="btn amber" disabled>ไม่มีชีตที่พร้อม Export</button>
+        </div>
+      </>
+    );
+  }
   const sheetMap = mappingState[sheet.sheetName] || {};
   const sheetIssues = (issues || []).filter((issue) => issue.sheetName === sheet.sheetName);
   const currentSummary = createRuntimeSheetSummary(sheet, sheetIssues);
@@ -73,11 +105,16 @@ export function PreviewStep({
       <p className="eyebrow">Auto mapping default</p>
       <h2>ตรวจสอบชีต พรีวิว และผล Validation</h2>
       <p className="lead">
-        พบ {parsed.sheets.length} ชีตที่แปลงได้
-        {parsed.skippedSheets.length > 0 &&
-          ` และข้าม ${parsed.skippedSheets.length} ชีต (${parsed.skippedSheets.join(", ")})`}
-        ระบบจับคู่คอลัมน์และตรวจสอบเบื้องต้นให้อัตโนมัติ สามารถแก้เฉพาะกรณีที่ mapping ผิดได้จาก Advanced Mapping
+        พบทั้งหมด {parsed.sheetOverview.length} ชีต และอ่านเป็น datasource ได้ {parsed.sheets.length} ชีต
+        ระบบจะตรวจสอบและส่งออกเฉพาะชีตที่เลือกด้านล่าง สามารถแก้ mapping เฉพาะกรณีที่จำเป็นได้จาก Advanced Mapping
       </p>
+
+      <SheetSelectionOverview
+        sheets={parsed.sheetOverview}
+        selection={sheetSelection}
+        onToggle={updateSheetSelection}
+        onOpenSheet={setActiveSheetIdx}
+      />
 
       <SheetTabs
         sheets={parsed.sheets}
@@ -129,8 +166,12 @@ export function PreviewStep({
         <button className="btn secondary" onClick={onBack}>
           ← ย้อนกลับ
         </button>
-        <button className="btn amber" disabled={loading} onClick={onNext}>
-          {loading ? "กำลังตรวจสอบ..." : "ตรวจสอบอีกครั้งและไป Export →"}
+        <button className="btn amber" disabled={loading || !canContinue} onClick={onNext}>
+          {loading
+            ? "กำลังตรวจสอบ..."
+            : canContinue
+              ? "ตรวจสอบชีตที่เลือกและไป Export →"
+              : "ไม่มีชีตที่พร้อม Export"}
         </button>
       </div>
     </>

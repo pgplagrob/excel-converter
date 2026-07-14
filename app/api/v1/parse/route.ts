@@ -61,20 +61,31 @@ export async function POST(req: NextRequest) {
         severity: "warning",
       }));
       const mappingRecord = mappingSuggestionsToRecord(mapping);
+      const validationContext = {
+        sourceProfile: sheet.sourceProfile,
+        eligibility: sheet.eligibility,
+      };
       const sheetLevelIssues = validateSheetLevel(
         sheet.sheetName,
         sheet.rows.length,
         sheet.headerRowIndex + 1,
         mappingRecord,
         sheet.rows,
+        validationContext,
       );
       const mappedRows = transformRowsToTemplateDataset(sheet.rows, mappingRecord);
-      const rowIssues = validateMappedRows(sheet.sheetName, mappedRows, sheet.rows, template.references);
+      const rowIssues = validateMappedRows(
+        sheet.sheetName,
+        mappedRows,
+        sheet.rows,
+        template.references,
+        validationContext,
+      );
       const validationIssues = [...parseWarnings, ...sheetLevelIssues, ...rowIssues];
       const errorCount = validationIssues.filter((issue) => issue.severity === "error").length;
       const finalEligibility: SheetEligibility =
-        sheet.eligibility === "skipped"
-          ? "skipped"
+        sheet.eligibility === "skipped" || sheet.eligibility === "unsupported"
+          ? sheet.eligibility
           : errorCount > 0 || sheet.eligibility === "needsReview"
             ? "needsReview"
             : "exportable";
@@ -117,6 +128,26 @@ export async function POST(req: NextRequest) {
     const skippedSheetSummaries = dataSource.skippedSheets.map((sheetName) =>
       createSheetSummary(sheetName, 0, undefined, [], "skipped"),
     );
+    const sheetOverview = dataSource.profileDebug.map((debug) => {
+      const parsedSheetIndex = sheets.findIndex((sheet) => sheet.sheetName === debug.sheetName);
+      const parsedSheet = parsedSheetIndex >= 0 ? sheets[parsedSheetIndex] : undefined;
+      return {
+        sheetName: debug.sheetName,
+        sourceProfile: debug.legacySourceProfile,
+        detectedProfile: debug.profile,
+        eligibility: parsedSheet?.eligibility || debug.eligibility,
+        reason:
+          parsedSheet?.eligibilityReason ||
+          debug.decisionReason ||
+          debug.skipReason ||
+          "sheet was not selected for parsing",
+        rowCount: parsedSheet?.rowCount || 0,
+        errorCount: parsedSheet?.summary.errorCount || 0,
+        warningCount: parsedSheet?.summary.warningCount || 0,
+        confidence: parsedSheet?.confidence ?? debug.confidence,
+        ...(parsedSheetIndex >= 0 ? { parsedSheetIndex } : {}),
+      };
+    });
 
     const response: ParseResponse = {
       analysisId,
@@ -124,6 +155,7 @@ export async function POST(req: NextRequest) {
       sheets,
       skippedSheets: dataSource.skippedSheets,
       skippedSheetSummaries,
+      sheetOverview,
       sheetProfileDebug: dataSource.profileDebug,
     };
 

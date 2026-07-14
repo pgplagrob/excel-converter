@@ -11,6 +11,7 @@ interface DownloadStepProps {
   onDownload: () => void;
   onReset: () => void;
   loading: boolean;
+  selectedSheetCount: number;
 }
 
 export function DownloadStep({
@@ -21,13 +22,14 @@ export function DownloadStep({
   onDownload,
   onReset,
   loading,
+  selectedSheetCount,
 }: DownloadStepProps) {
   return (
     <>
       <p className="eyebrow">Step 4</p>
       <h2>ผลการตรวจสอบ และดาวน์โหลดเทมเพลต</h2>
       <p className="lead">
-        ตรวจสอบรายการที่ต้องแก้ไขก่อนดาวน์โหลด หรือดาวน์โหลดไฟล์ได้ทันที
+        ตรวจสอบรายการที่ต้องแก้ไขก่อนดาวน์โหลด ขณะนี้เลือกส่งออก {selectedSheetCount} ชีต
       </p>
 
       {issueSummary && (
@@ -74,8 +76,12 @@ export function DownloadStep({
           <button className="btn secondary" onClick={onReset}>
             เริ่มไฟล์ใหม่
           </button>
-          <button className="btn amber" disabled={loading} onClick={onDownload}>
-            {loading ? "กำลังสร้างไฟล์..." : "⬇ ดาวน์โหลดเทมเพลต .xlsx"}
+          <button className="btn amber" disabled={loading || selectedSheetCount === 0} onClick={onDownload}>
+            {loading
+              ? "กำลังสร้างไฟล์..."
+              : selectedSheetCount > 0
+                ? "⬇ ดาวน์โหลดเทมเพลต .xlsx"
+                : "ไม่มีชีตที่พร้อม Export"}
           </button>
         </div>
       </div>

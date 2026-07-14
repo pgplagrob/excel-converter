@@ -232,7 +232,7 @@ export async function buildAssetTemplateWorkbookBySheet(
 
   const layout = captureTemplateLayout(templateSheet, metadata.columns.length);
   const referenceSnapshot = referenceSheet ? captureWorksheet(referenceSheet) : undefined;
-  const usedNames = new Set<string>();
+  const usedNames = new Set<string>(referenceSheet ? ["reference"] : []);
 
   sheets.forEach((sheet, index) => {
     const sheetName = uniqueSheetName(sheet.sheetName, usedNames);

@@ -51,11 +51,9 @@ export async function POST(req: NextRequest) {
     const sheetSummaries: ReturnType<typeof createSheetSummary>[] = [];
 
     for (const sourceSheet of analysis.dataSource.sheets) {
-      const sheet = findSheetInput(sheetsInput, sourceSheet.sheetName) || {
-        sheetName: sourceSheet.sheetName,
-        rows: [],
-      };
-      if (sourceSheet.eligibility === "skipped") {
+      const sheet = findSheetInput(sheetsInput, sourceSheet.sheetName);
+      if (!sheet) continue;
+      if (sourceSheet.eligibility === "skipped" || sourceSheet.eligibility === "unsupported") {
         sheetSummaries.push(
           createSheetSummary(sourceSheet.sheetName, 0, sourceSheet.headerRowIndex + 1, [], sourceSheet.eligibilityReason),
         );
@@ -66,12 +64,17 @@ export async function POST(req: NextRequest) {
         ? mappingSuggestionsToRecord(sheet.autoMapping)
         : sheet.mapping || {};
       const finalMapping = mergeMapping(autoMapping, sheet.manualMapping || sheet.mapping || {});
+      const validationContext = {
+        sourceProfile: sourceSheet.sourceProfile,
+        eligibility: sourceSheet.eligibility,
+      };
       const sheetLevelIssues = validateSheetLevel(
         sourceSheet.sheetName,
         sourceSheet.rows.length,
         sheet.headerRow || sourceSheet.headerRowIndex + 1,
         finalMapping,
         sourceSheet.rows,
+        validationContext,
       );
       const mappedRows = transformRowsToTemplateDataset(sourceSheet.rows, finalMapping);
       transformedSheets.push({
@@ -83,7 +86,13 @@ export async function POST(req: NextRequest) {
 
       const issues = [
         ...sheetLevelIssues,
-        ...validateMappedRows(sourceSheet.sheetName, mappedRows, sourceSheet.rows, template.references),
+        ...validateMappedRows(
+          sourceSheet.sheetName,
+          mappedRows,
+          sourceSheet.rows,
+          template.references,
+          validationContext,
+        ),
       ];
       if (sourceSheet.sourceProfile === "UNKNOWN" && !Object.keys(sheet.manualMapping || {}).length) {
         issues.push({

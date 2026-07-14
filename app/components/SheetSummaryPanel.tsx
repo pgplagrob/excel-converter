@@ -13,6 +13,7 @@ interface SheetSummaryPanelProps {
 function eligibilityLabel(eligibility?: SheetEligibility): string {
   if (eligibility === "exportable") return "แปลงได้";
   if (eligibility === "needsReview") return "ต้องตรวจสอบ";
+  if (eligibility === "unsupported") return "ยังไม่รองรับ";
   if (eligibility === "skipped") return "ข้าม";
   return "-";
 }

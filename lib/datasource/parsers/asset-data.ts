@@ -1,6 +1,7 @@
 import { normalizeThaiDate } from "../date";
 import { detectHeaderRow } from "../header-detection";
 import { appendHeaders, buildHeaderKeys, buildRawRow, setNormalizedFields, withCommonMeta } from "../row-builders";
+import { normalizeFlexibleStatus } from "../status";
 import {
   cellText,
   deriveAssetCategoryFromText,
@@ -64,7 +65,7 @@ export function parseAssetDataSheet(sheetName: string, matrix: any[][]): DataSou
       value,
       location: valueAt(sourceRow, locationIndex),
     });
-    row[INTERNAL.status] = cellText(valueAt(sourceRow, statusIndex)) || "ปกติ";
+    row[INTERNAL.status] = normalizeFlexibleStatus(valueAt(sourceRow, statusIndex));
     row[INTERNAL.assetCategory] = deriveAssetCategoryFromText(sourceAssetType);
     row[INTERNAL.needCount] = "True";
     row[INTERNAL.importantFlag] = "False";

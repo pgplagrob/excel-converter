@@ -6,10 +6,12 @@ export type SourceProfile =
   | "TRANSFER_2567"
   | "ASSET_DATA"
   | "FLEXIBLE_ASSET_TABLE"
+  | "HELP_OR_TEMPLATE_SKIP"
   | "SUMMARY_SKIP"
+  | "REVIEW_MAINTENANCE"
   | "UNKNOWN";
 
-export type SheetEligibility = "exportable" | "needsReview" | "skipped";
+export type SheetEligibility = "exportable" | "needsReview" | "unsupported" | "skipped";
 
 export interface SheetParseDecision {
   eligibility: SheetEligibility;

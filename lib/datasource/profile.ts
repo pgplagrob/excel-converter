@@ -5,17 +5,17 @@ import { cellText, compactText, looksLikeAssetCode, rowContainsAny } from "./tex
 import type { SourceProfile } from "./types";
 
 function legacyProfileFromDetection(detection: SheetProfileDetection): SourceProfile | null {
+  if (detection.profile === "summary") return "SUMMARY_SKIP";
   if (
-    detection.profile === "summary" ||
     detection.profile === "help" ||
     detection.profile === "reference" ||
     detection.profile === "form" ||
     detection.profile === "template" ||
-    detection.profile === "empty" ||
-    detection.profile === "maintenance"
+    detection.profile === "empty"
   ) {
-    return "SUMMARY_SKIP";
+    return "HELP_OR_TEMPLATE_SKIP";
   }
+  if (detection.profile === "maintenance") return "REVIEW_MAINTENANCE";
   if (detection.profile === "assetData") return "ASSET_DATA";
   if (detection.profile === "newAsset") return "NEW_ASSET_2567";
   if (detection.profile === "transfer") return "TRANSFER_2567";
@@ -33,13 +33,15 @@ export function detectSourceProfile(
   const flexibleLayout = findFlexibleAssetLayout(matrix);
   if (flexibleLayout?.kind === "standard-table") return "FLEXIBLE_ASSET_TABLE";
 
+  const compactSheet = compactText(sheetName);
+  // The specific municipal summary name must win over the generic "form" profile.
+  if (compactSheet.includes("แบบกข")) return "SUMMARY_SKIP";
+
   const detectedProfile = legacyProfileFromDetection(profileDetection);
   if (detectedProfile) return detectedProfile;
 
-  const compactSheet = compactText(sheetName);
-  if (compactSheet.includes("แบบกข")) return "SUMMARY_SKIP";
   if (compactSheet.includes("help") || compactSheet.includes("reference") || compactSheet.includes("template")) {
-    return "SUMMARY_SKIP";
+    return "HELP_OR_TEMPLATE_SKIP";
   }
   if (compactSheet.includes("ครุภัณฑ์ใหม่2567")) return "NEW_ASSET_2567";
   if (compactSheet.includes("โอน2567") || compactSheet.includes("โอนอาคาร2567")) {

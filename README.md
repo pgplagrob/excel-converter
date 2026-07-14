@@ -6,12 +6,14 @@
 
 - รองรับไฟล์ `.xlsx` และ `.xls` ขนาดไม่เกิน 20 MB
 - อ่าน workbook หลายชีต พร้อมข้ามชีตว่างและชีตสรุปที่ไม่ใช่ข้อมูลสินทรัพย์
+- แยก help/template/summary เป็น skipped, maintenance เป็น unsupported และไม่เลือก UNKNOWN เพื่อ export อัตโนมัติ
 - ตรวจจับรูปแบบชีตจากชื่อชีต header และ keyword
 - รองรับ AssetData, ข้อมูลสินทรัพย์ใหม่, ทะเบียนครุภัณฑ์หลายแถว, ข้อมูลโอน/ย้าย และตารางรูปแบบยืดหยุ่น
 - อ่านตารางที่ไม่มี header, header สองแถว และรหัสสินทรัพย์ที่แยกอยู่หลายคอลัมน์
 - แปลงข้อมูลเป็นโครงสร้างกลาง พร้อม carry-forward หมวดหมู่จากแถวหัวกลุ่ม
 - แนะนำ mapping ไปยังเทมเพลต 44 คอลัมน์ด้วย exact, alias และ fuzzy matching
-- แสดง preview, สรุปแต่ละชีต, validation issues และ Advanced Mapping
+- แสดงทุกชีตพร้อม profile, eligibility, เหตุผล, จำนวนแถว/error/warning และ checkbox เลือกเฉพาะชีตที่จะ export
+- เลือกเริ่มต้นเฉพาะชีต ready/warning ที่ผ่าน validation; review/unsupported/skipped ไม่ถูกเลือก
 - ตรวจ required fields, วันที่, ตัวเลข, สถานะ และรายการซ้ำ
 - Export เป็นไฟล์ Excel โดยสร้างชีตปลายทางต่อหนึ่งชีตต้นทางที่แปลงสำเร็จ
 
@@ -37,12 +39,20 @@ npm start
 npm test
 ```
 
+Audit ไฟล์จริงทั้งหมดใต้ `assets/เทศบาลนครลำปาง/`:
+
+```bash
+npm run audit:assets
+```
+
+ผลแบบ machine-readable จะอยู่ที่ `reports/asset-audit.json` และมีสรุปรายไฟล์/รายชีต, profile, eligibility, row/error/warning count และเหตุผลที่ไม่ export
+
 ## วิธีใช้งาน
 
 1. อัปโหลดหรือลากไฟล์ Excel เข้าหน้าเว็บ แล้วกดอ่านไฟล์
-2. ตรวจสอบ Sheet Overview, preview และผล validation เบื้องต้น
-3. ตรวจสอบ mapping ที่ระบบแนะนำ หรือเปิด Advanced Mapping เพื่อแก้ไข
-4. ตรวจสอบ validation อีกครั้ง แล้วดาวน์โหลดไฟล์ผลลัพธ์
+2. ตรวจสอบ Sheet Overview แล้วเลือก checkbox เฉพาะชีตที่ต้องการ export
+3. ตรวจ preview และ mapping ที่ระบบแนะนำ หรือเปิด Advanced Mapping เพื่อแก้ไข
+4. ตรวจสอบ validation ของชีตที่เลือกอีกครั้ง แล้วดาวน์โหลดไฟล์ผลลัพธ์
 
 ไฟล์ที่ดาวน์โหลดจะใช้ชื่อรูปแบบ `converted_template_<ชื่อไฟล์ต้นทาง>.xlsx`
 
@@ -65,7 +75,7 @@ Upload Excel
 
 ### `POST /api/v1/parse`
 
-รับ `multipart/form-data` โดยมี field ชื่อ `file` เป็นไฟล์ Excel และส่งกลับข้อมูล preview, sheets, mappings และรายการชีตที่ถูกข้าม
+รับ `multipart/form-data` โดยมี field ชื่อ `file` เป็นไฟล์ Excel และส่งกลับ `sheetOverview` ของทุกชีต พร้อม preview/mapping เฉพาะชีตที่ parser รองรับ
 
 ### `POST /api/v1/export`
 
@@ -73,6 +83,8 @@ Upload Excel
 
 - `validate` แปลงข้อมูลและส่ง validation issues กลับเป็น JSON
 - `download` แปลงข้อมูลและส่งไฟล์ `.xlsx` กลับให้ดาวน์โหลด
+
+ทั้งสอง mode ประมวลผลเฉพาะชีตที่ระบุใน `sheets` ของ request; การไม่ส่งชื่อชีตหมายถึงไม่ได้เลือกชีตนั้น
 
 ## โครงสร้างโปรเจกต์
 
@@ -89,6 +101,9 @@ lib/mapping.ts               template columns, aliases และ logic แนะ
 lib/transform.ts             แปลงข้อมูลเป็น template 44 คอลัมน์
 lib/validate.ts               ตรวจสอบระดับชีตและระดับแถว
 lib/client-types.ts           types ที่ใช้ร่วมกันระหว่าง client และ API
+lib/sheet-selection.ts        นโยบายเลือกชีตเริ่มต้นสำหรับ UI/export
+scripts/audit-assets.ts       audit ไฟล์ Excel จริงทั้งชุดและสร้าง JSON report
+reports/asset-audit.json      รายงาน audit ล่าสุด
 ```
 
 ## หมายเหตุ

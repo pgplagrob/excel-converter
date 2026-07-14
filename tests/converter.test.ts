@@ -4,10 +4,13 @@ import ExcelJS from "exceljs";
 import * as XLSX from "xlsx";
 import { readWorkbookBuffer, safeCellText, WorkbookLimitError } from "../lib/excel";
 import { createDataSourceWorkbook } from "../lib/datasource";
-import { mappingSuggestionsToRecord, suggestMapping } from "../lib/mapping";
+import { decideProfileEligibility } from "../lib/datasource/eligibility";
+import { detectSourceProfile } from "../lib/datasource/profile";
+import { COLUMN_ALIASES, mappingSuggestionsToRecord, suggestMapping } from "../lib/mapping";
 import { buildAssetTemplateWorkbook, buildAssetTemplateWorkbookBySheet, loadAssetTemplateMetadata } from "../lib/template";
 import { transformRowsToTemplateDataset } from "../lib/transform";
-import { validateMappedRows, validateSheetLevel } from "../lib/validate";
+import { shouldValidateSheet, validateMappedRows, validateSheetLevel } from "../lib/validate";
+import { createDefaultSheetSelection, selectedSheetCount } from "../lib/sheet-selection";
 
 function worksheetRows(worksheet: ExcelJS.Worksheet): unknown[][] {
   return Array.from({ length: worksheet.actualRowCount }, (_, rowIndex) => {
@@ -69,8 +72,8 @@ test("classifies assetData as exportable input and skips help/unknown non-asset 
     {
       sheetName: "AssetData",
       matrix: [
-        ["AssetCode", "ModelName", "AssetTypeName", "PurchaseDate", "PurchasePrice", "Price", "LocationName"],
-        ["A-001", "เครื่องคอมพิวเตอร์", "ครุภัณฑ์คอมพิวเตอร์", "2024-01-05", "", 25000, "อาคาร 1"],
+        ["AssetCode", "ModelName", "AssetTypeName", "PurchaseDate", "PurchasePrice", "Price", "LocationName", "Status"],
+        ["A-001", "เครื่องคอมพิวเตอร์", "ครุภัณฑ์คอมพิวเตอร์", "2024-01-05", "", 25000, "อาคาร 1", "เสื่อมสภาพ"],
       ],
     },
     {
@@ -95,13 +98,113 @@ test("classifies assetData as exportable input and skips help/unknown non-asset 
   assert.deepEqual(workbook.skippedSheets.sort(), ["Help", "Random"]);
 });
 
+test("detects every datasource profile and applies non-export eligibility policy", () => {
+  const cases: Array<{
+    expected: ReturnType<typeof detectSourceProfile>;
+    sheetName: string;
+    matrix: any[][];
+  }> = [
+    {
+      expected: "NEW_ASSET_2567",
+      sheetName: "ครุภัณฑ์ใหม่ 2567",
+      matrix: [
+        ["รหัสสินทรัพย์", "ชนิดสินทรัพย์", "รายละเอียดสินทรัพย์", "ราคาสินทรัพย์"],
+        ["A-001", "ครุภัณฑ์สำนักงาน", "โต๊ะ", 1000],
+      ],
+    },
+    {
+      expected: "REGISTER_3_ROW_HEADER",
+      sheetName: "ทะเบียน",
+      matrix: [
+        ["ลำดับ", "รายการ", "รหัสครุภัณฑ์", "วันเดือนปี", "สภาพครุภัณฑ์"],
+        [1, "โต๊ะ", "1-01-001", "1/1/2567", "ปกติ"],
+      ],
+    },
+    {
+      expected: "TRANSFER_2567",
+      sheetName: "รับโอน",
+      matrix: [
+        ["เลขที่หนังสือ", "รายการ", "หมวดครุภัณฑ์", "รหัสครุภัณฑ์", "หน่วยงาน"],
+        ["1/2567", "โต๊ะ", "สำนักงาน", "1-01-001", "กองคลัง"],
+      ],
+    },
+    {
+      expected: "ASSET_DATA",
+      sheetName: "AssetData",
+      matrix: [
+        ["AssetCode", "ModelName", "AssetTypeName", "PurchaseDate", "PurchasePrice"],
+        ["A-001", "Computer", "IT", "2024-01-01", 25000],
+      ],
+    },
+    {
+      expected: "FLEXIBLE_ASSET_TABLE",
+      sheetName: "ข้อมูลสินทรัพย์",
+      matrix: [
+        ["รหัสสินทรัพย์", "ชื่อสินทรัพย์", "วันที่ได้มา", "มูลค่า"],
+        ["A-001", "โต๊ะ", "1/1/2567", 1000],
+      ],
+    },
+    {
+      expected: "HELP_OR_TEMPLATE_SKIP",
+      sheetName: "Help",
+      matrix: [["วิธีใช้"], ["อัปโหลดไฟล์ Excel"]],
+    },
+    {
+      expected: "SUMMARY_SKIP",
+      sheetName: "แบบ กข",
+      matrix: [["ประเภททรัพย์สิน", "รหัสพัสดุ"], ["ครุภัณฑ์", "001"]],
+    },
+    {
+      expected: "REVIEW_MAINTENANCE",
+      sheetName: "แผนซ่อมบำรุง",
+      matrix: [["วันที่ซ่อม", "แจ้งซ่อม"], ["1/1/2567", "เปลี่ยนอะไหล่"]],
+    },
+    {
+      expected: "UNKNOWN",
+      sheetName: "ข้อมูลอื่น",
+      matrix: [["หัวข้อ", "ค่า"], ["ข้อมูล", "อื่น ๆ"]],
+    },
+  ];
+
+  for (const item of cases) {
+    assert.equal(detectSourceProfile(item.sheetName, item.matrix), item.expected, item.sheetName);
+  }
+
+  assert.deepEqual(decideProfileEligibility("HELP_OR_TEMPLATE_SKIP", 1), {
+    eligibility: "skipped",
+    reason: "help, reference, form, or template sheet is not asset data",
+    shouldParse: false,
+  });
+  assert.equal(decideProfileEligibility("REVIEW_MAINTENANCE", 0.8).eligibility, "unsupported");
+  assert.equal(decideProfileEligibility("UNKNOWN", 0).eligibility, "unsupported");
+  assert.equal(decideProfileEligibility("ASSET_DATA", 0.9).eligibility, "exportable");
+});
+
 test("assetData mapping uses normalized fields and PurchasePrice fallback rule", () => {
   const workbook = createDataSourceWorkbook("asset-data.xlsx", [
     {
       sheetName: "AssetData",
       matrix: [
-        ["AssetCode", "ModelName", "AssetTypeName", "PurchaseDate", "PurchasePrice", "Price", "LocationName"],
-        ["A-001", "เครื่องคอมพิวเตอร์", "ครุภัณฑ์คอมพิวเตอร์", "2024-01-05", "", 25000, "อาคาร 1"],
+        [
+          "AssetCode",
+          "ModelName",
+          "AssetTypeName",
+          "PurchaseDate",
+          "PurchasePrice",
+          "Price",
+          "LocationName",
+          "Status",
+        ],
+        [
+          "A-001",
+          "เครื่องคอมพิวเตอร์",
+          "ครุภัณฑ์คอมพิวเตอร์",
+          "2024-01-05",
+          "",
+          25000,
+          "อาคาร 1",
+          "เสื่อมสภาพ",
+        ],
       ],
     },
   ]);
@@ -114,6 +217,42 @@ test("assetData mapping uses normalized fields and PurchasePrice fallback rule",
   assert.equal(rows[0]["ชนิดสินทรัพย์"], "ครุภัณฑ์คอมพิวเตอร์");
   assert.equal(rows[0]["มูลค่า"], 25000);
   assert.equal(rows[0]["อาคาร"], "อาคาร 1");
+  assert.equal(rows[0]["สถานะ"], "รอจำหน่าย");
+});
+
+test("mapping aliases cover source-system headers without crossing authoritative fields", () => {
+  const mapping = mappingSuggestionsToRecord(
+    suggestMapping([
+      "AssetCode",
+      "ModelName",
+      "AssetTypeName",
+      "LocationName",
+      "DepartmentName",
+      "PurchasePrice",
+      "PurchaseDate",
+      "Status",
+      "Serial",
+      "BrandName",
+      "ResponsibleUnit",
+      "BudgetSource",
+    ]),
+  );
+
+  assert.equal(mapping["รหัสสินทรัพย์"], "AssetCode");
+  assert.equal(mapping["อาคาร"], "LocationName");
+  assert.equal(mapping["สำนัก"], "DepartmentName");
+  assert.equal(mapping["มูลค่า"], "PurchasePrice");
+  assert.equal(mapping["วันที่ได้รับ"], "PurchaseDate");
+  assert.equal(mapping["สถานะ"], "Status");
+  assert.equal(mapping["งานที่รับผิดชอบ"], "ResponsibleUnit");
+  assert.equal(mapping["แหล่งงบประมาณ"], "BudgetSource");
+
+  for (const templateColumn of ["ชื่อสินทรัพย์", "รายละเอียด", "ชนิดสินทรัพย์", "รายการสินทรัพย์"]) {
+    assert.equal(mapping[templateColumn], "", `${templateColumn} must use normalized parser fields`);
+  }
+  assert.equal(COLUMN_ALIASES["รายละเอียด"].includes("Serial"), true);
+  assert.equal(COLUMN_ALIASES["รายละเอียด"].includes("BrandName"), true);
+  assert.equal(COLUMN_ALIASES["มูลค่า"].includes("Cost"), true);
 });
 
 test("new asset sheets derive asset names from item groups", () => {
@@ -171,10 +310,16 @@ test("parses supported headerless positional asset layouts", () => {
   const consolidatedRows = transformRowsToTemplateDataset(workbook.sheets[2].rows, {});
   assert.equal(departmentRows[0]["รหัสสินทรัพย์"], "400-67-0001");
   assert.equal(departmentRows[0]["ชื่อสินทรัพย์"], "โต๊ะทำงาน");
+  assert.equal(departmentRows[0]["วันที่ได้รับ"], "01/05/2024");
+  assert.equal(departmentRows[0]["มูลค่า"], 1200);
+  assert.equal(departmentRows[0]["งานที่รับผิดชอบ"], "งานพัสดุ");
   assert.equal(splitCodeRows[0]["รหัสสินทรัพย์"], "055-66-0281");
   assert.equal(splitCodeRows[0]["วันที่ได้รับ"], "07/09/2023");
+  assert.equal(splitCodeRows[0]["มูลค่า"], 6420);
   assert.equal(consolidatedRows[0]["รหัสสินทรัพย์"], "401-65-9822");
   assert.equal(consolidatedRows[0]["ชื่อสินทรัพย์"], "เก้าอี้ทำงาน");
+  assert.equal(consolidatedRows[0]["รายละเอียด"], "เก้าอี้ทำงาน MONO");
+  assert.equal(consolidatedRows[0]["งานที่รับผิดชอบ"], "กองการเจ้าหน้าที่");
 });
 
 test("parses two-row standard asset tables and maps funding columns", () => {
@@ -197,6 +342,35 @@ test("parses two-row standard asset tables and maps funding columns", () => {
   assert.equal(rows[0]["ชื่อสินทรัพย์"], "โต๊ะทำงาน");
   assert.equal(rows[0]["สถานะ"], "ปกติ");
   assert.equal(rows[0]["เงินงบประมาณ"], 1200);
+  assert.equal(rows[0]["แหล่งงบประมาณ"], "เงินงบประมาณ");
+  assert.equal(rows[0]["ส่งคืนสินทรัพย์"], "");
+});
+
+test("flexible transform keeps enum fields out of fuzzy mappings and normalizes deterioration", () => {
+  const workbook = createDataSourceWorkbook("funding-status.xlsx", [
+    {
+      sheetName: "Sheet3",
+      matrix: [
+        ["ลำดับ", "ประเภทสินทรัพย์", "ชนิดสินทรัพย์", "รหัสสินทรัพย์ Elaas", "รหัสสินทรัพย์", "ชื่อสินทรัพย์", "รายละเอียดสินทรัพย์", "วันที่ได้มา", "ราคาสินทรัพย์", "ค่าเสื่อมราคาสะสม", "สถานะ", "แหล่งเงิน", "", "สภาพสินทรัพย์"],
+        ["", "", "", "", "", "", "", "", "", "", "", "เงินงบประมาณ", "เงินสะสม/เงินทุนสำรองเงินสะสม", ""],
+        [1, "ครุภัณฑ์", "ครุภัณฑ์สำนักงาน", "ELAAS-1", "400-67-0001", "โต๊ะทำงาน", "โต๊ะเหล็ก", "1/5/2567", 1200, 100, "เสื่อมสภาพ", 1200, 0, "ใช้งานได้"],
+      ],
+    },
+  ]);
+  const sheet = workbook.sheets[0];
+  const suggestions = suggestMapping(sheet.headers);
+  const mapping = mappingSuggestionsToRecord(suggestions);
+  const rows = transformRowsToTemplateDataset(sheet.rows, mapping);
+
+  assert.equal(mapping["ส่งคืนสินทรัพย์"], "");
+  assert.equal(mapping["คิดค่าเสื่อม"], "");
+  assert.equal(rows[0]["ชื่อสินทรัพย์"], "โต๊ะทำงาน");
+  assert.equal(rows[0]["รายละเอียด"], "โต๊ะเหล็ก");
+  assert.equal(rows[0]["ชนิดสินทรัพย์"], "ครุภัณฑ์สำนักงาน");
+  assert.equal(rows[0]["แหล่งงบประมาณ"], "เงินงบประมาณ");
+  assert.equal(rows[0]["สถานะ"], "รอจำหน่าย");
+  assert.equal(rows[0]["ส่งคืนสินทรัพย์"], "");
+  assert.equal(rows[0]["คิดค่าเสื่อม"], "True");
 });
 
 test("reads legacy xls workbooks", async () => {
@@ -252,6 +426,8 @@ test("registry parser composes asset codes split across columns", () => {
         ["", "", "", "", "", "", "", "", ""],
         [1, "รถยนต์กระบะ", "3", "002", "37", "0032", "21-Nov-37", 407000, "งานอนามัย", "P"],
         [2, "โต๊ะทำงาน", "400", "43", "3921", "Sat Aug 07 1943 07:00:00 GMT+0700", 5460, "งานสวนสาธารณะ", "P"],
+        [3, "เก้าอี้สำนักงาน", "1", "401", "67", "10088", "21-Feb-67", 4800, "งานตลาด", "P"],
+        ["", "งานสาธารณูปโภคบำรุงรักษาทางและสะพาน", "15500", "15500", "15500", "", "", "", ""],
       ],
     },
   ]);
@@ -262,6 +438,55 @@ test("registry parser composes asset codes split across columns", () => {
   assert.equal(rows[0]["มูลค่า"], 407000);
   assert.equal(rows[1]["รหัสสินทรัพย์"], "400-43-3921");
   assert.equal(rows[1]["วันที่ได้รับ"], "07/08/2000");
+  assert.equal(rows[2]["รหัสสินทรัพย์"], "1-401-67-10088");
+  assert.equal(rows[2]["วันที่ได้รับ"], "21/02/2024");
+  assert.equal(rows[2]["มูลค่า"], 4800);
+  assert.equal(rows[2]["งานที่รับผิดชอบ"], "งานตลาด");
+  assert.equal(rows.length, 3);
+});
+
+test("registry parser supports a single header row without dropping early assets", () => {
+  const workbook = createDataSourceWorkbook("one-row-register.xlsx", [
+    {
+      sheetName: "ทะเบียน",
+      matrix: [
+        ["ลำดับ", "รายการ", "รหัสครุภัณฑ์", "วันเดือนปี", "ราคาที่ได้มา", "หน่วยงาน", "สภาพครุภัณฑ์"],
+        [1, "โต๊ะทำงาน", "400-67-0001", "1/5/2567", 1200, "งานพัสดุ", "x"],
+        [2, "เก้าอี้ทำงาน", "401-67-0002", "2/5/2567", 900, "งานพัสดุ", "x"],
+      ],
+    },
+  ]);
+  const sheet = workbook.sheets[0];
+  const rows = transformRowsToTemplateDataset(sheet.rows, {});
+
+  assert.equal(sheet.sourceProfile, "REGISTER_3_ROW_HEADER");
+  assert.equal(rows.length, 2);
+  assert.equal(rows[0]["รหัสสินทรัพย์"], "400-67-0001");
+  assert.equal(rows[0]["ชื่อสินทรัพย์"], "โต๊ะทำงาน");
+  assert.equal(rows[0]["วันที่ได้รับ"], "01/05/2024");
+  assert.equal(rows[0]["มูลค่า"], 1200);
+  assert.equal(rows[0]["งานที่รับผิดชอบ"], "งานพัสดุ");
+});
+
+test("registry parser reads split day month year before value and responsible unit", () => {
+  const workbook = createDataSourceWorkbook("split-date-register.xlsx", [
+    {
+      sheetName: "ทะเบียน",
+      matrix: [
+        ["ลำดับ", "รายการ", "รหัสครุภัณฑ์", "วัน", "เดือน", "ปี", "ราคาที่ได้มา", "หน่วยงาน", "สภาพครุภัณฑ์"],
+        ["", "", "", "", "", "", "", "", "ปกติ", "ชำรุด"],
+        ["", "", "", "", "", "", "", "", ""],
+        [1, "เครื่องคอมพิวเตอร์", "416-42-0052", 30, 7, 2542, 75435, "งานแผนที่", "x"],
+      ],
+    },
+  ]);
+  const rows = transformRowsToTemplateDataset(workbook.sheets[0].rows, {});
+
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0]["วันที่ได้รับ"], "30/07/1999");
+  assert.equal(rows[0]["มูลค่า"], 75435);
+  assert.equal(rows[0]["งานที่รับผิดชอบ"], "งานแผนที่");
+  assert.equal(rows[0]["สถานะ"], "ปกติ");
 });
 
 test("template output keeps Sheet1 at 44 columns and preserves Reference sheet", async () => {
@@ -315,6 +540,163 @@ test("split template output creates one worksheet per exportable source sheet", 
   assert.equal(secondRows[0].length, 44);
   assert.equal(firstRows[1][2], "A-001");
   assert.equal(secondRows[1][2], "B-001");
+});
+
+test("split template output sanitizes unique names, reserves Reference, and preserves cell types", async () => {
+  const longUnsafeName = "ข้อมูล/ครุภัณฑ์:*?ที่มีชื่อยาวเกินกว่าสามสิบเอ็ดตัวอักษร";
+  const wb = await buildAssetTemplateWorkbookBySheet([
+    {
+      sheetName: longUnsafeName,
+      rows: [
+        {
+          "รหัสสินทรัพย์": "001-01-0001",
+          "ชื่อสินทรัพย์": "โต๊ะทำงาน",
+          "มูลค่า": 1234.5,
+          "วันที่ได้รับ": "01/05/2024",
+        },
+      ],
+    },
+    { sheetName: longUnsafeName, rows: [] },
+    { sheetName: "Reference", rows: [] },
+  ]);
+  const readBack = await readWorkbook(wb);
+  const dataSheets = readBack.worksheets.filter((sheet) => sheet.name !== "Reference");
+  const names = dataSheets.map((sheet) => sheet.name);
+  const firstRows = worksheetRows(dataSheets[0]);
+  const metadata = await loadAssetTemplateMetadata();
+  const referenceRows = worksheetRows(readBack.getWorksheet("Reference")!);
+
+  assert.equal(names.length, 3);
+  assert.equal(new Set(names.map((name) => name.toLowerCase())).size, 3);
+  assert.equal(names.every((name) => name.length <= 31 && !/[\[\]:*?/\\]/.test(name)), true);
+  assert.equal(names[2], "Reference (2)");
+  assert.equal(readBack.worksheets.at(-1)?.name, "Reference");
+  assert.equal(referenceRows[1][0], [...metadata.references.categories][0]);
+  assert.equal(firstRows[1][2], "001-01-0001");
+  assert.equal(typeof firstRows[1][2], "string");
+  assert.equal(firstRows[1][16], 1234.5);
+  assert.equal(typeof firstRows[1][16], "number");
+  assert.equal(firstRows[1][17], "01/05/2024");
+  assert.equal(typeof firstRows[1][17], "string");
+});
+
+test("validation policy checks exportable profiles and ignores non-export asset policies", () => {
+  for (const sourceProfile of [
+    "REGISTER_3_ROW_HEADER",
+    "ASSET_DATA",
+    "FLEXIBLE_ASSET_TABLE",
+  ] as const) {
+    assert.equal(
+      shouldValidateSheet({ sourceProfile, eligibility: "exportable" }),
+      true,
+      sourceProfile,
+    );
+  }
+
+  for (const [sourceProfile, eligibility] of [
+    ["UNKNOWN", "unsupported"],
+    ["HELP_OR_TEMPLATE_SKIP", "skipped"],
+    ["SUMMARY_SKIP", "skipped"],
+    ["REVIEW_MAINTENANCE", "unsupported"],
+  ] as const) {
+    assert.equal(shouldValidateSheet({ sourceProfile, eligibility }), false, sourceProfile);
+  }
+  assert.equal(
+    shouldValidateSheet({ sourceProfile: "ASSET_DATA", eligibility: "exportable", selected: false }),
+    false,
+  );
+
+  const normalizedRows = [{ assetCode: "A-001", assetName: "โต๊ะทำงาน" }];
+  assert.deepEqual(
+    validateSheetLevel(
+      "Data",
+      1,
+      1,
+      {},
+      normalizedRows,
+      { sourceProfile: "ASSET_DATA", eligibility: "exportable" },
+    ),
+    [],
+  );
+  assert.deepEqual(
+    validateMappedRows(
+      "Unknown",
+      Array.from({ length: 100 }, () => ({ "รหัสสินทรัพย์": "", "ชื่อสินทรัพย์": "" })),
+      [],
+      undefined,
+      { sourceProfile: "UNKNOWN", eligibility: "unsupported" },
+    ),
+    [],
+  );
+});
+
+test("sheet selection defaults include only validated exportable profiles", () => {
+  const selection = createDefaultSheetSelection([
+    {
+      sheetName: "Ready",
+      sourceProfile: "ASSET_DATA",
+      detectedProfile: "assetData",
+      eligibility: "exportable",
+      reason: "ready",
+      rowCount: 10,
+      errorCount: 0,
+      warningCount: 0,
+      confidence: 1,
+    },
+    {
+      sheetName: "Warning",
+      sourceProfile: "FLEXIBLE_ASSET_TABLE",
+      detectedProfile: "unknown",
+      eligibility: "exportable",
+      reason: "warnings only",
+      rowCount: 5,
+      errorCount: 0,
+      warningCount: 2,
+      confidence: 0.9,
+    },
+    {
+      sheetName: "Unknown",
+      sourceProfile: "UNKNOWN",
+      detectedProfile: "unknown",
+      eligibility: "unsupported",
+      reason: "manual review",
+      rowCount: 5,
+      errorCount: 0,
+      warningCount: 0,
+      confidence: 0,
+    },
+    {
+      sheetName: "Maintenance",
+      sourceProfile: "REVIEW_MAINTENANCE",
+      detectedProfile: "maintenance",
+      eligibility: "unsupported",
+      reason: "not an asset export",
+      rowCount: 0,
+      errorCount: 0,
+      warningCount: 0,
+      confidence: 0.9,
+    },
+    {
+      sheetName: "Help",
+      sourceProfile: "HELP_OR_TEMPLATE_SKIP",
+      detectedProfile: "help",
+      eligibility: "skipped",
+      reason: "help sheet",
+      rowCount: 0,
+      errorCount: 0,
+      warningCount: 0,
+      confidence: 1,
+    },
+  ]);
+
+  assert.deepEqual(selection, {
+    Ready: true,
+    Warning: true,
+    Unknown: false,
+    Maintenance: false,
+    Help: false,
+  });
+  assert.equal(selectedSheetCount(selection), 2);
 });
 
 test("validation blocks rows with missing required asset identity", async () => {

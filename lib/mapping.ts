@@ -57,20 +57,51 @@ export const COLUMN_ALIASES: Record<string, string[]> = {
     "เลขครุภัณฑ์",
   ],
   "รหัสสินทรัพย์ (ส่วนประกอบ)": ["รหัสส่วนประกอบ", "รหัสครุภัณฑ์ย่อย"],
-  "ชื่อสินทรัพย์": ["asset name", "ชื่อครุภัณฑ์", "ชื่อทรัพย์สิน", "รายการ","ModelName"],
-  "รายละเอียด": ["description", "spec", "รายละเอียดสินทรัพย์", "รายละเอียดครุภัณฑ์", "รายการครุภัณฑ์"],
+  "ชื่อสินทรัพย์": ["asset name", "ชื่อครุภัณฑ์", "ชื่อทรัพย์สิน", "รายการ", "ModelName"],
+  "รายละเอียด": [
+    "description",
+    "spec",
+    "รายละเอียดสินทรัพย์",
+    "รายละเอียดครุภัณฑ์",
+    "รายการครุภัณฑ์",
+    "Serial",
+    "BrandName",
+  ],
   "ระบุอื่น ๆ": ["หมายเหตุ", "อื่นๆ", "อื่น ๆ", "รายละเอียดเพิ่มเติม"],
   "ประเภทสินทรัพย์": ["asset type", "ประเภท", "ประเภทครุภัณฑ์"],
-  "ชนิดสินทรัพย์": ["asset category", "ชนิด", "หมวดครุภัณฑ์", "ชนิดครุภัณฑ์"],
+  "ชนิดสินทรัพย์": [
+    "asset category",
+    "ชนิด",
+    "หมวดครุภัณฑ์",
+    "ชนิดครุภัณฑ์",
+    "AssetTypeName",
+  ],
   "รายการสินทรัพย์": ["asset item", "รายการสินทรัพย์", "หมวดรายการ"],
   "หน่วยนับ": ["unit", "หน่วย"],
-  "อาคาร": ["building", "สถานที่ตั้ง", "สถานที่ใช้งาน", "หน่วยงาน"],
+  "อาคาร": ["building", "สถานที่ตั้ง", "สถานที่ใช้งาน", "หน่วยงาน", "LocationName"],
   "ห้อง": ["room", "ห้องที่ตั้ง"],
   "ได้มาโดย": ["acquired by", "วิธีได้มา", "ได้มาโดย", "ซื้อ/จ้าง"],
   "ได้มาจาก": ["acquired from", "ผู้ขาย", "supplier", "ได้มาจาก", "โอนให้"],
-  "แหล่งงบประมาณ": ["budget source", "งบประมาณ", "แหล่งที่มา"],
-  "มูลค่า": ["value", "ราคา", "ราคาที่ได้มา", "ราคาทุน", "มูลค่าสินทรัพย์", "ราคาสินทรัพย์", "จำนวนเงิน"],
-  "วันที่ได้รับ": ["received date", "วัน เดือน ปี", "วันที่ได้มา", "วันที่ได้รับ", "วันเดือนปีที่ได้มา"],
+  "แหล่งงบประมาณ": ["budget source", "งบประมาณ", "แหล่งที่มา", "BudgetSource"],
+  "มูลค่า": [
+    "value",
+    "ราคา",
+    "ราคาที่ได้มา",
+    "ราคาทุน",
+    "มูลค่าสินทรัพย์",
+    "ราคาสินทรัพย์",
+    "จำนวนเงิน",
+    "Cost",
+    "PurchasePrice",
+  ],
+  "วันที่ได้รับ": [
+    "received date",
+    "วัน เดือน ปี",
+    "วันที่ได้มา",
+    "วันที่ได้รับ",
+    "วันเดือนปีที่ได้มา",
+    "PurchaseDate",
+  ],
   "วันที่ได้รับโอน": ["transfer date", "วันโอน", "วันที่โอน"],
   "วันที่ออกจำหน่าย": ["disposal date", "วันจำหน่าย"],
   "วันที่เริ่มรับประกัน": ["warranty start"],
@@ -78,10 +109,15 @@ export const COLUMN_ALIASES: Record<string, string[]> = {
   "อายุการรับประกัน": ["warranty period"],
   "อายุการใช้งาน": ["useful life"],
   "ผู้ถือครอง": ["holder", "ผู้ครอบครอง", "ผู้ดูแล"],
-  "สำนัก": ["office", "สำนัก", "หน่วยงาน", "ส่วนราชการ"],
+  "สำนัก": ["office", "สำนัก", "หน่วยงาน", "ส่วนราชการ", "DepartmentName"],
   "ฝ่าย": ["division", "ฝ่าย"],
   "งาน": ["งาน", "งานที่รับผิดชอบ"],
-  "งานที่รับผิดชอบ": ["responsible unit", "ผู้รับผิดชอบ", "งานที่รับผิดชอบ"],
+  "งานที่รับผิดชอบ": [
+    "responsible unit",
+    "ผู้รับผิดชอบ",
+    "งานที่รับผิดชอบ",
+    "ResponsibleUnit",
+  ],
   "สถานะ": ["status", "สภาพ", "สภาพครุภัณฑ์", "สถานะสินทรัพย์"],
   "ต้องตรวจนับ": ["need count", "ตรวจนับ"],
   "คิดค่าเสื่อม": ["depreciation flag", "ค่าเสื่อม"],
@@ -188,6 +224,10 @@ const EXACT_ONLY_TEMPLATE_COLUMNS = new Set([
   "รหัสสินทรัพย์ (ส่วนประกอบ)",
   "ชื่อสินทรัพย์",
   "งาน",
+  "ต้องตรวจนับ",
+  "คิดค่าเสื่อม",
+  "ของสำคัญ",
+  "ส่งคืนสินทรัพย์",
 ]);
 
 const AUTHORITATIVE_TEMPLATE_COLUMNS = new Set([
@@ -196,6 +236,17 @@ const AUTHORITATIVE_TEMPLATE_COLUMNS = new Set([
   "ชนิดสินทรัพย์",
   "รายการสินทรัพย์",
 ]);
+
+const EXACT_SOURCE_OWNERS = new Map<string, Set<string>>();
+for (const templateColumn of TEMPLATE_COLUMNS) {
+  for (const candidate of [templateColumn, ...(COLUMN_ALIASES[templateColumn] || [])]) {
+    const normalizedCandidate = normalizeText(candidate);
+    if (!normalizedCandidate) continue;
+    const owners = EXACT_SOURCE_OWNERS.get(normalizedCandidate) || new Set<string>();
+    owners.add(templateColumn);
+    EXACT_SOURCE_OWNERS.set(normalizedCandidate, owners);
+  }
+}
 
 export function suggestMapping(sourceHeaders: string[]): MappingSuggestion[] {
   const usedSources = new Set<string>();
@@ -223,6 +274,9 @@ export function suggestMapping(sourceHeaders: string[]): MappingSuggestion[] {
         best = buildSuggestion(templateCol, source, 100, "exact");
         break;
       }
+
+      const exactOwners = EXACT_SOURCE_OWNERS.get(normalizedSource);
+      if (exactOwners && !exactOwners.has(templateCol)) continue;
 
       const isInternalSource = source.startsWith("__") || source.startsWith("sourceAsset");
       const allowsPartialMatch = !EXACT_ONLY_TEMPLATE_COLUMNS.has(templateCol);

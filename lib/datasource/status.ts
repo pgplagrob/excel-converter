@@ -29,7 +29,7 @@ export function normalizeFlexibleStatus(value: any, fallback = "ปกติ"): 
   if (!text) return fallback;
   if (/ชำรุด/.test(text)) return "ชำรุด";
   if (/สูญหาย/.test(text)) return "สูญหาย";
-  if (/รอจำหน่าย|เสื่อมสภาพ|หมดความจำเป็น/.test(text)) return "รอจำหน่าย";
+  if (/รอจำหน่าย|เสื่อม|เสิ่อม|หมดความจำเป็น|ไม่จำเป็นต้องใช้/.test(text)) return "รอจำหน่าย";
   if (/ไม่ได้ใช้งาน|ไม่ใช้งาน/.test(text)) return "ไม่ได้ใช้งาน";
   if (/ปกติ|ใช้งาน|ใช้งานได้/.test(text)) return "ปกติ";
   return text;

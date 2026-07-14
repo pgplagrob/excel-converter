@@ -256,6 +256,48 @@ button {
   border-top: 1px solid var(--line);
 }
 
+.sheet-selection-section {
+  margin: 0 0 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.sheet-selection-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 18px;
+  background: var(--paper-2);
+  border-bottom: 1px solid var(--line);
+}
+.sheet-selection-heading h3 { margin: 0 0 3px; font-size: 15px; }
+.sheet-selection-heading p { margin: 0; color: var(--ink-soft); font-size: 12.5px; }
+.sheet-selection-heading > strong { white-space: nowrap; color: var(--teal); font-size: 13px; }
+.sheet-selection-table-wrap { max-height: 420px; overflow: auto; }
+.sheet-selection-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.sheet-selection-table th,
+.sheet-selection-table td { padding: 9px 10px; text-align: left; border-bottom: 1px solid var(--paper-2); vertical-align: top; }
+.sheet-selection-table th { position: sticky; top: 0; background: #fff; color: var(--ink-soft); z-index: 1; }
+.sheet-selection-table tr.disabled { color: var(--ink-soft); background: #fafafa; }
+.sheet-selection-table input { width: 16px; height: 16px; accent-color: var(--teal); }
+.sheet-selection-table code { font-size: 10.5px; white-space: nowrap; }
+.sheet-link { padding: 0; border: 0; background: none; color: var(--indigo); cursor: pointer; text-align: left; font-weight: 600; }
+.sheet-link:hover { text-decoration: underline; }
+.eligibility-pill { display: inline-block; padding: 2px 7px; border-radius: 999px; white-space: nowrap; background: var(--paper-2); }
+.eligibility-pill.exportable { color: var(--ok); background: var(--ok-soft); }
+.eligibility-pill.needsReview { color: var(--tag-amber); background: var(--tag-amber-soft); }
+.eligibility-pill.unsupported { color: var(--error); background: var(--error-soft); }
+.reason-cell { min-width: 220px; color: var(--ink-soft); }
+.empty-export-message {
+  padding: 14px 16px;
+  border: 1px solid var(--tag-amber-soft);
+  border-left: 4px solid var(--tag-amber);
+  background: var(--tag-amber-soft);
+  color: var(--ink);
+  font-size: 13px;
+}
+
 .sheet-tabs {
   display: flex;
   gap: 8px;

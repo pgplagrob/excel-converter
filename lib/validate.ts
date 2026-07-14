@@ -6,6 +6,8 @@ import {
   SOURCE_ASSET_TYPE_COLUMN,
   SOURCE_ASSET_TYPE_EMIT_ONCE_COLUMN,
   SOURCE_PROFILE_COLUMN,
+  type SheetEligibility,
+  type SourceProfile,
   looksLikeAssetItemGroup,
   looksLikeAssetTypeGroup,
 } from "./datasource";
@@ -30,6 +32,23 @@ export interface SheetSummary {
   errorCount: number;
   warningCount: number;
   reason?: string;
+}
+
+export interface ValidationContext {
+  sourceProfile?: SourceProfile;
+  eligibility?: SheetEligibility;
+  selected?: boolean;
+}
+
+export function shouldValidateSheet(context: ValidationContext = {}): boolean {
+  if (context.selected === false) return false;
+  if (context.eligibility === "skipped" || context.eligibility === "unsupported") return false;
+  return !(
+    context.sourceProfile === "UNKNOWN" ||
+    context.sourceProfile === "HELP_OR_TEMPLATE_SKIP" ||
+    context.sourceProfile === "SUMMARY_SKIP" ||
+    context.sourceProfile === "REVIEW_MAINTENANCE"
+  );
 }
 
 const REQUIRED_COLUMNS = ["รหัสสินทรัพย์", "ชื่อสินทรัพย์"];
@@ -89,7 +108,9 @@ export function validateSheetLevel(
   headerRow: number | undefined,
   mapping: Record<string, string | null | undefined>,
   sourceRows: Record<string, any>[] = [],
+  context: ValidationContext = {},
 ): ValidationIssue[] {
+  if (!shouldValidateSheet(context)) return [];
   const issues: ValidationIssue[] = [];
   if (rowCount === 0) {
     addIssue(issues, sheetName, -1, "sheet", "ชีตนี้ไม่มีข้อมูลสำหรับแปลง", "error");
@@ -217,7 +238,9 @@ export function validateMappedRows(
   rows: Record<string, any>[],
   sourceRows: Record<string, any>[] = [],
   references?: TemplateReferenceValues,
+  context: ValidationContext = {},
 ): ValidationIssue[] {
+  if (!shouldValidateSheet(context)) return [];
   const issues: ValidationIssue[] = [];
   const seenExactRows = new Map<string, number>();
   let previousSourceAssetItem = "";
