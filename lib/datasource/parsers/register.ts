@@ -250,16 +250,6 @@ export function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSour
       sourceRow[statusStartIndex + 5],
       "",
     );
-    row[INTERNAL.assetCategory] =
-      currentAssetType.includes("อสังหาริมทรัพย์") ||
-      sheetName === "อาคาร" ||
-      sheetName === "สิ่งปลูกสร้าง"
-        ? "อสังหาริมทรัพย์"
-        : "ครุภัณฑ์";
-    row[INTERNAL.needCount] = "True";
-    row[INTERNAL.importantFlag] = "False";
-    row[INTERNAL.depreciationFlag] =
-      sheetName.includes("(ต)") || sheetName.includes("ต่ำกว่าเกณฑ์") ? "False" : "True";
     rows.push(row);
     previousDataRow = row;
 

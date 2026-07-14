@@ -228,9 +228,13 @@ test("assetData mapping uses normalized fields and PurchasePrice fallback rule",
   assert.equal(rows[0]["รหัสสินทรัพย์"], "A-001");
   assert.equal(rows[0]["ชื่อสินทรัพย์"], "เครื่องคอมพิวเตอร์");
   assert.equal(rows[0]["ชนิดสินทรัพย์"], "ครุภัณฑ์คอมพิวเตอร์");
+  assert.equal(rows[0]["ประเภทสินทรัพย์"], "");
   assert.equal(rows[0]["มูลค่า"], 25000);
   assert.equal(rows[0]["อาคาร"], "อาคาร 1");
   assert.equal(rows[0]["สถานะ"], "รอจำหน่าย");
+  assert.equal(rows[0]["ต้องตรวจนับ"], "");
+  assert.equal(rows[0]["คิดค่าเสื่อม"], "");
+  assert.equal(rows[0]["ของสำคัญ"], "");
   assert.equal(manualRows[0]["ชื่อสินทรัพย์"], "SAMSUNG");
   assert.equal(clearedRows[0]["ชื่อสินทรัพย์"], "");
 });
@@ -287,6 +291,12 @@ test("new asset sheets derive asset names from item groups", () => {
   assert.equal(rows[0]["รหัสสินทรัพย์"], "420-67-0001");
   assert.equal(rows[0]["ชื่อสินทรัพย์"], "เครื่องปรับอากาศ");
   assert.equal(rows[0]["รายละเอียด"], "เครื่องปรับอากาศ 24,000 BTU");
+  assert.equal(rows[0]["ชนิดสินทรัพย์"], "ครุภัณฑ์สำนักงาน");
+  assert.equal(rows[0]["ประเภทสินทรัพย์"], "");
+  assert.equal(rows[0]["สถานะ"], "");
+  assert.equal(rows[0]["ต้องตรวจนับ"], "");
+  assert.equal(rows[0]["คิดค่าเสื่อม"], "");
+  assert.equal(rows[0]["ของสำคัญ"], "");
 });
 
 test("parses supported headerless positional asset layouts", () => {
@@ -331,10 +341,14 @@ test("parses supported headerless positional asset layouts", () => {
   assert.equal(splitCodeRows[0]["รหัสสินทรัพย์"], "055-66-0281");
   assert.equal(splitCodeRows[0]["วันที่ได้รับ"], "07/09/2023");
   assert.equal(splitCodeRows[0]["มูลค่า"], 6420);
+  assert.equal(splitCodeRows[0]["ประเภทสินทรัพย์"], "");
+  assert.equal(splitCodeRows[0]["ชนิดสินทรัพย์"], "");
   assert.equal(consolidatedRows[0]["รหัสสินทรัพย์"], "401-65-9822");
   assert.equal(consolidatedRows[0]["ชื่อสินทรัพย์"], "เก้าอี้ทำงาน");
   assert.equal(consolidatedRows[0]["รายละเอียด"], "เก้าอี้ทำงาน MONO");
   assert.equal(consolidatedRows[0]["งานที่รับผิดชอบ"], "กองการเจ้าหน้าที่");
+  assert.equal(consolidatedRows[0]["ประเภทสินทรัพย์"], "");
+  assert.equal(consolidatedRows[0]["ชนิดสินทรัพย์"], "ครุภัณฑ์สำนักงาน");
 });
 
 test("parses two-row standard asset tables and maps funding columns", () => {
@@ -355,6 +369,8 @@ test("parses two-row standard asset tables and maps funding columns", () => {
   assert.equal(sheet.sourceProfile, "FLEXIBLE_ASSET_TABLE");
   assert.equal(rows[0]["รหัสสินทรัพย์"], "400-67-0001");
   assert.equal(rows[0]["ชื่อสินทรัพย์"], "โต๊ะทำงาน");
+  assert.equal(rows[0]["ประเภทสินทรัพย์"], "ครุภัณฑ์");
+  assert.equal(rows[0]["ชนิดสินทรัพย์"], "ครุภัณฑ์สำนักงาน");
   assert.equal(rows[0]["สถานะ"], "ปกติ");
   assert.equal(rows[0]["เงินงบประมาณ"], 1200);
   assert.equal(rows[0]["แหล่งงบประมาณ"], "เงินงบประมาณ");
@@ -385,7 +401,7 @@ test("flexible transform keeps enum fields out of fuzzy mappings and normalizes 
   assert.equal(rows[0]["แหล่งงบประมาณ"], "เงินงบประมาณ");
   assert.equal(rows[0]["สถานะ"], "รอจำหน่าย");
   assert.equal(rows[0]["ส่งคืนสินทรัพย์"], "");
-  assert.equal(rows[0]["คิดค่าเสื่อม"], "True");
+  assert.equal(rows[0]["คิดค่าเสื่อม"], "");
 });
 
 test("reads legacy xls workbooks", async () => {
@@ -424,6 +440,7 @@ test("registry group and item labels emit once and do not become asset names", (
   assert.equal(rows[0]["ชื่อสินทรัพย์"], "โต๊ะทำงาน");
   assert.equal(rows[0]["ชนิดสินทรัพย์"], "ครุภัณฑ์สำนักงาน");
   assert.equal(rows[0]["รายการสินทรัพย์"], "โต๊ะ(400)");
+  assert.equal(rows[0]["ประเภทสินทรัพย์"], "");
   assert.equal(rows[1]["ชื่อสินทรัพย์"], "โต๊ะประชุม");
   assert.equal(rows[1]["ชนิดสินทรัพย์"], "");
   assert.equal(rows[1]["รายการสินทรัพย์"], "");

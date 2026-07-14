@@ -18,7 +18,6 @@ import {
 import { normalizeFlexibleStatus } from "./status";
 import {
   cellText,
-  deriveAssetCategoryFromText,
   looksLikeAssetItemGroup,
   looksLikeAssetType,
 } from "./text";
@@ -183,10 +182,6 @@ export function appendHeaders(headers: string[]): string[] {
   return [...headers, ...extras.filter((header) => !headers.includes(header))];
 }
 
-export function setFlexibleDefaults(row: Record<string, any>, sourceAssetType: string, status: any): void {
-  row[INTERNAL.status] = normalizeFlexibleStatus(status);
-  row[INTERNAL.assetCategory] = deriveAssetCategoryFromText(sourceAssetType);
-  row[INTERNAL.needCount] = "True";
-  row[INTERNAL.importantFlag] = "False";
-  row[INTERNAL.depreciationFlag] = "True";
+export function setFlexibleSourceStatus(row: Record<string, any>, status: any): void {
+  row[INTERNAL.status] = normalizeFlexibleStatus(status, "");
 }

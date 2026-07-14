@@ -45,11 +45,6 @@ export function parseTransferSheet(sheetName: string, matrix: any[][]): DataSour
       acquiredFrom: sourceRow[10] ?? "",
       budgetSource: sourceRow[11] ?? "",
     });
-    row[INTERNAL.status] = "ปกติ";
-    row[INTERNAL.assetCategory] = sourceAssetType.includes("อาคาร") || sourceAssetType.includes("อสังหาริมทรัพย์") ? "อสังหาริมทรัพย์" : "ครุภัณฑ์";
-    row[INTERNAL.needCount] = "True";
-    row[INTERNAL.importantFlag] = "False";
-    row[INTERNAL.depreciationFlag] = "True";
     rows.push(row);
   }
 

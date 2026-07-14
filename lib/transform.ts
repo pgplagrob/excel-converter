@@ -174,13 +174,8 @@ function backfillRegisterAssetTypeEmitFlags(rows: Record<string, any>[]): Record
   });
 }
 
-function deriveAssetCategory(sourceRow: Record<string, any>, sourceAssetType: string): string {
-  if (!sourceAssetType) return "";
-  const explicitCategory = cellText(sourceRow[INTERNAL.assetCategory]);
-  if (explicitCategory) return explicitCategory;
-  return sourceAssetType.includes("อสังหาริมทรัพย์") || sourceAssetType.includes("อาคาร")
-    ? "อสังหาริมทรัพย์"
-    : "ครุภัณฑ์";
+function sourceAssetCategory(sourceRow: Record<string, any>): string {
+  return cellText(sourceRow[INTERNAL.assetCategory]);
 }
 
 function applyAuthoritativeAssetFields(templateRow: Record<string, any>, sourceRow: Record<string, any>): void {
@@ -205,7 +200,7 @@ function mapProfileRow(sourceRow: Record<string, any>, profile: SourceProfile): 
   row["รหัสสินทรัพย์"] = assetCode;
   row[ASSET_NAME_COLUMN] = assetName;
   row[ASSET_DETAIL_COLUMN] = assetDetail;
-  row["ประเภทสินทรัพย์"] = deriveAssetCategory(sourceRow, visibleSourceAssetType);
+  row["ประเภทสินทรัพย์"] = sourceAssetCategory(sourceRow);
   row[ASSET_TYPE_COLUMN] = visibleSourceAssetType;
   row[ASSET_ITEM_COLUMN] = sourceAssetItemShouldEmit(sourceRow) ? sourceAssetItem : "";
   row["มูลค่า"] = cleanMoneyValue(sourceValue(sourceRow, "value", INTERNAL.value));
@@ -224,7 +219,7 @@ function mapProfileRow(sourceRow: Record<string, any>, profile: SourceProfile): 
 
   if (profile === "REGISTER_3_ROW_HEADER") {
     row["ระบุอื่น ๆ"] = sourceValue(sourceRow, "note", INTERNAL.note) ?? "";
-    row["ประเภทสินทรัพย์"] = deriveAssetCategory(sourceRow, visibleSourceAssetType);
+    row["ประเภทสินทรัพย์"] = sourceAssetCategory(sourceRow);
   }
 
   if (profile === "TRANSFER_2567" || profile === "ASSET_DATA") {
@@ -232,7 +227,7 @@ function mapProfileRow(sourceRow: Record<string, any>, profile: SourceProfile): 
     row["ได้มาจาก"] = sourceValue(sourceRow, "acquiredFrom", INTERNAL.acquiredFrom) ?? "";
     row["แหล่งงบประมาณ"] = sourceValue(sourceRow, "budgetSource", INTERNAL.budgetSource) ?? "";
     row["อาคาร"] = sourceValue(sourceRow, "location", INTERNAL.location) ?? "";
-    row["สถานะ"] = sourceRow[INTERNAL.status] || "ปกติ";
+    row["สถานะ"] = sourceRow[INTERNAL.status] || "";
   }
 
   applyAuthoritativeAssetFields(row, sourceRow);
@@ -314,7 +309,7 @@ function mapFallbackRow(sourceRow: Record<string, any>, mapping: TemplateMapping
   const assetDetail = normalized.assetDetail;
   if (assetCode || assetName || assetDetail || sourceAssetType || sourceAssetItem) {
     templateRow["รหัสสินทรัพย์"] = assetCode || templateRow["รหัสสินทรัพย์"] || "";
-    templateRow["ประเภทสินทรัพย์"] = deriveAssetCategory(sourceRow, visibleSourceAssetType);
+    templateRow["ประเภทสินทรัพย์"] = sourceAssetCategory(sourceRow);
     templateRow["มูลค่า"] = cleanMoneyValue(sourceRow.value ?? templateRow["มูลค่า"]);
     templateRow["วันที่ได้รับ"] = sourceRow.receivedDate ?? templateRow["วันที่ได้รับ"] ?? "";
     templateRow["งานที่รับผิดชอบ"] = sourceRow.responsibleUnit ?? templateRow["งานที่รับผิดชอบ"] ?? "";

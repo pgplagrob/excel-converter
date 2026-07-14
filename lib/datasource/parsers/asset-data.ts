@@ -4,7 +4,6 @@ import { appendHeaders, buildHeaderKeys, buildRawRow, setNormalizedFields, withC
 import { normalizeFlexibleStatus } from "../status";
 import {
   cellText,
-  deriveAssetCategoryFromText,
   findColumnIndex,
   findHeaderRowByTokens,
   isRowEmpty,
@@ -65,11 +64,7 @@ export function parseAssetDataSheet(sheetName: string, matrix: any[][]): DataSou
       value,
       location: valueAt(sourceRow, locationIndex),
     });
-    row[INTERNAL.status] = normalizeFlexibleStatus(valueAt(sourceRow, statusIndex));
-    row[INTERNAL.assetCategory] = deriveAssetCategoryFromText(sourceAssetType);
-    row[INTERNAL.needCount] = "True";
-    row[INTERNAL.importantFlag] = "False";
-    row[INTERNAL.depreciationFlag] = "True";
+    row[INTERNAL.status] = normalizeFlexibleStatus(valueAt(sourceRow, statusIndex), "");
     rows.push(row);
   }
 

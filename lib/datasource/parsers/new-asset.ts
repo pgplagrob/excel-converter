@@ -94,10 +94,6 @@ export function parseNewAssetSheet(sheetName: string, matrix: any[][]): DataSour
       responsibleUnit: sourceRow[10] ?? "",
       note: sourceRow[11] ?? "",
     });
-    row[INTERNAL.status] = "ปกติ";
-    row[INTERNAL.needCount] = "True";
-    row[INTERNAL.importantFlag] = "False";
-    row[INTERNAL.depreciationFlag] = sheetName.includes("ต่ำกว่าเกณฑ์") ? "False" : "True";
     rows.push(row);
 
     const currentGroup = groupedAssets[groupedAssets.length - 1];

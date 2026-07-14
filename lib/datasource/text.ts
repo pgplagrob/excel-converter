@@ -88,12 +88,6 @@ export function assetNameFromGroup(value: unknown): string {
   return cellText(value).replace(/\s*\(\d{2,4}\)\s*$/, "").trim();
 }
 
-export function deriveAssetCategoryFromText(value: string): string {
-  if (!value) return "";
-  if (/อสังหาริมทรัพย์|ที่ดิน|อาคาร|สิ่งปลูกสร้าง/.test(value)) return "อสังหาริมทรัพย์";
-  return "ครุภัณฑ์";
-}
-
 export function findHeaderRowByTokens(matrix: any[][], requiredTokens: string[]): number {
   return matrix.findIndex((row) => rowContainsAll(row, requiredTokens));
 }

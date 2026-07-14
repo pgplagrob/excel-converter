@@ -4,7 +4,7 @@ import {
   appendNormalizedDetail,
   buildHeaderKeys,
   buildRawRow,
-  setFlexibleDefaults,
+  setFlexibleSourceStatus,
   setNormalizedFields,
   withCommonMeta,
 } from "../row-builders";
@@ -188,7 +188,7 @@ export function parseFlexibleAssetSheet(
       budgetSource: fields.budgetSource,
       note: fields.note,
     });
-    setFlexibleDefaults(row, sourceAssetType, fields.status);
+    setFlexibleSourceStatus(row, fields.status);
     if (fields.assetCategory) row[INTERNAL.assetCategory] = fields.assetCategory;
     rows.push(row);
     return row;
@@ -303,11 +303,9 @@ export function parseFlexibleAssetSheet(
       const sourceRow = matrix[index] || [];
       if (!looksLikeSplitAssetCode(sourceRow)) continue;
       const assetCode = [sourceRow[1], sourceRow[2], sourceRow[3]].map(compactText).join("-");
-      const sourceAssetType = sheetName.includes("สำนักงาน") ? "ครุภัณฑ์สำนักงาน" : "";
       addRow(sourceRow, index, headers, {
         assetCode,
         assetName: cellText(sourceRow[0]),
-        sourceAssetType,
         receivedDate: normalizeThaiDate(sourceRow[4]),
         value: sourceRow[5],
         responsibleUnit: sourceRow[6],
