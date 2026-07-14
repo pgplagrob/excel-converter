@@ -274,7 +274,7 @@ test("mapping aliases cover source-system headers without crossing authoritative
   assert.equal(COLUMN_ALIASES["มูลค่า"].includes("Cost"), true);
 });
 
-test("new asset sheets derive asset names from item groups", () => {
+test("new asset sheets keep missing asset names blank and preserve source item/detail", () => {
   const workbook = createDataSourceWorkbook("new-assets.xlsx", [
     {
       sheetName: "ครุภัณฑ์ใหม่2567",
@@ -289,8 +289,9 @@ test("new asset sheets derive asset names from item groups", () => {
   const rows = transformRowsToTemplateDataset(workbook.sheets[0].rows, {});
 
   assert.equal(rows[0]["รหัสสินทรัพย์"], "420-67-0001");
-  assert.equal(rows[0]["ชื่อสินทรัพย์"], "เครื่องปรับอากาศ");
+  assert.equal(rows[0]["ชื่อสินทรัพย์"], "");
   assert.equal(rows[0]["รายละเอียด"], "เครื่องปรับอากาศ 24,000 BTU");
+  assert.equal(rows[0]["รายการสินทรัพย์"], "เครื่องปรับอากาศ (420)");
   assert.equal(rows[0]["ชนิดสินทรัพย์"], "ครุภัณฑ์สำนักงาน");
   assert.equal(rows[0]["ประเภทสินทรัพย์"], "");
   assert.equal(rows[0]["สถานะ"], "");

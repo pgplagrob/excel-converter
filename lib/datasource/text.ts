@@ -84,10 +84,6 @@ export function looksLikeAssetTypeGroup(value: unknown): boolean {
   return /^(ครุภัณฑ์|อสังหาริมทรัพย์|อาคาร|สิ่งปลูกสร้าง)/.test(text);
 }
 
-export function assetNameFromGroup(value: unknown): string {
-  return cellText(value).replace(/\s*\(\d{2,4}\)\s*$/, "").trim();
-}
-
 export function findHeaderRowByTokens(matrix: any[][], requiredTokens: string[]): number {
   return matrix.findIndex((row) => rowContainsAll(row, requiredTokens));
 }

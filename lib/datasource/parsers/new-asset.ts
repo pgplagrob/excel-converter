@@ -1,7 +1,6 @@
 import { normalizeThaiDate } from "../date";
 import { appendHeaders, buildHeaderKeys, buildRawRow, setNormalizedFields, withCommonMeta } from "../row-builders";
 import {
-  assetNameFromGroup,
   cellText,
   isNumericSequence,
   isRowEmpty,
@@ -85,7 +84,7 @@ export function parseNewAssetSheet(sheetName: string, matrix: any[][]): DataSour
     row[INTERNAL.seq] = sequence;
     setNormalizedFields(row, {
       assetCode,
-      assetName: assetNameFromGroup(sourceAssetItem) || assetDetail,
+      assetName: "",
       assetDetail,
       receivedDate: normalizeThaiDate(sourceRow[4], sourceRow[5], sourceRow[6]),
       value: sourceRow[7] ?? "",
