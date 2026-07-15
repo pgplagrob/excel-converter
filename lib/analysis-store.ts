@@ -1,10 +1,13 @@
 import type { DataSourceWorkbook } from "./datasource";
+import type { WorkbookSheetMatrix } from "./excel";
 
 export interface AnalysisRecord {
   id: string;
   createdAt: number;
   expiresAt: number;
   dataSource: DataSourceWorkbook;
+  sourceWorkbookBuffer?: Buffer;
+  sourceWorkbookSheets?: WorkbookSheetMatrix[];
 }
 
 const TTL_MS = 30 * 60 * 1000;
@@ -25,7 +28,11 @@ function cleanupExpired(now = Date.now()): void {
   }
 }
 
-export function saveAnalysis(dataSource: DataSourceWorkbook): string {
+export function saveAnalysis(
+  dataSource: DataSourceWorkbook,
+  sourceWorkbookBuffer?: Buffer,
+  sourceWorkbookSheets?: WorkbookSheetMatrix[],
+): string {
   cleanupExpired();
   while (store.size >= MAX_ANALYSES) {
     const oldestId = store.keys().next().value as string | undefined;
@@ -40,6 +47,8 @@ export function saveAnalysis(dataSource: DataSourceWorkbook): string {
     createdAt: now,
     expiresAt: now + TTL_MS,
     dataSource,
+    sourceWorkbookBuffer,
+    sourceWorkbookSheets,
   });
   return id;
 }

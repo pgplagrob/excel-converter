@@ -98,7 +98,8 @@ function normalizedAssetFields(sourceRow: Record<string, any>): {
   let assetName = firstText(sourceRow.assetName, sourceRow[INTERNAL.assetName], sourceRow[SOURCE_ASSET_NAME_COLUMN]);
   let assetDetail = firstText(sourceRow.assetDetail, sourceRow[INTERNAL.detail]);
 
-  if (looksLikeAssetItemGroup(assetName)) {
+  // Do not reinterpret a real asset name from a coded data row as a group label.
+  if (!assetCode && looksLikeAssetItemGroup(assetName)) {
     if (!sourceAssetItem) {
       sourceAssetItem = assetName;
       sourceRow[SOURCE_ASSET_ITEM_COLUMN] = sourceAssetItem;

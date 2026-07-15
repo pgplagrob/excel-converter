@@ -67,7 +67,7 @@ test("rejects worksheets with implausibly large dimensions", async () => {
   await assert.rejects(() => readWorkbookBuffer(buffer, "sparse.xlsx"), WorkbookLimitError);
 });
 
-test("classifies assetData as exportable input and skips help/unknown non-asset sheets", () => {
+test("keeps unknown sheets for review but skips non-asset help sheets", () => {
   const workbook = createDataSourceWorkbook("asset-data.xlsx", [
     {
       sheetName: "AssetData",
@@ -92,10 +92,27 @@ test("classifies assetData as exportable input and skips help/unknown non-asset 
     },
   ]);
 
-  assert.equal(workbook.sheets.length, 1);
-  assert.equal(workbook.sheets[0].sourceProfile, "ASSET_DATA");
-  assert.equal(workbook.sheets[0].rows[0].assetCode, "A-001");
-  assert.deepEqual(workbook.skippedSheets.sort(), ["Help", "Random"]);
+  assert.equal(workbook.sheets.length, 2);
+  const assetData = workbook.sheets.find((sheet) => sheet.sheetName === "AssetData");
+  const random = workbook.sheets.find((sheet) => sheet.sheetName === "Random");
+  assert.equal(assetData?.sourceProfile, "ASSET_DATA");
+  assert.equal(assetData?.rows[0].assetCode, "A-001");
+  assert.equal(random?.sourceProfile, "UNKNOWN");
+  assert.equal(random?.eligibility, "unsupported");
+  assert.equal(random?.rows.length, 1);
+  assert.deepEqual(workbook.preservedSheets, []);
+  assert.deepEqual(workbook.skippedSheets, ["Help"]);
+});
+
+test("does not preserve empty or non-tabular one-row sheets in template output", () => {
+  const workbook = createDataSourceWorkbook("mixed.xlsx", [
+    { sheetName: "Blank", matrix: [["", null], [undefined, ""]] },
+    { sheetName: "One row", matrix: [["มีข้อมูล", 123]] },
+  ]);
+
+  assert.deepEqual(workbook.skippedSheets, ["Blank", "One row"]);
+  assert.deepEqual(workbook.preservedSheets, []);
+  assert.equal(workbook.sheets.length, 0);
 });
 
 test("detects every datasource profile and applies non-export eligibility policy", () => {
@@ -170,11 +187,12 @@ test("detects every datasource profile and applies non-export eligibility policy
     assert.equal(detectSourceProfile(item.sheetName, item.matrix), item.expected, item.sheetName);
   }
 
-  assert.deepEqual(decideProfileEligibility("HELP_OR_TEMPLATE_SKIP", 1), {
+  assert.deepEqual(decideProfileEligibility("SUMMARY_SKIP", 1), {
     eligibility: "skipped",
-    reason: "help, reference, form, or template sheet is not asset data",
+    reason: "ชีตสรุปอ้างอิงยอดจากชีตสินทรัพย์อื่นและไม่มีข้อมูลรายทรัพย์สิน จึงไม่แปลงซ้ำเข้า Template",
     shouldParse: false,
   });
+  assert.equal(decideProfileEligibility("HELP_OR_TEMPLATE_SKIP", 1).eligibility, "skipped");
   assert.equal(decideProfileEligibility("REVIEW_MAINTENANCE", 0.8).eligibility, "unsupported");
   assert.equal(decideProfileEligibility("UNKNOWN", 0).eligibility, "unsupported");
   assert.equal(decideProfileEligibility("ASSET_DATA", 0.9).eligibility, "exportable");
@@ -272,6 +290,22 @@ test("mapping aliases cover source-system headers without crossing authoritative
   assert.equal(COLUMN_ALIASES["รายละเอียด"].includes("Serial"), true);
   assert.equal(COLUMN_ALIASES["รายละเอียด"].includes("BrandName"), true);
   assert.equal(COLUMN_ALIASES["มูลค่า"].includes("Cost"), true);
+});
+
+test("auto mapping requires an exact header or explicit unambiguous alias", () => {
+  const partial = mappingSuggestionsToRecord(
+    suggestMapping(["อาคารสินทรัพย์", "ข้อมูลราคาที่ได้มาเดิม", "หน่วยงาน"]),
+  );
+  const explicit = mappingSuggestionsToRecord(
+    suggestMapping(["สถานที่ใช้งาน", "ราคาที่ได้มา", "ResponsibleUnit"]),
+  );
+
+  assert.equal(partial["อาคาร"], "");
+  assert.equal(partial["มูลค่า"], "");
+  assert.equal(partial["สำนัก"], "");
+  assert.equal(explicit["อาคาร"], "สถานที่ใช้งาน");
+  assert.equal(explicit["มูลค่า"], "ราคาที่ได้มา");
+  assert.equal(explicit["งานที่รับผิดชอบ"], "ResponsibleUnit");
 });
 
 test("new asset sheets keep missing asset names blank and preserve source item/detail", () => {
@@ -449,6 +483,29 @@ test("registry group and item labels emit once and do not become asset names", (
   assert.equal(sheet.warnings.some((warning) => warning.includes("ไม่มีรหัสสินทรัพย์")), true);
 });
 
+test("registry data rows win over category-like words in complete asset names", () => {
+  const workbook = createDataSourceWorkbook("buildings.xlsx", [
+    {
+      sheetName: "อาคาร",
+      matrix: [
+        ["ลำดับ", "รายการ", "รหัสครุภัณฑ์", "วันเดือนปี", "ราคาที่ได้มา", "หน่วยงาน", "สภาพครุภัณฑ์"],
+        ["", "", "", "", "", "", "ปกติ", "ชำรุด"],
+        ["", "", "", "", "", "", ""],
+        ["", "อสังหาริมทรัพย์", "", "", "", "", ""],
+        [1, "อาคารหอปูมละกอน", "005-94-0001", "5 ม.ค. 2494", 440000, "งานท่องเที่ยว", "/"],
+        [2, "สิ่งปลูกสร้างเพื่อการท่องเที่ยว (005)", "005-67-0002", "1/5/2567", 120000, "งานท่องเที่ยว", "/"],
+      ],
+    },
+  ]);
+  const sheet = workbook.sheets[0];
+  const rows = transformRowsToTemplateDataset(sheet.rows, {});
+
+  assert.equal(sheet.rowCount, 2);
+  assert.equal(rows[0]["ชื่อสินทรัพย์"], "อาคารหอปูมละกอน");
+  assert.equal(rows[1]["ชื่อสินทรัพย์"], "สิ่งปลูกสร้างเพื่อการท่องเที่ยว (005)");
+  assert.equal(rows[0]["ชนิดสินทรัพย์"], "อสังหาริมทรัพย์");
+});
+
 test("registry parser composes asset codes split across columns", () => {
   const workbook = createDataSourceWorkbook("split-register.xlsx", [
     {
@@ -603,6 +660,47 @@ test("split template output creates one worksheet per exportable source sheet", 
   assert.equal(secondRows[0].length, 44);
   assert.equal(firstRows[1][2], "A-001");
   assert.equal(secondRows[1][2], "B-001");
+});
+
+test("split template output preserves every source sheet that was not converted", async () => {
+  const source = new ExcelJS.Workbook();
+  const summary = source.addWorksheet("แบบกข.");
+  summary.getCell("A1").value = "งบทรัพย์สินเทศบาลนครลำปาง";
+  summary.getCell("A2").value = { formula: "1+1", result: 2 };
+  summary.getCell("A1").font = { bold: true };
+  summary.mergeCells("A1:F1");
+  const review = source.addWorksheet("ต้องตรวจสอบ");
+  review.getCell("A1").value = "ข้อมูลเดิม";
+
+  const wb = await buildAssetTemplateWorkbookBySheet(
+    [{ sheetName: "อาคาร", rows: [{ "รหัสสินทรัพย์": "005-94-0001", "ชื่อสินทรัพย์": "อาคารหอปูมละกอน" }] }],
+    {
+      sourceWorkbookBuffer: Buffer.from(await source.xlsx.writeBuffer()),
+      preservedSheetNames: ["แบบกข.", "ต้องตรวจสอบ"],
+      sourceSheetOrder: ["แบบกข.", "อาคาร", "ต้องตรวจสอบ"],
+    },
+  );
+  const readBack = await readWorkbook(wb);
+
+  assert.deepEqual(readBack.worksheets.map((sheet) => sheet.name), ["แบบกข.", "อาคาร", "ต้องตรวจสอบ", "Reference"]);
+  assert.equal(readBack.getWorksheet("แบบกข.")?.getCell("A1").value, "งบทรัพย์สินเทศบาลนครลำปาง");
+  assert.equal(readBack.getWorksheet("แบบกข.")?.getCell("A2").value, 2);
+  assert.equal(readBack.getWorksheet("แบบกข.")?.getCell("A1").font.bold, true);
+  assert.equal(readBack.getWorksheet("ต้องตรวจสอบ")?.getCell("A1").value, "ข้อมูลเดิม");
+});
+
+test("split template output preserves legacy source matrices when no xlsx buffer exists", async () => {
+  const wb = await buildAssetTemplateWorkbookBySheet(
+    [{ sheetName: "ข้อมูล", rows: [{ "รหัสสินทรัพย์": "A-001", "ชื่อสินทรัพย์": "โต๊ะ" }] }],
+    {
+      sourceWorkbookSheets: [{ sheetName: "สรุปเดิม", matrix: [["หัวข้อ", "ยอด"], ["อาคาร", "6"]] }],
+      preservedSheetNames: ["สรุปเดิม"],
+    },
+  );
+  const readBack = await readWorkbook(wb);
+
+  assert.equal(readBack.getWorksheet("สรุปเดิม")?.getCell("A1").value, "หัวข้อ");
+  assert.equal(readBack.getWorksheet("สรุปเดิม")?.getCell("B2").value, "6");
 });
 
 test("split template output sanitizes unique names, reserves Reference, and preserves cell types", async () => {

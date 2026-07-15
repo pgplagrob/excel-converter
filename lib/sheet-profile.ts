@@ -193,18 +193,11 @@ function scoreDisposalProfile(rows: unknown[][]): ProfileScore {
   return best;
 }
 
-function scoreSummaryProfile(rows: unknown[][], sheetName: string): ProfileScore {
+function scoreSummaryProfile(rows: unknown[][]): ProfileScore {
   const summaryScore = scoreHeaderProfile(rows, "summary", SUMMARY_HEADERS, 2);
-  const compactSheetName = normalizeText(sheetName);
   const reasons = [...summaryScore.reasons];
   let score = summaryScore.score;
   let rowIndex = summaryScore.rowIndex;
-
-  if (compactSheetName.includes("แบบกข")) {
-    score = Math.max(score, 0.9);
-    rowIndex = rowIndex ?? null;
-    reasons.push("sheet name contains แบบกข");
-  }
 
   const hasSummaryCategoryRows = rows.some((row) => {
     const text = normalizedRowText(row);
@@ -230,7 +223,7 @@ function scoreNameOnlySkipProfile(sheetName: string, rows: unknown[][]): Profile
     { profile: "help", tokens: ["help", "คู่มือ", "คำอธิบาย", "วิธีใช้"], score: 0.95 },
     { profile: "reference", tokens: ["reference", "อ้างอิง", "lookup"], score: 0.95 },
     { profile: "template", tokens: ["template", "ตัวอย่าง", "แม่แบบ"], score: 0.9 },
-    { profile: "form", tokens: ["แบบฟอร์ม", "แบบ กข", "แบบกข"], score: 0.9 },
+    { profile: "form", tokens: ["แบบฟอร์ม"], score: 0.9 },
   ];
 
   for (const candidate of pairs) {
@@ -300,7 +293,7 @@ export function detectSheetProfile(
   }
 
   const scores = [
-    scoreSummaryProfile(scanRows, sheetName),
+    scoreSummaryProfile(scanRows),
     scoreHeaderProfile(scanRows, "assetData", ASSET_DATA_HEADERS, 4),
     scoreRealEstateProfile(scanRows, sheetName),
     scoreHeaderProfile(scanRows, "maintenance", MAINTENANCE_HEADERS, 2),

@@ -288,6 +288,7 @@ button {
 .eligibility-pill.exportable { color: var(--ok); background: var(--ok-soft); }
 .eligibility-pill.needsReview { color: var(--tag-amber); background: var(--tag-amber-soft); }
 .eligibility-pill.unsupported { color: var(--error); background: var(--error-soft); }
+.eligibility-pill.preserved { color: var(--teal); background: var(--teal-soft); }
 .reason-cell { min-width: 220px; color: var(--ink-soft); }
 .empty-export-message {
   padding: 14px 16px;
@@ -327,6 +328,11 @@ button {
 }
 .sheet-tab.skipped {
   border-color: var(--line);
+}
+.sheet-tab.preserved {
+  border-color: var(--teal);
+  background: var(--teal-soft);
+  color: var(--teal);
 }
 .sheet-tab.active {
   border-color: var(--teal);
@@ -376,6 +382,10 @@ button {
 .sheet-tab.skipped .status-dot {
   background: var(--paper-2);
   color: var(--ink-soft);
+}
+.sheet-tab.preserved .status-dot {
+  background: #fff;
+  color: var(--teal);
 }
 
 .sheet-summary-panel {

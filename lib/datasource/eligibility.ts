@@ -20,14 +20,14 @@ export function decideProfileEligibility(
   if (profile === "SUMMARY_SKIP") {
     return {
       eligibility: "skipped",
-      reason: "summary sheet is not an exportable asset table",
+      reason: "ชีตสรุปอ้างอิงยอดจากชีตสินทรัพย์อื่นและไม่มีข้อมูลรายทรัพย์สิน จึงไม่แปลงซ้ำเข้า Template",
       shouldParse: false,
     };
   }
   if (profile === "REVIEW_MAINTENANCE") {
     return {
       eligibility: "unsupported",
-      reason: "maintenance sheet requires a dedicated conversion policy",
+      reason: "maintenance sheet is not an asset import table",
       shouldParse: false,
     };
   }

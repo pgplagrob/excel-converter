@@ -6,6 +6,7 @@ import type { DataSourceWorkbook } from "../lib/datasource";
 const workbook: DataSourceWorkbook = {
   fileName: "test.xlsx",
   sheets: [],
+  preservedSheets: [],
   skippedSheets: [],
   profileDebug: [],
 };

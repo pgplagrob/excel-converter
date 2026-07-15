@@ -70,7 +70,7 @@ export function PreviewStep({
           onOpenSheet={setActiveSheetIdx}
         />
         <div className="empty-export-message">
-          UNKNOWN, help/template/summary และ maintenance จะไม่ถูก Export อัตโนมัติ กรุณาตรวจไฟล์ต้นทางหรือเพิ่ม parser ที่รองรับก่อน
+          ไฟล์ผลลัพธ์สร้างจากชีตข้อมูลรายสินทรัพย์ที่แปลงเข้า Template ได้เท่านั้น ชีตสรุปที่อ้างอิงยอดซ้ำและชีตที่ไม่ใช่ข้อมูลสินทรัพย์จะไม่ถูกนำไปใส่ในไฟล์ผลลัพธ์
         </div>
         <div className="actions">
           <button className="btn secondary" onClick={onBack}>← ย้อนกลับ</button>
@@ -80,6 +80,7 @@ export function PreviewStep({
     );
   }
   const sheetMap = mappingState[sheet.sheetName] || {};
+  const isPreservedSheet = sheet.eligibility === "preserved";
   const sheetIssues = (issues || []).filter((issue) => issue.sheetName === sheet.sheetName);
   const currentSummary = createRuntimeSheetSummary(sheet, sheetIssues);
   const visibleMappings: VisibleMapping[] = sheet.mapping
@@ -118,6 +119,7 @@ export function PreviewStep({
 
       <SheetTabs
         sheets={parsed.sheets}
+        preservedSheetSummaries={parsed.preservedSheetSummaries}
         skippedSheetSummaries={parsed.skippedSheetSummaries}
         activeSheetIdx={activeSheetIdx}
         issues={issues}
@@ -134,17 +136,23 @@ export function PreviewStep({
 
       <SourcePreviewTable sheet={sheet} issues={sheetIssues} />
 
-      <MappingSummary
-        sheet={sheet}
-        sheetMap={sheetMap}
-        visibleMappings={visibleMappings}
-        advancedOpen={advancedOpen}
-        setAdvancedOpen={setAdvancedOpen}
-        updateMapping={updateMapping}
-      />
+      {isPreservedSheet ? (
+        <div className="empty-export-message">
+          ชีตนี้มีข้อมูลและจะถูกเก็บในไฟล์ผลลัพธ์ตามต้นฉบับ ระบบไม่ทำ Auto Mapping 44 คอลัมน์เพราะโครงสร้างไม่ใช่รายการสินทรัพย์รายชิ้น
+        </div>
+      ) : (
+        <MappingSummary
+          sheet={sheet}
+          sheetMap={sheetMap}
+          visibleMappings={visibleMappings}
+          advancedOpen={advancedOpen}
+          setAdvancedOpen={setAdvancedOpen}
+          updateMapping={updateMapping}
+        />
+      )}
 
-      <h3>ผลการตรวจสอบข้อมูล</h3>
-      {issueSummary && (
+      {!isPreservedSheet && <h3>ผลการตรวจสอบข้อมูล</h3>}
+      {!isPreservedSheet && issueSummary && (
         <div className="summary-grid small">
           <div className="summary-card">
             <div className="num">{issueSummary.totalRows}</div>
@@ -160,7 +168,9 @@ export function PreviewStep({
           </div>
         </div>
       )}
-      <IssueList issues={sheetIssues} emptyText="ชีตนี้ไม่พบปัญหา พร้อม export ได้" />
+      {!isPreservedSheet && (
+        <IssueList issues={sheetIssues} emptyText="ชีตนี้ไม่พบปัญหา พร้อม export ได้" />
+      )}
 
       <div className="actions">
         <button className="btn secondary" onClick={onBack}>

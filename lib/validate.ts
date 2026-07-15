@@ -22,7 +22,7 @@ export interface ValidationIssue {
   severity: "error" | "warning";
 }
 
-export type SheetStatus = "success" | "warning" | "error" | "skipped";
+export type SheetStatus = "success" | "warning" | "error" | "preserved" | "skipped";
 
 export interface SheetSummary {
   sheetName: string;
@@ -42,7 +42,11 @@ export interface ValidationContext {
 
 export function shouldValidateSheet(context: ValidationContext = {}): boolean {
   if (context.selected === false) return false;
-  if (context.eligibility === "skipped" || context.eligibility === "unsupported") return false;
+  if (
+    context.eligibility === "preserved" ||
+    context.eligibility === "skipped" ||
+    context.eligibility === "unsupported"
+  ) return false;
   return !(
     context.sourceProfile === "UNKNOWN" ||
     context.sourceProfile === "HELP_OR_TEMPLATE_SKIP" ||

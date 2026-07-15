@@ -111,7 +111,7 @@ export function setNormalizedFields(
   let assetName = cellText(values.assetName);
   let assetDetail = cellText(values.assetDetail);
 
-  if (looksLikeAssetItemGroup(assetName)) {
+  if (!values.assetCode && looksLikeAssetItemGroup(assetName)) {
     if (!cellText(row[SOURCE_ASSET_ITEM_COLUMN])) row[SOURCE_ASSET_ITEM_COLUMN] = assetName;
     assetName = "";
     if (looksLikeAssetItemGroup(assetDetail)) assetDetail = "";

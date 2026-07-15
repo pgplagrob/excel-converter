@@ -10,8 +10,7 @@ function legacyProfileFromDetection(detection: SheetProfileDetection): SourcePro
     detection.profile === "help" ||
     detection.profile === "reference" ||
     detection.profile === "form" ||
-    detection.profile === "template" ||
-    detection.profile === "empty"
+    detection.profile === "template"
   ) {
     return "HELP_OR_TEMPLATE_SKIP";
   }
@@ -34,8 +33,6 @@ export function detectSourceProfile(
   if (flexibleLayout?.kind === "standard-table") return "FLEXIBLE_ASSET_TABLE";
 
   const compactSheet = compactText(sheetName);
-  // The specific municipal summary name must win over the generic "form" profile.
-  if (compactSheet.includes("แบบกข")) return "SUMMARY_SKIP";
 
   const detectedProfile = legacyProfileFromDetection(profileDetection);
   if (detectedProfile) return detectedProfile;

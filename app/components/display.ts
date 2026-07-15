@@ -127,6 +127,7 @@ export function statusIcon(status: SheetStatus): string {
   if (status === "success") return "✓";
   if (status === "warning") return "!";
   if (status === "error") return "×";
+  if (status === "preserved") return "↳";
   return "–";
 }
 
@@ -134,10 +135,12 @@ export function statusLabel(status: SheetStatus): string {
   if (status === "success") return "พร้อมใช้งาน";
   if (status === "warning") return "มีคำเตือน";
   if (status === "error") return "พบข้อผิดพลาด";
+  if (status === "preserved") return "เก็บชีตต้นฉบับ";
   return "ข้ามชีต";
 }
 
 export function summaryText(summary: SheetSummary): string {
+  if (summary.status === "preserved") return "เก็บต้นฉบับ";
   if (summary.status === "skipped") return "ข้าม";
   if (summary.errorCount > 0) return `${summary.errorCount} ข้อผิดพลาด`;
   if (summary.warningCount > 0) return `${summary.warningCount} คำเตือน`;
@@ -169,6 +172,17 @@ export function createRuntimeSheetSummary(
   sheet: SheetData,
   sheetIssues: ValidationIssue[],
 ): SheetSummary {
+  if (sheet.eligibility === "preserved") {
+    return {
+      sheetName: sheet.sheetName,
+      status: "preserved",
+      rowCount: sheet.rowCount,
+      headerRow: sheet.headerRowIndex + 1,
+      errorCount: 0,
+      warningCount: 0,
+      reason: sheet.eligibilityReason,
+    };
+  }
   const errorCount = sheetIssues.filter((issue) => issue.severity === "error").length;
   const warningCount =
     sheetIssues.filter((issue) => issue.severity === "warning").length +

@@ -73,7 +73,9 @@ export async function POST(req: NextRequest) {
         sheet.rows,
         validationContext,
       );
-      const mappedRows = transformRowsToTemplateDataset(sheet.rows, mappingRecord);
+      const mappedRows = sheet.eligibility === "preserved"
+        ? []
+        : transformRowsToTemplateDataset(sheet.rows, mappingRecord);
       const rowIssues = validateMappedRows(
         sheet.sheetName,
         mappedRows,
@@ -84,7 +86,9 @@ export async function POST(req: NextRequest) {
       const validationIssues = [...parseWarnings, ...sheetLevelIssues, ...rowIssues];
       const errorCount = validationIssues.filter((issue) => issue.severity === "error").length;
       const finalEligibility: SheetEligibility =
-        sheet.eligibility === "skipped" || sheet.eligibility === "unsupported"
+        sheet.eligibility === "preserved" ||
+        sheet.eligibility === "skipped" ||
+        sheet.eligibility === "unsupported"
           ? sheet.eligibility
           : errorCount > 0 || sheet.eligibility === "needsReview"
             ? "needsReview"
@@ -123,11 +127,27 @@ export async function POST(req: NextRequest) {
         rows: sheet.rows.slice(0, 30),
         mapping,
       };
-      
     });
-    const skippedSheetSummaries = dataSource.skippedSheets.map((sheetName) =>
-      createSheetSummary(sheetName, 0, undefined, [], "skipped"),
-    );
+    const skippedSheetSummaries = dataSource.skippedSheets.map((sheetName) => {
+      const debug = dataSource.profileDebug.find((item) => item.sheetName === sheetName);
+      return createSheetSummary(
+        sheetName,
+        0,
+        undefined,
+        [],
+        debug?.decisionReason || debug?.skipReason || "ไม่มีข้อมูลรายสินทรัพย์สำหรับแปลง",
+      );
+    });
+    const preservedSheetSummaries = dataSource.preservedSheets
+      .filter((sheetName) => !sheets.some((sheet) => sheet.sheetName === sheetName))
+      .map((sheetName) => ({
+        sheetName,
+        status: "preserved" as const,
+        rowCount: rawWorkbook.sheets.find((sheet) => sheet.sheetName === sheetName)?.matrix.length || 0,
+        errorCount: 0,
+        warningCount: 0,
+        reason: "เก็บชีตต้นฉบับไว้ในไฟล์ผลลัพธ์โดยไม่แปลงโครงสร้าง",
+      }));
     const sheetOverview = dataSource.profileDebug.map((debug) => {
       const parsedSheetIndex = sheets.findIndex((sheet) => sheet.sheetName === debug.sheetName);
       const parsedSheet = parsedSheetIndex >= 0 ? sheets[parsedSheetIndex] : undefined;
@@ -153,6 +173,8 @@ export async function POST(req: NextRequest) {
       analysisId,
       fileName: dataSource.fileName,
       sheets,
+      preservedSheets: dataSource.preservedSheets,
+      preservedSheetSummaries,
       skippedSheets: dataSource.skippedSheets,
       skippedSheetSummaries,
       sheetOverview,

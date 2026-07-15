@@ -200,11 +200,10 @@ export function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSour
     }
 
     const looksLikeIncompleteDataRow = isNumericSequence(sequence) && Boolean(itemName);
-    const isDataRow =
-      looksLikeAssetCode(assetCode) &&
-      Boolean(itemName) &&
-      !looksLikeAssetType(itemName) &&
-      !looksLikeAssetItemGroup(itemName);
+    // A valid row structure wins over words inside the asset name.  Names such as
+    // "อาคารหอปูมละกอน" are assets when the row has a sequence and asset code;
+    // category detection is only used by the no-sequence/no-code branch above.
+    const isDataRow = looksLikeAssetCode(assetCode) && Boolean(itemName);
     if (!isDataRow && looksLikeIncompleteDataRow) {
       skippedIncompleteRows += 1;
     }

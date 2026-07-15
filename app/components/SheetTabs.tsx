@@ -5,6 +5,7 @@ import { createRuntimeSheetSummary, statusIcon, summaryText } from "./display";
 
 interface SheetTabsProps {
   sheets: SheetData[];
+  preservedSheetSummaries: SheetSummary[];
   skippedSheetSummaries: SheetSummary[];
   activeSheetIdx: number;
   issues: ValidationIssue[] | null;
@@ -13,6 +14,7 @@ interface SheetTabsProps {
 
 export function SheetTabs({
   sheets,
+  preservedSheetSummaries,
   skippedSheetSummaries,
   activeSheetIdx,
   issues,
@@ -38,6 +40,13 @@ export function SheetTabs({
           </button>
         );
       })}
+      {(preservedSheetSummaries || []).map((summary) => (
+        <span key={summary.sheetName} className="sheet-tab preserved muted">
+          <span className="status-dot">{statusIcon("preserved")}</span>
+          {summary.sheetName}
+          <span className="count">เก็บต้นฉบับ</span>
+        </span>
+      ))}
       {(skippedSheetSummaries || []).map((summary) => (
         <span key={summary.sheetName} className="sheet-tab skipped muted">
           <span className="status-dot">{statusIcon("skipped")}</span>

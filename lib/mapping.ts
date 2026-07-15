@@ -78,7 +78,7 @@ export const COLUMN_ALIASES: Record<string, string[]> = {
   ],
   "รายการสินทรัพย์": ["asset item", "รายการสินทรัพย์", "หมวดรายการ"],
   "หน่วยนับ": ["unit", "หน่วย"],
-  "อาคาร": ["building", "สถานที่ตั้ง", "สถานที่ใช้งาน", "หน่วยงาน", "LocationName"],
+  "อาคาร": ["building", "สถานที่ตั้ง", "สถานที่ใช้งาน", "LocationName"],
   "ห้อง": ["room", "ห้องที่ตั้ง"],
   "ได้มาโดย": ["acquired by", "วิธีได้มา", "ได้มาโดย", "ซื้อ/จ้าง"],
   "ได้มาจาก": ["acquired from", "ผู้ขาย", "supplier", "ได้มาจาก", "โอนให้"],
@@ -109,7 +109,7 @@ export const COLUMN_ALIASES: Record<string, string[]> = {
   "อายุการรับประกัน": ["warranty period"],
   "อายุการใช้งาน": ["useful life"],
   "ผู้ถือครอง": ["holder", "ผู้ครอบครอง", "ผู้ดูแล"],
-  "สำนัก": ["office", "สำนัก", "หน่วยงาน", "ส่วนราชการ", "DepartmentName"],
+  "สำนัก": ["office", "สำนัก", "ส่วนราชการ", "DepartmentName"],
   "ฝ่าย": ["division", "ฝ่าย"],
   "งาน": ["งาน", "งานที่รับผิดชอบ"],
   "งานที่รับผิดชอบ": [
@@ -158,25 +158,6 @@ export function getAllKeywords(): string[] {
   return Array.from(all);
 }
 
-function levenshtein(a: string, b: string): number {
-  const dp: number[][] = Array.from({ length: a.length + 1 }, () =>
-    new Array(b.length + 1).fill(0),
-  );
-  for (let i = 0; i <= a.length; i += 1) dp[i][0] = i;
-  for (let j = 0; j <= b.length; j += 1) dp[0][j] = j;
-  for (let i = 1; i <= a.length; i += 1) {
-    for (let j = 1; j <= b.length; j += 1) {
-      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-      dp[i][j] = Math.min(
-        dp[i - 1][j] + 1,
-        dp[i][j - 1] + 1,
-        dp[i - 1][j - 1] + cost,
-      );
-    }
-  }
-  return dp[a.length][b.length];
-}
-
 export interface MappingSuggestion {
   templateColumn: string;
   sourceColumn: string | null;
@@ -219,17 +200,6 @@ function buildSuggestion(
   };
 }
 
-const EXACT_ONLY_TEMPLATE_COLUMNS = new Set([
-  "รหัสสินทรัพย์ Elaas",
-  "รหัสสินทรัพย์ (ส่วนประกอบ)",
-  "ชื่อสินทรัพย์",
-  "งาน",
-  "ต้องตรวจนับ",
-  "คิดค่าเสื่อม",
-  "ของสำคัญ",
-  "ส่งคืนสินทรัพย์",
-]);
-
 const AUTHORITATIVE_TEMPLATE_COLUMNS = new Set([
   "ชื่อสินทรัพย์",
   "รายละเอียด",
@@ -248,6 +218,10 @@ for (const templateColumn of TEMPLATE_COLUMNS) {
   }
 }
 
+const EXACT_TEMPLATE_OWNER = new Map(
+  TEMPLATE_COLUMNS.map((templateColumn) => [normalizeText(templateColumn), templateColumn]),
+);
+
 export function suggestMapping(sourceHeaders: string[]): MappingSuggestion[] {
   const usedSources = new Set<string>();
   const results: MappingSuggestion[] = [];
@@ -260,46 +234,31 @@ export function suggestMapping(sourceHeaders: string[]): MappingSuggestion[] {
 
     let best: MappingSuggestion = buildSuggestion(templateCol, null, 0, "none");
 
-    const candidates = [
-      normalizeText(templateCol),
-      ...(COLUMN_ALIASES[templateCol] || []).map(normalizeText),
-    ];
+    const normalizedTemplate = normalizeText(templateCol);
+    const aliases = (COLUMN_ALIASES[templateCol] || []).map(normalizeText);
 
     for (const source of sourceHeaders) {
       if (usedSources.has(source)) continue;
       const normalizedSource = normalizeText(source);
       if (!normalizedSource) continue;
 
-      if (candidates.includes(normalizedSource)) {
+      if (normalizedSource === normalizedTemplate) {
         best = buildSuggestion(templateCol, source, 100, "exact");
         break;
       }
 
+      // Auto-mapping is deliberately exact.  A source header must equal one
+      // explicit alias; containing a word such as "อาคาร" is not enough.
+      if (!aliases.includes(normalizedSource)) continue;
+
+      const exactTemplateOwner = EXACT_TEMPLATE_OWNER.get(normalizedSource);
+      if (exactTemplateOwner && exactTemplateOwner !== templateCol) continue;
+
       const exactOwners = EXACT_SOURCE_OWNERS.get(normalizedSource);
-      if (exactOwners && !exactOwners.has(templateCol)) continue;
+      if (!exactOwners?.has(templateCol) || exactOwners.size > 1) continue;
 
-      const isInternalSource = source.startsWith("__") || source.startsWith("sourceAsset");
-      const allowsPartialMatch = !EXACT_ONLY_TEMPLATE_COLUMNS.has(templateCol);
-      const containsMatch =
-        !isInternalSource &&
-        allowsPartialMatch &&
-        candidates.some(
-          (candidate) =>
-            candidate.length >= 3 &&
-            normalizedSource.length >= 3 &&
-            (normalizedSource.includes(candidate) || candidate.includes(normalizedSource)),
-        );
-      if (containsMatch && best.confidenceScore < 85) {
-        best = buildSuggestion(templateCol, source, 85, "alias");
-        continue;
-      }
-
-      const dist = levenshtein(normalizedSource, normalizeText(templateCol));
-      const maxLen = Math.max(normalizedSource.length, normalizeText(templateCol).length, 1);
-      const score = Math.round((1 - dist / maxLen) * 100);
-      if (!isInternalSource && allowsPartialMatch && score > 60 && score > best.confidenceScore) {
-        best = buildSuggestion(templateCol, source, score, "fuzzy");
-      }
+      best = buildSuggestion(templateCol, source, 95, "alias");
+      break;
     }
 
     if (best.sourceColumn) usedSources.add(best.sourceColumn);

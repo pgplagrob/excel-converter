@@ -42,6 +42,8 @@ export interface ParseResponse {
   analysisId?: string;
   fileName: string;
   sheets: SheetData[];
+  preservedSheets: string[];
+  preservedSheetSummaries: SheetSummary[];
   skippedSheets: string[];
   skippedSheetSummaries: SheetSummary[];
   sheetOverview: SheetOverview[];

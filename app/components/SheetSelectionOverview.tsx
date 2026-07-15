@@ -16,6 +16,7 @@ function eligibilityLabel(sheet: SheetOverview): string {
   }
   if (sheet.eligibility === "needsReview") return "ต้องตรวจสอบ";
   if (sheet.eligibility === "unsupported") return "ยังไม่รองรับ";
+  if (sheet.eligibility === "preserved") return "เก็บต้นฉบับ";
   return "ข้าม";
 }
 
@@ -30,7 +31,7 @@ export function SheetSelectionOverview({
       <div className="sheet-selection-heading">
         <div>
           <h3 id="sheet-selection-title">เลือกชีตสำหรับตรวจสอบและ Export</h3>
-          <p>ระบบเลือกเริ่มต้นเฉพาะชีตที่พร้อมใช้ ชีต review/unsupported/skipped จะไม่ถูกส่งออก</p>
+          <p>ไฟล์ผลลัพธ์จะมีเฉพาะชีตที่แปลงเป็น Template และผ่านการตรวจสอบ ชีตสรุปหรือชีตที่ไม่ใช่ข้อมูลรายสินทรัพย์จะไม่ถูกคัดลอกไป</p>
         </div>
         <strong>{Object.values(selection).filter(Boolean).length} ชีตที่เลือก</strong>
       </div>

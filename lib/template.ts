@@ -20,6 +20,13 @@ export interface AssetTemplateSheetInput {
   rows: Record<string, unknown>[];
 }
 
+export interface AssetTemplateWorkbookOptions {
+  sourceWorkbookBuffer?: Buffer;
+  sourceWorkbookSheets?: { sheetName: string; matrix: any[][] }[];
+  preservedSheetNames?: string[];
+  sourceSheetOrder?: string[];
+}
+
 type TemplateLayout = {
   columns: { width?: number; hidden?: boolean }[];
   headerStyles: unknown[];
@@ -170,6 +177,39 @@ function captureWorksheet(source: ExcelJS.Worksheet): WorksheetSnapshot {
   };
 }
 
+function snapshotCellValue(value: ExcelJS.CellValue): ExcelJS.CellValue {
+  if (value && typeof value === "object" && "formula" in value) {
+    return (value.result ?? "") as ExcelJS.CellValue;
+  }
+  return value;
+}
+
+function capturePreservedWorksheet(source: ExcelJS.Worksheet): WorksheetSnapshot {
+  const snapshot = captureWorksheet(source);
+  snapshot.rows.forEach((row, rowIndex) => {
+    row.cells.forEach((cell, columnIndex) => {
+      cell.value = snapshotCellValue(source.getRow(rowIndex + 1).getCell(columnIndex + 1).value);
+    });
+  });
+  return snapshot;
+}
+
+async function loadPreservedWorksheetSnapshots(
+  sourceWorkbookBuffer: Buffer | undefined,
+  sheetNames: string[],
+): Promise<Map<string, WorksheetSnapshot>> {
+  const snapshots = new Map<string, WorksheetSnapshot>();
+  if (!sourceWorkbookBuffer || !sheetNames.length) return snapshots;
+
+  const sourceWorkbook = new ExcelJS.Workbook();
+  await sourceWorkbook.xlsx.load(sourceWorkbookBuffer as unknown as ExcelJS.Buffer);
+  sheetNames.forEach((sheetName) => {
+    const worksheet = sourceWorkbook.getWorksheet(sheetName);
+    if (worksheet) snapshots.set(sheetName, capturePreservedWorksheet(worksheet));
+  });
+  return snapshots;
+}
+
 function restoreWorksheet(target: ExcelJS.Worksheet, snapshot: WorksheetSnapshot): void {
   snapshot.columns.forEach((column, index) => {
     const targetColumn = target.getColumn(index + 1);
@@ -186,6 +226,14 @@ function restoreWorksheet(target: ExcelJS.Worksheet, snapshot: WorksheetSnapshot
     });
   });
   snapshot.merges.forEach((range) => target.mergeCells(range));
+}
+
+function restoreWorksheetMatrix(target: ExcelJS.Worksheet, matrix: any[][]): void {
+  matrix.forEach((sourceRow, rowIndex) => {
+    sourceRow.forEach((value, columnIndex) => {
+      target.getRow(rowIndex + 1).getCell(columnIndex + 1).value = value ?? "";
+    });
+  });
 }
 
 function sanitizeSheetName(value: string): string {
@@ -225,6 +273,7 @@ export async function buildAssetTemplateWorkbook(rows: Record<string, unknown>[]
 
 export async function buildAssetTemplateWorkbookBySheet(
   sheets: AssetTemplateSheetInput[],
+  options: AssetTemplateWorkbookOptions = {},
 ): Promise<ExcelJS.Workbook> {
   const workbook = await readTemplateWorkbook();
   const metadata = await loadAssetTemplateMetadata();
@@ -235,19 +284,58 @@ export async function buildAssetTemplateWorkbookBySheet(
   const layout = captureTemplateLayout(templateSheet, metadata.columns.length);
   const referenceSnapshot = referenceSheet ? captureWorksheet(referenceSheet) : undefined;
   const usedNames = new Set<string>(referenceSheet ? ["reference"] : []);
+  const preservedSheetNames = options.preservedSheetNames || [];
+  const preservedSnapshots = await loadPreservedWorksheetSnapshots(
+    options.sourceWorkbookBuffer,
+    preservedSheetNames,
+  );
+  const preservedMatrices = new Map(
+    (options.sourceWorkbookSheets || []).map((sheet) => [sheet.sheetName, sheet.matrix]),
+  );
+  const entries: ({ kind: "converted"; sheet: AssetTemplateSheetInput } | { kind: "preserved"; sheetName: string })[] = [];
+  const usedConvertedIndexes = new Set<number>();
+  const usedPreservedNames = new Set<string>();
 
-  sheets.forEach((sheet, index) => {
-    const sheetName = uniqueSheetName(sheet.sheetName, usedNames);
-    const target = index === 0 ? templateSheet : workbook.addWorksheet(sheetName);
-    if (index === 0) {
-      target.name = sheetName;
-      clearTemplateData(target);
+  (options.sourceSheetOrder || []).forEach((sourceSheetName) => {
+    const convertedIndex = sheets.findIndex(
+      (sheet, index) => !usedConvertedIndexes.has(index) && sheet.sheetName === sourceSheetName,
+    );
+    if (convertedIndex >= 0) {
+      usedConvertedIndexes.add(convertedIndex);
+      entries.push({ kind: "converted", sheet: sheets[convertedIndex] });
+      return;
     }
-    applyTemplateSheet(target, sheet.rows, metadata.columns, layout);
+    if (preservedSheetNames.includes(sourceSheetName)) {
+      usedPreservedNames.add(sourceSheetName);
+      entries.push({ kind: "preserved", sheetName: sourceSheetName });
+    }
+  });
+  sheets.forEach((sheet, index) => {
+    if (!usedConvertedIndexes.has(index)) entries.push({ kind: "converted", sheet });
+  });
+  preservedSheetNames.forEach((sheetName) => {
+    if (!usedPreservedNames.has(sheetName)) entries.push({ kind: "preserved", sheetName });
   });
 
-  if (referenceSheet && referenceSnapshot) {
-    workbook.removeWorksheet(referenceSheet.id);
+  if (referenceSheet) workbook.removeWorksheet(referenceSheet.id);
+  workbook.removeWorksheet(templateSheet.id);
+
+  entries.forEach((entry) => {
+    if (entry.kind === "converted") {
+      const target = workbook.addWorksheet(uniqueSheetName(entry.sheet.sheetName, usedNames));
+      applyTemplateSheet(target, entry.sheet.rows, metadata.columns, layout);
+      return;
+    }
+
+    const snapshot = preservedSnapshots.get(entry.sheetName);
+    const matrix = preservedMatrices.get(entry.sheetName);
+    if (!snapshot && !matrix) return;
+    const target = workbook.addWorksheet(uniqueSheetName(entry.sheetName, usedNames));
+    if (snapshot) restoreWorksheet(target, snapshot);
+    else if (matrix) restoreWorksheetMatrix(target, matrix);
+  });
+
+  if (referenceSnapshot) {
     const restoredReference = workbook.addWorksheet("Reference");
     restoreWorksheet(restoredReference, referenceSnapshot);
   }

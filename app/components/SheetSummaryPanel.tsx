@@ -14,6 +14,7 @@ function eligibilityLabel(eligibility?: SheetEligibility): string {
   if (eligibility === "exportable") return "แปลงได้";
   if (eligibility === "needsReview") return "ต้องตรวจสอบ";
   if (eligibility === "unsupported") return "ยังไม่รองรับ";
+  if (eligibility === "preserved") return "เก็บต้นฉบับ";
   if (eligibility === "skipped") return "ข้าม";
   return "-";
 }
@@ -47,10 +48,12 @@ export function SheetSummaryPanel({
           <span>คำเตือน</span>
           <strong>{summary.warningCount.toLocaleString("th-TH")}</strong>
         </div>
-        <div className="sheet-summary-item">
-          <span>จับคู่คอลัมน์แล้ว</span>
-          <strong>{mappedCount.toLocaleString("th-TH")}/44</strong>
-        </div>
+        {eligibility !== "preserved" && (
+          <div className="sheet-summary-item">
+            <span>จับคู่คอลัมน์แล้ว</span>
+            <strong>{mappedCount.toLocaleString("th-TH")}/44</strong>
+          </div>
+        )}
         <div className="sheet-summary-item">
           <span>สถานะแปลง</span>
           <strong>{eligibilityLabel(eligibility)}</strong>

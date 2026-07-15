@@ -11,7 +11,7 @@ export type SourceProfile =
   | "REVIEW_MAINTENANCE"
   | "UNKNOWN";
 
-export type SheetEligibility = "exportable" | "needsReview" | "unsupported" | "skipped";
+export type SheetEligibility = "exportable" | "needsReview" | "unsupported" | "preserved" | "skipped";
 
 export interface SheetParseDecision {
   eligibility: SheetEligibility;
@@ -57,6 +57,7 @@ export interface DataSourceSheet {
 export interface DataSourceWorkbook {
   fileName: string;
   sheets: DataSourceSheet[];
+  preservedSheets: string[];
   skippedSheets: string[];
   profileDebug: SheetProfileDebug[];
 }

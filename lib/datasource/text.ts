@@ -22,7 +22,7 @@ export function isRowEmpty(row: any[]): boolean {
 
 export function isSheetEffectivelyEmpty(matrix: any[][]): boolean {
   const nonEmptyRows = matrix.filter((row) => !isRowEmpty(row));
-  return nonEmptyRows.length < 2;
+  return nonEmptyRows.length === 0;
 }
 
 export function rowText(row: any[]): string {

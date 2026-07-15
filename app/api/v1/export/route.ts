@@ -54,7 +54,11 @@ export async function POST(req: NextRequest) {
     for (const sourceSheet of analysis.dataSource.sheets) {
       const sheet = findSheetInput(sheetsInput, sourceSheet.sheetName);
       if (!sheet) continue;
-      if (sourceSheet.eligibility === "skipped" || sourceSheet.eligibility === "unsupported") {
+      if (
+        sourceSheet.eligibility === "preserved" ||
+        sourceSheet.eligibility === "skipped" ||
+        sourceSheet.eligibility === "unsupported"
+      ) {
         sheetSummaries.push(
           createSheetSummary(sourceSheet.sheetName, 0, sourceSheet.headerRowIndex + 1, [], sourceSheet.eligibilityReason),
         );
@@ -141,7 +145,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const wb = await buildAssetTemplateWorkbookBySheet(exportableSheets);
+    const wb = await buildAssetTemplateWorkbookBySheet(exportableSheets, {
+      sourceSheetOrder: analysis.dataSource.profileDebug.map((sheet) => sheet.sheetName),
+    });
     const buffer = Buffer.from(await wb.xlsx.writeBuffer());
     const fileName = buildExportFileName(sourceFileName);
 

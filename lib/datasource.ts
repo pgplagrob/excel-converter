@@ -9,7 +9,7 @@ import { parseAssetDataSheet } from "./datasource/parsers/asset-data";
 import { findFlexibleAssetLayout, parseFlexibleAssetSheet } from "./datasource/parsers/flexible";
 import { parseUnknownSheet } from "./datasource/parsers/unknown";
 import { detectSourceProfile } from "./datasource/profile";
-import { isSheetEffectivelyEmpty, sheetLooksAssetLike } from "./datasource/text";
+import { isSheetEffectivelyEmpty } from "./datasource/text";
 import {
   type DataSourceSheet,
   type DataSourceWorkbook,
@@ -47,6 +47,7 @@ export function createDataSourceWorkbook(
   workbookSheets: { sheetName: string; matrix: any[][]; rowMeta?: WorkbookRowMeta[] }[],
 ): DataSourceWorkbook {
   const sheets: DataSourceSheet[] = [];
+  const preservedSheets: string[] = [];
   const skippedSheets: string[] = [];
   const profileDebug: SheetProfileDebug[] = [];
 
@@ -80,24 +81,11 @@ export function createDataSourceWorkbook(
     }
 
     if (!profileDecision.shouldParse) {
-      debug.shouldParse = false;
-      debug.eligibility = profileDecision.eligibility;
-      debug.decisionReason = profileDecision.reason;
-      debug.skipReason = debug.decisionReason;
       skippedSheets.push(sheetName);
       continue;
     }
 
-    if (profile === "UNKNOWN" && !sheetLooksAssetLike(matrix)) {
-      debug.shouldParse = false;
-      debug.eligibility = "skipped";
-      debug.decisionReason = "unknown sheet does not contain an asset-like table";
-      debug.skipReason = debug.decisionReason;
-      skippedSheets.push(sheetName);
-      continue;
-    }
-
-    const sheet =
+    let sheet =
       profile === "NEW_ASSET_2567"
         ? parseNewAssetSheet(sheetName, matrix)
         : profile === "ASSET_DATA"
@@ -125,8 +113,8 @@ export function createDataSourceWorkbook(
     if (sheet.rows.length === 0) {
       debug.shouldParse = false;
       debug.eligibility = "skipped";
-      debug.decisionReason = "no parsed asset rows";
-      debug.skipReason = "no parsed asset rows";
+      debug.decisionReason = "parser ไม่พบข้อมูลรายสินทรัพย์สำหรับแปลงเข้า Template";
+      debug.skipReason = debug.decisionReason;
       skippedSheets.push(sheetName);
       continue;
     }
@@ -134,5 +122,5 @@ export function createDataSourceWorkbook(
     sheets.push(sheet);
   }
 
-  return { fileName, sheets, skippedSheets, profileDebug };
+  return { fileName, sheets, preservedSheets, skippedSheets, profileDebug };
 }
