@@ -12,7 +12,10 @@ test("export request parser accepts and normalizes a valid request", () => {
       {
         sheetName: "Data",
         headerRow: 2,
-        manualMapping: { [TEMPLATE_COLUMNS[0]]: "source-column" },
+        manualMapping: {
+          [TEMPLATE_COLUMNS[0]]: "source-column",
+          [TEMPLATE_COLUMNS[1]]: null,
+        },
         rows: [{ ignored: true }],
       },
     ],
@@ -21,7 +24,10 @@ test("export request parser accepts and normalizes a valid request", () => {
   assert.equal(parsed.mode, "validate");
   assert.equal(parsed.analysisId, "analysis-1");
   assert.equal(parsed.sheets?.[0].sheetName, "Data");
-  assert.deepEqual(parsed.sheets?.[0].manualMapping, { [TEMPLATE_COLUMNS[0]]: "source-column" });
+  assert.deepEqual(parsed.sheets?.[0].manualMapping, {
+    [TEMPLATE_COLUMNS[0]]: "source-column",
+    [TEMPLATE_COLUMNS[1]]: null,
+  });
   assert.equal(parsed.sheets?.[0].rows, undefined);
 });
 

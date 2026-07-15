@@ -4,15 +4,15 @@
     "readableFiles": 21,
     "unreadableFiles": 0,
     "totalSheets": 198,
-    "exportableSheets": 166,
-    "readySheets": 81,
-    "warningSheets": 85,
+    "exportableSheets": 168,
+    "readySheets": 84,
+    "warningSheets": 84,
     "reviewSheets": 0,
-    "unsupportedSheets": 3,
-    "skippedSheets": 29,
-    "totalRows": 79588,
+    "unsupportedSheets": 10,
+    "skippedSheets": 20,
+    "totalRows": 79767,
     "totalErrors": 0,
-    "totalWarnings": 150
+    "totalWarnings": 148
   },
   "topIssueTypes": [
     {
@@ -32,15 +32,15 @@
       "count": 6
     },
     {
-      "type": "warning:sheet:ข้าม 1 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
-      "count": 5
-    },
-    {
       "type": "warning:sheet:ข้าม 8 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
       "count": 5
     },
     {
       "type": "warning:มูลค่า:ค่าควรเป็นตัวเลขในคอลัมน์ \"มูลค่า\" (พบค่า: บริจาค)",
+      "count": 4
+    },
+    {
+      "type": "warning:sheet:ข้าม 1 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
       "count": 4
     },
     {
@@ -155,16 +155,16 @@
       "relativePath": "ครุภัณฑ์ สำนัก 67 131167 รอส่ง ใช้อันนี้รายงาน.xlsx",
       "readable": true,
       "sheetCount": 16,
-      "rowCount": 1810,
+      "rowCount": 1827,
       "sheets": [
         {
           "sheetName": "งบทรัพย์สิน 67",
           "detectedProfile": "unknown",
           "sourceProfile": "UNKNOWN",
-          "status": "skipped",
-          "eligibility": "skipped",
-          "reason": "unknown sheet does not contain an asset-like table",
-          "rowCount": 0,
+          "status": "unsupported",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 17,
           "errorCount": 0,
           "warningCount": 0
         },
@@ -185,7 +185,7 @@
           "sourceProfile": "SUMMARY_SKIP",
           "status": "skipped",
           "eligibility": "skipped",
-          "reason": "summary sheet is not an exportable asset table",
+          "reason": "ชีตสรุปอ้างอิงยอดจากชีตสินทรัพย์อื่นและไม่มีข้อมูลรายทรัพย์สิน จึงไม่แปลงซ้ำเข้า Template",
           "rowCount": 0,
           "errorCount": 0,
           "warningCount": 0
@@ -340,7 +340,7 @@
       "relativePath": "ครุภัณฑ์สำนักปลัดเทศบาล67 แบบ กข แก้ไข15-11-67.xlsx",
       "readable": true,
       "sheetCount": 21,
-      "rowCount": 2596,
+      "rowCount": 2602,
       "sheets": [
         {
           "sheetName": "ครุภัณฑ์ใหม่2567",
@@ -351,7 +351,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 25,
           "errorCount": 0,
-          "warningCount": 3
+          "warningCount": 2
         },
         {
           "sheetName": "ตัดจำหน่าย2567",
@@ -379,12 +379,12 @@
           "sheetName": "ครุภัณฑ์ใหม่2567 ต่ำกว่าเกณฑ์",
           "detectedProfile": "newAsset",
           "sourceProfile": "NEW_ASSET_2567",
-          "status": "warning",
+          "status": "ready",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 136,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 0
         },
         {
           "sheetName": "โอนอาคาร2567",
@@ -399,11 +399,11 @@
         },
         {
           "sheetName": "แบบกข.",
-          "detectedProfile": "form",
+          "detectedProfile": "summary",
           "sourceProfile": "SUMMARY_SKIP",
           "status": "skipped",
           "eligibility": "skipped",
-          "reason": "summary sheet is not an exportable asset table",
+          "reason": "ชีตสรุปอ้างอิงยอดจากชีตสินทรัพย์อื่นและไม่มีข้อมูลรายทรัพย์สิน จึงไม่แปลงซ้ำเข้า Template",
           "rowCount": 0,
           "errorCount": 0,
           "warningCount": 0
@@ -412,12 +412,12 @@
           "sheetName": "อาคาร",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "skipped",
-          "eligibility": "skipped",
-          "reason": "no parsed asset rows",
-          "rowCount": 0,
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 6,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 1
         },
         {
           "sheetName": "สิ่งปลูกสร้าง",
@@ -599,7 +599,7 @@
           "sourceProfile": "SUMMARY_SKIP",
           "status": "skipped",
           "eligibility": "skipped",
-          "reason": "summary sheet is not an exportable asset table",
+          "reason": "ชีตสรุปอ้างอิงยอดจากชีตสินทรัพย์อื่นและไม่มีข้อมูลรายทรัพย์สิน จึงไม่แปลงซ้ำเข้า Template",
           "rowCount": 0,
           "errorCount": 0,
           "warningCount": 0
@@ -706,7 +706,7 @@
       "relativePath": "พร้อมทำ\\เสร็จแล้ว\\กองคลัง.xlsx",
       "readable": true,
       "sheetCount": 13,
-      "rowCount": 1067,
+      "rowCount": 1108,
       "sheets": [
         {
           "sheetName": "งบทรัพย์สิน 2567",
@@ -714,7 +714,7 @@
           "sourceProfile": "SUMMARY_SKIP",
           "status": "skipped",
           "eligibility": "skipped",
-          "reason": "summary sheet is not an exportable asset table",
+          "reason": "ชีตสรุปอ้างอิงยอดจากชีตสินทรัพย์อื่นและไม่มีข้อมูลรายทรัพย์สิน จึงไม่แปลงซ้ำเข้า Template",
           "rowCount": 0,
           "errorCount": 0,
           "warningCount": 0
@@ -723,10 +723,10 @@
           "sheetName": "งบทรัพย์สิน",
           "detectedProfile": "unknown",
           "sourceProfile": "UNKNOWN",
-          "status": "skipped",
-          "eligibility": "skipped",
-          "reason": "unknown sheet does not contain an asset-like table",
-          "rowCount": 0,
+          "status": "unsupported",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 15,
           "errorCount": 0,
           "warningCount": 0
         },
@@ -734,10 +734,10 @@
           "sheetName": "งบปี 67",
           "detectedProfile": "unknown",
           "sourceProfile": "UNKNOWN",
-          "status": "skipped",
-          "eligibility": "skipped",
-          "reason": "unknown sheet does not contain an asset-like table",
-          "rowCount": 0,
+          "status": "unsupported",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 25,
           "errorCount": 0,
           "warningCount": 0
         },
@@ -745,12 +745,12 @@
           "sheetName": "อสังหาริมทรัพย์ (2)",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "warning",
+          "status": "ready",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
-          "rowCount": 3,
+          "rowCount": 4,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 0
         },
         {
           "sheetName": "สำนักงาน (2)",
@@ -858,7 +858,7 @@
       "relativePath": "พร้อมทำ\\เสร็จแล้ว\\กองยุทธศาสตร์และงบประมาณ\\1. ครุภัณฑ์งานธุรการ ปี2567.xlsx",
       "readable": true,
       "sheetCount": 4,
-      "rowCount": 143,
+      "rowCount": 156,
       "sheets": [
         {
           "sheetName": "สำนักงาน",
@@ -897,10 +897,10 @@
           "sheetName": "Sheet1",
           "detectedProfile": "unknown",
           "sourceProfile": "UNKNOWN",
-          "status": "skipped",
-          "eligibility": "skipped",
-          "reason": "unknown sheet does not contain an asset-like table",
-          "rowCount": 0,
+          "status": "unsupported",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 13,
           "errorCount": 0,
           "warningCount": 0
         }
@@ -949,7 +949,7 @@
         {
           "sheetName": "Sheet1",
           "detectedProfile": "empty",
-          "sourceProfile": "HELP_OR_TEMPLATE_SKIP",
+          "sourceProfile": "UNKNOWN",
           "status": "skipped",
           "eligibility": "skipped",
           "reason": "empty sheet",
@@ -960,7 +960,7 @@
         {
           "sheetName": "Sheet2",
           "detectedProfile": "empty",
-          "sourceProfile": "HELP_OR_TEMPLATE_SKIP",
+          "sourceProfile": "UNKNOWN",
           "status": "skipped",
           "eligibility": "skipped",
           "reason": "empty sheet",
@@ -1090,7 +1090,7 @@
       "relativePath": "พร้อมทำ\\เสร็จแล้ว\\กองยุทธศาสตร์และงบประมาณ\\6. ครุภัณฑ์ประชาสัมพันธ์ 67.xlsx",
       "readable": true,
       "sheetCount": 10,
-      "rowCount": 824,
+      "rowCount": 889,
       "sheets": [
         {
           "sheetName": "ค่าที่ดิน",
@@ -1173,10 +1173,10 @@
           "sheetName": "Sheet1",
           "detectedProfile": "unknown",
           "sourceProfile": "UNKNOWN",
-          "status": "skipped",
-          "eligibility": "skipped",
-          "reason": "unknown sheet does not contain an asset-like table",
-          "rowCount": 0,
+          "status": "unsupported",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 32,
           "errorCount": 0,
           "warningCount": 0
         },
@@ -1184,10 +1184,10 @@
           "sheetName": "Sheet2",
           "detectedProfile": "unknown",
           "sourceProfile": "UNKNOWN",
-          "status": "skipped",
-          "eligibility": "skipped",
-          "reason": "unknown sheet does not contain an asset-like table",
-          "rowCount": 0,
+          "status": "unsupported",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 33,
           "errorCount": 0,
           "warningCount": 0
         },
@@ -1217,7 +1217,7 @@
           "sourceProfile": "REGISTER_3_ROW_HEADER",
           "status": "skipped",
           "eligibility": "skipped",
-          "reason": "no parsed asset rows",
+          "reason": "parser ไม่พบข้อมูลรายสินทรัพย์สำหรับแปลงเข้า Template",
           "rowCount": 0,
           "errorCount": 0,
           "warningCount": 0
@@ -1272,7 +1272,7 @@
           "sourceProfile": "SUMMARY_SKIP",
           "status": "skipped",
           "eligibility": "skipped",
-          "reason": "summary sheet is not an exportable asset table",
+          "reason": "ชีตสรุปอ้างอิงยอดจากชีตสินทรัพย์อื่นและไม่มีข้อมูลรายทรัพย์สิน จึงไม่แปลงซ้ำเข้า Template",
           "rowCount": 0,
           "errorCount": 0,
           "warningCount": 0
@@ -1404,7 +1404,7 @@
           "sourceProfile": "REGISTER_3_ROW_HEADER",
           "status": "skipped",
           "eligibility": "skipped",
-          "reason": "no parsed asset rows",
+          "reason": "parser ไม่พบข้อมูลรายสินทรัพย์สำหรับแปลงเข้า Template",
           "rowCount": 0,
           "errorCount": 0,
           "warningCount": 0
@@ -1415,7 +1415,7 @@
           "sourceProfile": "REGISTER_3_ROW_HEADER",
           "status": "skipped",
           "eligibility": "skipped",
-          "reason": "no parsed asset rows",
+          "reason": "parser ไม่พบข้อมูลรายสินทรัพย์สำหรับแปลงเข้า Template",
           "rowCount": 0,
           "errorCount": 0,
           "warningCount": 0
@@ -1427,16 +1427,16 @@
       "relativePath": "พร้อมทำ\\เสร็จแล้ว\\สำนักการศึกษา.xlsx",
       "readable": true,
       "sheetCount": 16,
-      "rowCount": 1810,
+      "rowCount": 1827,
       "sheets": [
         {
           "sheetName": "งบทรัพย์สิน 67",
           "detectedProfile": "unknown",
           "sourceProfile": "UNKNOWN",
-          "status": "skipped",
-          "eligibility": "skipped",
-          "reason": "unknown sheet does not contain an asset-like table",
-          "rowCount": 0,
+          "status": "unsupported",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 17,
           "errorCount": 0,
           "warningCount": 0
         },
@@ -1457,7 +1457,7 @@
           "sourceProfile": "SUMMARY_SKIP",
           "status": "skipped",
           "eligibility": "skipped",
-          "reason": "summary sheet is not an exportable asset table",
+          "reason": "ชีตสรุปอ้างอิงยอดจากชีตสินทรัพย์อื่นและไม่มีข้อมูลรายทรัพย์สิน จึงไม่แปลงซ้ำเข้า Template",
           "rowCount": 0,
           "errorCount": 0,
           "warningCount": 0
@@ -1631,7 +1631,7 @@
           "sourceProfile": "REVIEW_MAINTENANCE",
           "status": "unsupported",
           "eligibility": "unsupported",
-          "reason": "maintenance sheet requires a dedicated conversion policy",
+          "reason": "maintenance sheet is not an asset import table",
           "rowCount": 0,
           "errorCount": 0,
           "warningCount": 0
@@ -1642,7 +1642,7 @@
           "sourceProfile": "REVIEW_MAINTENANCE",
           "status": "unsupported",
           "eligibility": "unsupported",
-          "reason": "maintenance sheet requires a dedicated conversion policy",
+          "reason": "maintenance sheet is not an asset import table",
           "rowCount": 0,
           "errorCount": 0,
           "warningCount": 0
@@ -1653,7 +1653,7 @@
           "sourceProfile": "REVIEW_MAINTENANCE",
           "status": "unsupported",
           "eligibility": "unsupported",
-          "reason": "maintenance sheet requires a dedicated conversion policy",
+          "reason": "maintenance sheet is not an asset import table",
           "rowCount": 0,
           "errorCount": 0,
           "warningCount": 0
@@ -1664,7 +1664,7 @@
           "sourceProfile": "SUMMARY_SKIP",
           "status": "skipped",
           "eligibility": "skipped",
-          "reason": "summary sheet is not an exportable asset table",
+          "reason": "ชีตสรุปอ้างอิงยอดจากชีตสินทรัพย์อื่นและไม่มีข้อมูลรายทรัพย์สิน จึงไม่แปลงซ้ำเข้า Template",
           "rowCount": 0,
           "errorCount": 0,
           "warningCount": 0
@@ -1739,7 +1739,7 @@
           "sourceProfile": "SUMMARY_SKIP",
           "status": "skipped",
           "eligibility": "skipped",
-          "reason": "summary sheet is not an exportable asset table",
+          "reason": "ชีตสรุปอ้างอิงยอดจากชีตสินทรัพย์อื่นและไม่มีข้อมูลรายทรัพย์สิน จึงไม่แปลงซ้ำเข้า Template",
           "rowCount": 0,
           "errorCount": 0,
           "warningCount": 0
@@ -1751,7 +1751,7 @@
       "relativePath": "พร้อมทำ\\เสร็จแล้ว\\สำนักช่าง\\โยธา (สมบูรณ์).xlsx",
       "readable": true,
       "sheetCount": 20,
-      "rowCount": 8790,
+      "rowCount": 8804,
       "sheets": [
         {
           "sheetName": "รวมงบทรัพย์สินทั้งหมด",
@@ -1759,7 +1759,7 @@
           "sourceProfile": "SUMMARY_SKIP",
           "status": "skipped",
           "eligibility": "skipped",
-          "reason": "summary sheet is not an exportable asset table",
+          "reason": "ชีตสรุปอ้างอิงยอดจากชีตสินทรัพย์อื่นและไม่มีข้อมูลรายทรัพย์สิน จึงไม่แปลงซ้ำเข้า Template",
           "rowCount": 0,
           "errorCount": 0,
           "warningCount": 0
@@ -1936,9 +1936,9 @@
           "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
-          "rowCount": 26,
+          "rowCount": 40,
           "errorCount": 0,
-          "warningCount": 2
+          "warningCount": 3
         },
         {
           "sheetName": "ชำรุด_จำหน่าย 67",
@@ -1980,7 +1980,7 @@
       "relativePath": "พร้อมทำ\\เสร็จแล้ว\\สำนักปลัดเทศบาล.xlsx",
       "readable": true,
       "sheetCount": 21,
-      "rowCount": 2596,
+      "rowCount": 2602,
       "sheets": [
         {
           "sheetName": "ครุภัณฑ์ใหม่2567",
@@ -1991,7 +1991,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 25,
           "errorCount": 0,
-          "warningCount": 3
+          "warningCount": 2
         },
         {
           "sheetName": "ตัดจำหน่าย2567",
@@ -2019,12 +2019,12 @@
           "sheetName": "ครุภัณฑ์ใหม่2567 ต่ำกว่าเกณฑ์",
           "detectedProfile": "newAsset",
           "sourceProfile": "NEW_ASSET_2567",
-          "status": "warning",
+          "status": "ready",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 136,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 0
         },
         {
           "sheetName": "โอนอาคาร2567",
@@ -2039,11 +2039,11 @@
         },
         {
           "sheetName": "แบบกข.",
-          "detectedProfile": "form",
+          "detectedProfile": "summary",
           "sourceProfile": "SUMMARY_SKIP",
           "status": "skipped",
           "eligibility": "skipped",
-          "reason": "summary sheet is not an exportable asset table",
+          "reason": "ชีตสรุปอ้างอิงยอดจากชีตสินทรัพย์อื่นและไม่มีข้อมูลรายทรัพย์สิน จึงไม่แปลงซ้ำเข้า Template",
           "rowCount": 0,
           "errorCount": 0,
           "warningCount": 0
@@ -2052,12 +2052,12 @@
           "sheetName": "อาคาร",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "skipped",
-          "eligibility": "skipped",
-          "reason": "no parsed asset rows",
-          "rowCount": 0,
+          "status": "warning",
+          "eligibility": "exportable",
+          "reason": "validated with no blocking errors",
+          "rowCount": 6,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 1
         },
         {
           "sheetName": "สิ่งปลูกสร้าง",
@@ -2259,7 +2259,7 @@
           "sourceProfile": "REGISTER_3_ROW_HEADER",
           "status": "skipped",
           "eligibility": "skipped",
-          "reason": "no parsed asset rows",
+          "reason": "parser ไม่พบข้อมูลรายสินทรัพย์สำหรับแปลงเข้า Template",
           "rowCount": 0,
           "errorCount": 0,
           "warningCount": 0
@@ -2314,7 +2314,7 @@
           "sourceProfile": "SUMMARY_SKIP",
           "status": "skipped",
           "eligibility": "skipped",
-          "reason": "summary sheet is not an exportable asset table",
+          "reason": "ชีตสรุปอ้างอิงยอดจากชีตสินทรัพย์อื่นและไม่มีข้อมูลรายทรัพย์สิน จึงไม่แปลงซ้ำเข้า Template",
           "rowCount": 0,
           "errorCount": 0,
           "warningCount": 0
@@ -2446,7 +2446,7 @@
           "sourceProfile": "REGISTER_3_ROW_HEADER",
           "status": "skipped",
           "eligibility": "skipped",
-          "reason": "no parsed asset rows",
+          "reason": "parser ไม่พบข้อมูลรายสินทรัพย์สำหรับแปลงเข้า Template",
           "rowCount": 0,
           "errorCount": 0,
           "warningCount": 0
@@ -2457,7 +2457,7 @@
           "sourceProfile": "REGISTER_3_ROW_HEADER",
           "status": "skipped",
           "eligibility": "skipped",
-          "reason": "no parsed asset rows",
+          "reason": "parser ไม่พบข้อมูลรายสินทรัพย์สำหรับแปลงเข้า Template",
           "rowCount": 0,
           "errorCount": 0,
           "warningCount": 0

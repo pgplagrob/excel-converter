@@ -7,6 +7,7 @@ import type {
   ValidationIssue,
 } from "@/lib/client-types";
 import type { SheetSelection } from "@/lib/sheet-selection";
+import { hasManualOverride, type ManualMapping } from "@/lib/manual-mapping";
 import { createRuntimeSheetSummary } from "./display";
 import { IssueList } from "./IssueList";
 import { MappingSummary } from "./MappingSummary";
@@ -19,8 +20,12 @@ interface PreviewStepProps {
   parsed: ParseResponse;
   activeSheetIdx: number;
   setActiveSheetIdx: (index: number) => void;
-  mappingState: Record<string, Record<string, string>>;
-  updateMapping: (sheetName: string, templateColumn: string, sourceColumn: string) => void;
+  mappingState: Record<string, ManualMapping>;
+  updateMapping: (
+    sheetName: string,
+    templateColumn: string,
+    sourceColumn: string | null | undefined,
+  ) => void;
   mappedCountForSheet: (sheetName: string) => number;
   sheetSelection: SheetSelection;
   updateSheetSelection: (sheetName: string, selected: boolean) => void;
@@ -86,11 +91,12 @@ export function PreviewStep({
   const visibleMappings: VisibleMapping[] = sheet.mapping
     .map((mapping, index) => {
       const manualSource = sheetMap[mapping.templateColumn];
+      const isManual = hasManualOverride(sheetMap, mapping.templateColumn);
       return {
         ...mapping,
-        sourceColumn: manualSource !== undefined ? manualSource || null : mapping.sourceColumn,
-        status: manualSource !== undefined ? ("manual" as const) : mapping.status,
-        confidence: manualSource !== undefined ? ("high" as const) : mapping.confidence,
+        sourceColumn: isManual ? manualSource : mapping.sourceColumn,
+        status: isManual ? ("manual" as const) : mapping.status,
+        confidence: isManual ? ("high" as const) : mapping.confidence,
         originalIndex: index,
       };
     })

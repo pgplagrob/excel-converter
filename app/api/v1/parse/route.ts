@@ -125,6 +125,7 @@ export async function POST(req: NextRequest) {
         warnings: sheet.warnings,
         sampleRows: sheet.rows.slice(0, 10),
         rows: sheet.rows.slice(0, 30),
+        templateSampleRows: mappedRows.slice(0, 10),
         mapping,
       };
     });

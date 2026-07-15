@@ -5,6 +5,7 @@ import { DownloadStep } from "./components/DownloadStep";
 import { PreviewStep } from "./components/PreviewStep";
 import { UploadStep } from "./components/UploadStep";
 import type { IssueSummary, ParseResponse, ValidationIssue } from "@/lib/client-types";
+import { setManualMappingOverride, type ManualMapping } from "@/lib/manual-mapping";
 import {
   createDefaultSheetSelection,
   selectedSheetCount,
@@ -33,7 +34,7 @@ export default function Page() {
 
   // mappingState[sheetName][templateColumn] = sourceColumn | ""
   const [mappingState, setMappingState] = useState<
-    Record<string, Record<string, string>>
+    Record<string, ManualMapping>
   >({});
   const [sheetSelection, setSheetSelection] = useState<SheetSelection>({});
   const [advancedOpen, setAdvancedOpen] = useState(false);
@@ -65,7 +66,7 @@ export default function Page() {
 
   const buildExportPayload = (
     parsedData: ParseResponse,
-    manualMappingState: Record<string, Record<string, string>>,
+    manualMappingState: Record<string, ManualMapping>,
     mode: "validate" | "download",
     selection: SheetSelection,
   ) => ({
@@ -82,7 +83,7 @@ export default function Page() {
 
   const validateWorkbook = async (
     parsedData: ParseResponse,
-    manualMappingState: Record<string, Record<string, string>>,
+    manualMappingState: Record<string, ManualMapping>,
     selection: SheetSelection,
   ) => {
     const res = await fetch("/api/v1/export", {
@@ -124,7 +125,7 @@ export default function Page() {
       setParsed(data);
       setActiveSheetIdx(0);
 
-      const initMapping: Record<string, Record<string, string>> = {};
+      const initMapping: Record<string, ManualMapping> = {};
       for (const sheet of data.sheets) {
         initMapping[sheet.sheetName] = {};
       }
@@ -200,12 +201,19 @@ export default function Page() {
   const updateMapping = (
     sheetName: string,
     templateColumn: string,
-    sourceColumn: string
+    sourceColumn: string | null | undefined,
   ) => {
     setMappingState((prev) => ({
       ...prev,
-      [sheetName]: { ...prev[sheetName], [templateColumn]: sourceColumn },
+      [sheetName]: setManualMappingOverride(
+        prev[sheetName] || {},
+        templateColumn,
+        sourceColumn,
+      ),
     }));
+    // Mapping changes invalidate the previous server-side validation result.
+    setIssues(null);
+    setIssueSummary(null);
   };
 
   const mappedCountForSheet = (sheetName: string) => {

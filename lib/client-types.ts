@@ -1,4 +1,5 @@
 import type { MappingSuggestion } from "./mapping";
+import type { ManualMapping } from "./manual-mapping";
 import type { SheetEligibility } from "./datasource";
 import type { SheetStatus, SheetSummary, ValidationIssue } from "./validate";
 
@@ -22,6 +23,7 @@ export interface SheetData {
   warnings?: string[];
   sampleRows: Record<string, any>[];
   rows: Record<string, any>[];
+  templateSampleRows?: Record<string, any>[];
   mapping: MappingSuggestion[];
 }
 
@@ -57,7 +59,7 @@ export interface ExportSheetInput {
   rows?: Record<string, unknown>[];
   headerRow?: number;
   autoMapping?: MappingSuggestion[];
-  manualMapping?: Record<string, string | null>;
+  manualMapping?: ManualMapping;
   mapping?: Record<string, string | null>;
 }
 

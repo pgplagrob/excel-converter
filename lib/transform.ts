@@ -284,7 +284,9 @@ function applyManualMapping(
 ): Record<string, any> {
   for (const [templateColumn, sourceColumn] of Object.entries(manualMapping)) {
     if (!TEMPLATE_COLUMNS.includes(templateColumn)) continue;
-    templateRow[templateColumn] = resolveFallbackValue(sourceRow, templateColumn, sourceColumn);
+    // A manual mapping is an explicit instruction to copy one source cell.
+    // Do not normalize dates, split text, or otherwise change the source value.
+    templateRow[templateColumn] = sourceColumn ? sourceRow[sourceColumn] ?? "" : "";
   }
   return templateRow;
 }

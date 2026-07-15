@@ -609,6 +609,24 @@ test("manual mapping overrides profile-derived responsible unit and can explicit
   assert.equal(clearedRows[0]["งานที่รับผิดชอบ"], "");
 });
 
+test("manual mapping copies source values exactly without date normalization", () => {
+  const sourceRows = [{
+    __sourceProfile: "UNKNOWN",
+    rawDatePart: 18,
+    rawText: "เก้าอี้อเนกประสงค์ ยี่ห้อ TK รุ่น LK-16",
+  }];
+  const manualMapping = {
+    "ชื่อสินทรัพย์": "rawText",
+    "รายละเอียด": "rawText",
+    "วันที่ได้รับ": "rawDatePart",
+  };
+  const rows = transformRowsToTemplateDataset(sourceRows, manualMapping, manualMapping);
+
+  assert.equal(rows[0]["ชื่อสินทรัพย์"], sourceRows[0].rawText);
+  assert.equal(rows[0]["รายละเอียด"], sourceRows[0].rawText);
+  assert.equal(rows[0]["วันที่ได้รับ"], 18);
+});
+
 test("template output keeps Sheet1 at 44 columns and preserves Reference sheet", async () => {
   const metadata = await loadAssetTemplateMetadata();
   const wb = await buildAssetTemplateWorkbook([
