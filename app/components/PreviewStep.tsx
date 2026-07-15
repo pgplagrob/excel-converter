@@ -6,13 +6,11 @@ import type {
   ParseResponse,
   ValidationIssue,
 } from "@/lib/client-types";
-import type { SheetSelection } from "@/lib/sheet-selection";
 import { hasManualOverride, type ManualMapping } from "@/lib/manual-mapping";
 import { createRuntimeSheetSummary } from "./display";
 import { IssueList } from "./IssueList";
 import { MappingSummary } from "./MappingSummary";
 import { SheetSummaryPanel } from "./SheetSummaryPanel";
-import { SheetSelectionOverview } from "./SheetSelectionOverview";
 import { SheetTabs } from "./SheetTabs";
 import { SourcePreviewTable } from "./SourcePreviewTable";
 
@@ -27,8 +25,6 @@ interface PreviewStepProps {
     sourceColumn: string | null | undefined,
   ) => void;
   mappedCountForSheet: (sheetName: string) => number;
-  sheetSelection: SheetSelection;
-  updateSheetSelection: (sheetName: string, selected: boolean) => void;
   issues: ValidationIssue[] | null;
   issueSummary: IssueSummary | null;
   advancedOpen: boolean;
@@ -48,8 +44,6 @@ export function PreviewStep({
   mappingState,
   updateMapping,
   mappedCountForSheet,
-  sheetSelection,
-  updateSheetSelection,
   issues,
   issueSummary,
   advancedOpen,
@@ -66,14 +60,8 @@ export function PreviewStep({
         <p className="eyebrow">Sheet overview</p>
         <h2>ไม่พบชีตข้อมูลสินทรัพย์ที่พร้อมแปลง</h2>
         <p className="lead">
-          ระบบแสดงผลการจำแนกทุกชีตไว้ด้านล่าง แต่ไม่มีชีตที่ผ่านนโยบายสำหรับ Validate หรือ Export
+          ไม่มีชีตที่ผ่านนโยบายสำหรับ Validate หรือ Export ในไฟล์นี้
         </p>
-        <SheetSelectionOverview
-          sheets={parsed.sheetOverview}
-          selection={sheetSelection}
-          onToggle={updateSheetSelection}
-          onOpenSheet={setActiveSheetIdx}
-        />
         <div className="empty-export-message">
           ไฟล์ผลลัพธ์สร้างจากชีตข้อมูลรายสินทรัพย์ที่แปลงเข้า Template ได้เท่านั้น ชีตสรุปที่อ้างอิงยอดซ้ำและชีตที่ไม่ใช่ข้อมูลสินทรัพย์จะไม่ถูกนำไปใส่ในไฟล์ผลลัพธ์
         </div>
@@ -113,15 +101,8 @@ export function PreviewStep({
       <h2>ตรวจสอบชีต พรีวิว และผล Validation</h2>
       <p className="lead">
         พบทั้งหมด {parsed.sheetOverview.length} ชีต และอ่านเป็น datasource ได้ {parsed.sheets.length} ชีต
-        ระบบจะตรวจสอบและส่งออกเฉพาะชีตที่เลือกด้านล่าง สามารถแก้ mapping เฉพาะกรณีที่จำเป็นได้จาก Advanced Mapping
+        ระบบจะตรวจสอบและส่งออกทุกชีตที่มีข้อมูลโดยอัตโนมัติ สามารถแก้ mapping เฉพาะกรณีที่จำเป็นได้จาก Advanced Mapping
       </p>
-
-      <SheetSelectionOverview
-        sheets={parsed.sheetOverview}
-        selection={sheetSelection}
-        onToggle={updateSheetSelection}
-        onOpenSheet={setActiveSheetIdx}
-      />
 
       <SheetTabs
         sheets={parsed.sheets}

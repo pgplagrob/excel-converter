@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
 import { DownloadStep } from "./components/DownloadStep";
 import { PreviewStep } from "./components/PreviewStep";
 import { UploadStep } from "./components/UploadStep";
@@ -32,11 +32,17 @@ export default function Page() {
   const [parsed, setParsed] = useState<ParseResponse | null>(null);
   const [activeSheetIdx, setActiveSheetIdx] = useState(0);
 
+  // Every sheet that qualifies under the default export policy is
+  // included automatically; there is no user-facing sheet toggle.
+  const sheetSelection: SheetSelection = useMemo(
+    () => (parsed ? createDefaultSheetSelection(parsed.sheetOverview || []) : {}),
+    [parsed],
+  );
+
   // mappingState[sheetName][templateColumn] = sourceColumn | ""
   const [mappingState, setMappingState] = useState<
     Record<string, ManualMapping>
   >({});
-  const [sheetSelection, setSheetSelection] = useState<SheetSelection>({});
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
   const [issues, setIssues] = useState<ValidationIssue[] | null>(null);
@@ -131,7 +137,6 @@ export default function Page() {
       }
       const initSelection = createDefaultSheetSelection(data.sheetOverview || []);
       setMappingState(initMapping);
-      setSheetSelection(initSelection);
       await validateWorkbook(data, initMapping, initSelection);
       setStep(1);
     } catch (e: any) {
@@ -191,7 +196,6 @@ export default function Page() {
     setFile(null);
     setParsed(null);
     setMappingState({});
-    setSheetSelection({});
     setAdvancedOpen(false);
     setIssues(null);
     setIssueSummary(null);
@@ -223,12 +227,6 @@ export default function Page() {
       (sheet?.mapping || []).map((item) => [item.templateColumn, item.sourceColumn || ""]),
     );
     return Object.values({ ...autoMap, ...m }).filter(Boolean).length;
-  };
-
-  const updateSheetSelection = (sheetName: string, selected: boolean) => {
-    setSheetSelection((previous) => ({ ...previous, [sheetName]: selected }));
-    setIssues(null);
-    setIssueSummary(null);
   };
 
   const selectedCount = selectedSheetCount(sheetSelection);
@@ -291,8 +289,6 @@ export default function Page() {
             onBack={() => setStep(0)}
             updateMapping={updateMapping}
             mappedCountForSheet={mappedCountForSheet}
-            sheetSelection={sheetSelection}
-            updateSheetSelection={updateSheetSelection}
             issues={issues}
             issueSummary={issueSummary}
             advancedOpen={advancedOpen}
