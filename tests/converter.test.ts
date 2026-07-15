@@ -6,7 +6,13 @@ import { readWorkbookBuffer, safeCellText, WorkbookLimitError } from "../lib/exc
 import { createDataSourceWorkbook } from "../lib/datasource";
 import { decideProfileEligibility } from "../lib/datasource/eligibility";
 import { detectSourceProfile } from "../lib/datasource/profile";
-import { COLUMN_ALIASES, mappingSuggestionsToRecord, mergeMapping, suggestMapping } from "../lib/mapping";
+import {
+  COLUMN_ALIASES,
+  TEMPLATE_COLUMNS,
+  mappingSuggestionsToRecord,
+  mergeMapping,
+  suggestMapping,
+} from "../lib/mapping";
 import { buildAssetTemplateWorkbook, buildAssetTemplateWorkbookBySheet, loadAssetTemplateMetadata } from "../lib/template";
 import { transformRowsToTemplateDataset } from "../lib/transform";
 import { shouldValidateSheet, validateMappedRows, validateSheetLevel } from "../lib/validate";
@@ -249,7 +255,7 @@ test("assetData mapping uses normalized fields and PurchasePrice fallback rule",
   assert.equal(rows[0]["ประเภทสินทรัพย์"], "");
   assert.equal(rows[0]["มูลค่า"], 25000);
   assert.equal(rows[0]["อาคาร"], "อาคาร 1");
-  assert.equal(rows[0]["สถานะ"], "รอจำหน่าย");
+  assert.equal(rows[0]["สถานะ"], "ชำรุด");
   assert.equal(rows[0]["ต้องตรวจนับ"], "");
   assert.equal(rows[0]["คิดค่าเสื่อม"], "");
   assert.equal(rows[0]["ของสำคัญ"], "");
@@ -282,7 +288,7 @@ test("mapping aliases cover source-system headers without crossing authoritative
   assert.equal(mapping["วันที่ได้รับ"], "PurchaseDate");
   assert.equal(mapping["สถานะ"], "Status");
   assert.equal(mapping["งานที่รับผิดชอบ"], "ResponsibleUnit");
-  assert.equal(mapping["แหล่งงบประมาณ"], "BudgetSource");
+  assert.equal(mapping["แหล่งงบประมาณ"], undefined);
 
   for (const templateColumn of ["ชื่อสินทรัพย์", "รายละเอียด", "ชนิดสินทรัพย์", "รายการสินทรัพย์"]) {
     assert.equal(mapping[templateColumn], "", `${templateColumn} must use normalized parser fields`);
@@ -408,7 +414,6 @@ test("parses two-row standard asset tables and maps funding columns", () => {
   assert.equal(rows[0]["ชนิดสินทรัพย์"], "ครุภัณฑ์สำนักงาน");
   assert.equal(rows[0]["สถานะ"], "ปกติ");
   assert.equal(rows[0]["เงินงบประมาณ"], 1200);
-  assert.equal(rows[0]["แหล่งงบประมาณ"], "เงินงบประมาณ");
   assert.equal(rows[0]["ส่งคืนสินทรัพย์"], "");
 });
 
@@ -433,8 +438,8 @@ test("flexible transform keeps enum fields out of fuzzy mappings and normalizes 
   assert.equal(rows[0]["ชื่อสินทรัพย์"], "โต๊ะทำงาน");
   assert.equal(rows[0]["รายละเอียด"], "โต๊ะเหล็ก");
   assert.equal(rows[0]["ชนิดสินทรัพย์"], "ครุภัณฑ์สำนักงาน");
-  assert.equal(rows[0]["แหล่งงบประมาณ"], "เงินงบประมาณ");
-  assert.equal(rows[0]["สถานะ"], "รอจำหน่าย");
+  assert.equal(rows[0]["เงินงบประมาณ"], 1200);
+  assert.equal(rows[0]["สถานะ"], "ชำรุด");
   assert.equal(rows[0]["ส่งคืนสินทรัพย์"], "");
   assert.equal(rows[0]["คิดค่าเสื่อม"], "");
 });
@@ -627,7 +632,7 @@ test("manual mapping copies source values exactly without date normalization", (
   assert.equal(rows[0]["วันที่ได้รับ"], 18);
 });
 
-test("template output keeps Sheet1 at 44 columns and preserves Reference sheet", async () => {
+test("template output keeps Sheet1 at 50 columns and preserves Reference sheet", async () => {
   const metadata = await loadAssetTemplateMetadata();
   const wb = await buildAssetTemplateWorkbook([
     {
@@ -641,11 +646,18 @@ test("template output keeps Sheet1 at 44 columns and preserves Reference sheet",
   const readBack = await readWorkbook(wb);
   const sheetRows = worksheetRows(readBack.getWorksheet("Sheet1")!);
 
-  assert.equal(metadata.columns.length, 44);
-  assert.equal(sheetRows[0].length, 44);
+  assert.equal(metadata.columns.length, 50);
+  assert.deepEqual(metadata.columns, TEMPLATE_COLUMNS);
+  assert.equal(metadata.references.types.has("ครุภัณฑ์สำนักงาน"), true);
+  assert.equal(metadata.references.assetReturns.has("true"), true);
+  assert.equal(sheetRows[0].length, 50);
   assert.equal(readBack.getWorksheet("Reference") !== undefined, true);
+  assert.equal(readBack.getWorksheet("Reference")?.columnCount, 15);
   assert.equal(sheetRows.slice(1).filter((row) => row.some((value) => value !== "")).length, 1);
   assert.equal(sheetRows[1][2], "A-001");
+  assert.deepEqual(readBack.getWorksheet("Sheet1")?.getCell("H2").dataValidation.formulae, [
+    "Reference!$A$2:$A$11",
+  ]);
 });
 
 test("split template output creates one worksheet per exportable source sheet", async () => {
@@ -674,10 +686,13 @@ test("split template output creates one worksheet per exportable source sheet", 
   const secondRows = worksheetRows(readBack.getWorksheet("สำนักงาน")!);
 
   assert.deepEqual(readBack.worksheets.map((sheet) => sheet.name), ["ครุภัณฑ์ใหม่2567", "สำนักงาน", "Reference"]);
-  assert.equal(firstRows[0].length, 44);
-  assert.equal(secondRows[0].length, 44);
+  assert.equal(firstRows[0].length, 50);
+  assert.equal(secondRows[0].length, 50);
   assert.equal(firstRows[1][2], "A-001");
   assert.equal(secondRows[1][2], "B-001");
+  assert.deepEqual(readBack.getWorksheet("ครุภัณฑ์ใหม่2567")?.getCell("H2").dataValidation.formulae, [
+    "Reference!$A$2:$A$11",
+  ]);
 });
 
 test("split template output preserves every source sheet that was not converted", async () => {
@@ -753,10 +768,10 @@ test("split template output sanitizes unique names, reserves Reference, and pres
   assert.equal(referenceRows[1][0], [...metadata.references.categories][0]);
   assert.equal(firstRows[1][2], "001-01-0001");
   assert.equal(typeof firstRows[1][2], "string");
-  assert.equal(firstRows[1][16], 1234.5);
-  assert.equal(typeof firstRows[1][16], "number");
-  assert.equal(firstRows[1][17], "01/05/2024");
-  assert.equal(typeof firstRows[1][17], "string");
+  assert.equal(firstRows[1][30], 1234.5);
+  assert.equal(typeof firstRows[1][30], "number");
+  assert.equal(firstRows[1][34], "01/05/2024");
+  assert.equal(typeof firstRows[1][34], "string");
 });
 
 test("validation policy checks exportable profiles and ignores non-export asset policies", () => {

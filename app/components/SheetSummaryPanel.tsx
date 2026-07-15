@@ -1,5 +1,6 @@
 import type { SheetSummary } from "@/lib/client-types";
 import type { SheetEligibility } from "@/lib/datasource";
+import { TEMPLATE_COLUMNS } from "@/lib/mapping";
 import { statusLabel } from "./display";
 
 interface SheetSummaryPanelProps {
@@ -51,7 +52,7 @@ export function SheetSummaryPanel({
         {eligibility !== "preserved" && (
           <div className="sheet-summary-item">
             <span>จับคู่คอลัมน์แล้ว</span>
-            <strong>{mappedCount.toLocaleString("th-TH")}/44</strong>
+            <strong>{mappedCount.toLocaleString("th-TH")}/{TEMPLATE_COLUMNS.length}</strong>
           </div>
         )}
         <div className="sheet-summary-item">

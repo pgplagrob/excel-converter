@@ -62,10 +62,47 @@ const DATE_COLUMNS = [
   "วันที่ออกจำหน่าย",
   "วันที่เริ่มรับประกัน",
   "วันที่หมดประกัน",
-  "ณ วันที่ (ค่าเสื่อมยกมา)",
+  "วันที่ยกมา",
+  "วันหมดอายุ (ส่วนประกอบ)",
 ];
-const NUMERIC_COLUMNS = ["มูลค่า", "ค่าเสื่อมสะสมยกมา"];
-const VALID_STATUSES = new Set(["", "ปกติ", "ชำรุด", "รอจำหน่าย", "สูญหาย", "ไม่ได้ใช้งาน"]);
+const NUMERIC_COLUMNS = [
+  "เงินงบประมาณ",
+  "เงินสะสม/เงินทุนสำรองเงินสะสม",
+  "เงินอุดหนุนระบุวัตถุประสงค์/เฉพาะกิจ",
+  "เงินรับฝาก",
+  "รับโอน/รับบริจาค",
+  "เงินกู้",
+  "รายได้สะสม",
+  "ทุนดำเนินการ",
+  "มูลค่า",
+  "ค่าเสื่อมสะสม ณ ยกมา",
+  "อายุการใช้งาน",
+  "อายุการรับประกัน",
+  "ละติจูด",
+  "ลองจิจูด",
+];
+const REFERENCE_COLUMNS: Array<[string, keyof TemplateReferenceValues]> = [
+  ["ประเภทสินทรัพย์", "categories"],
+  ["ชนิดสินทรัพย์", "types"],
+  ["รายการสินทรัพย์", "classes"],
+  ["หน่วยนับ", "units"],
+  ["อาคาร", "buildings"],
+  ["ห้อง", "rooms"],
+  ["ผู้ถือครอง", "owners"],
+  ["สำนัก", "institutes"],
+  ["ฝ่าย", "departments"],
+  ["งาน", "sections"],
+  ["งานที่รับผิดชอบ", "responsibleWork"],
+];
+const VALID_STATUSES = new Set([
+  "",
+  "ปกติ",
+  "ชำรุด",
+  "ไม่ได้ใช้งาน",
+  "ยกเลิกการใช้งาน",
+  "สูญหาย",
+  "จำหน่าย",
+]);
 const HEADER_VALUES = new Set([
   "ที่",
   "รายการ",
@@ -251,8 +288,12 @@ export function validateMappedRows(
   let previousAssetItem = "";
   const validStatuses = allowedValuesFromReference(references, "statuses", VALID_STATUSES);
   const validGetByMethods = allowedValuesFromReference(references, "getByMethods", new Set([""]));
-  const validSourceFunds = allowedValuesFromReference(references, "sourceFunds", new Set([""]));
   const validBooleans = allowedValuesFromReference(references, "booleans", new Set(["", "True", "False"]));
+  const validAssetReturns = allowedValuesFromReference(
+    references,
+    "assetReturns",
+    new Set(["", "true", "false"]),
+  );
 
   rows.forEach((row, idx) => {
     const sourceRow = sourceRows[idx] || {};
@@ -475,19 +516,22 @@ export function validateMappedRows(
       );
     }
 
-    const sourceFund = text(row["แหล่งงบประมาณ"]);
-    if (sourceFund && !validSourceFunds.has(sourceFund)) {
-      addIssue(
-        issues,
-        sheetName,
-        idx,
-        "แหล่งงบประมาณ",
-        `ค่าแหล่งงบประมาณไม่อยู่ใน Reference: ${sourceFund}`,
-        "warning",
-      );
+    for (const [column, referenceKey] of REFERENCE_COLUMNS) {
+      const value = text(row[column]);
+      const allowed = references?.[referenceKey];
+      if (value && allowed?.size && !allowed.has(value)) {
+        addIssue(
+          issues,
+          sheetName,
+          idx,
+          column,
+          `ค่าในคอลัมน์ "${column}" ไม่อยู่ใน Reference: ${value}`,
+          "warning",
+        );
+      }
     }
 
-    for (const col of ["ต้องตรวจนับ", "คิดค่าเสื่อม", "ของสำคัญ", "ส่งคืนสินทรัพย์"]) {
+    for (const col of ["ต้องตรวจนับ", "คิดค่าเสื่อม", "ดึงอายุจากค่ากลาง", "ของสำคัญ"]) {
       const value = text(row[col]);
       if (value && !validBooleans.has(value)) {
         addIssue(
@@ -499,6 +543,18 @@ export function validateMappedRows(
           "warning",
         );
       }
+    }
+
+    const assetReturn = text(row["ส่งคืนสินทรัพย์"]);
+    if (assetReturn && !validAssetReturns.has(assetReturn)) {
+      addIssue(
+        issues,
+        sheetName,
+        idx,
+        "ส่งคืนสินทรัพย์",
+        `ค่าควรเป็น true/false ตาม Reference (พบค่า: ${assetReturn})`,
+        "warning",
+      );
     }
 
     for (const col of DATE_COLUMNS) {

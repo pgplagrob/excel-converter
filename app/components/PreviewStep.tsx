@@ -7,6 +7,7 @@ import type {
   ValidationIssue,
 } from "@/lib/client-types";
 import { hasManualOverride, type ManualMapping } from "@/lib/manual-mapping";
+import { TEMPLATE_COLUMNS } from "@/lib/mapping";
 import { createRuntimeSheetSummary } from "./display";
 import { IssueList } from "./IssueList";
 import { MappingSummary } from "./MappingSummary";
@@ -125,7 +126,7 @@ export function PreviewStep({
 
       {isPreservedSheet ? (
         <div className="empty-export-message">
-          ชีตนี้มีข้อมูลและจะถูกเก็บในไฟล์ผลลัพธ์ตามต้นฉบับ ระบบไม่ทำ Auto Mapping 44 คอลัมน์เพราะโครงสร้างไม่ใช่รายการสินทรัพย์รายชิ้น
+          ชีตนี้มีข้อมูลและจะถูกเก็บในไฟล์ผลลัพธ์ตามต้นฉบับ ระบบไม่ทำ Auto Mapping {TEMPLATE_COLUMNS.length} คอลัมน์เพราะโครงสร้างไม่ใช่รายการสินทรัพย์รายชิ้น
         </div>
       ) : (
         <MappingSummary

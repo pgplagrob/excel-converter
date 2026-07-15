@@ -4,10 +4,20 @@ import ExcelJS from "exceljs";
 
 export interface TemplateReferenceValues {
   categories: Set<string>;
+  types: Set<string>;
+  classes: Set<string>;
+  units: Set<string>;
+  buildings: Set<string>;
+  rooms: Set<string>;
+  owners: Set<string>;
+  institutes: Set<string>;
+  departments: Set<string>;
+  sections: Set<string>;
+  responsibleWork: Set<string>;
   getByMethods: Set<string>;
-  sourceFunds: Set<string>;
   statuses: Set<string>;
   booleans: Set<string>;
+  assetReturns: Set<string>;
 }
 
 export interface AssetTemplateMetadata {
@@ -31,8 +41,12 @@ type TemplateLayout = {
   columns: { width?: number; hidden?: boolean }[];
   headerStyles: unknown[];
   rowStyles: unknown[];
+  rowDataValidations: unknown[];
   headerHeight?: number;
   rowHeight?: number;
+  sheetViews: unknown;
+  sheetPageSetup: unknown;
+  sheetProperties: unknown;
 };
 
 type WorksheetSnapshot = {
@@ -77,12 +91,18 @@ function readSheetRows(worksheet: ExcelJS.Worksheet | undefined): unknown[][] {
 }
 
 function valuesFromReferenceColumn(rows: unknown[][], columnIndex: number): Set<string> {
+  if (columnIndex < 0) return new Set();
   return new Set(
     rows
       .slice(1)
       .map((row) => cellText(row[columnIndex]))
       .filter(Boolean),
   );
+}
+
+function referenceValuesByHeader(rows: unknown[][], header: string): Set<string> {
+  const headers = (rows[0] || []).map(cellText);
+  return valuesFromReferenceColumn(rows, headers.indexOf(header));
 }
 
 export async function loadAssetTemplateMetadata(): Promise<AssetTemplateMetadata> {
@@ -94,11 +114,21 @@ export async function loadAssetTemplateMetadata(): Promise<AssetTemplateMetadata
   return {
     columns,
     references: {
-      categories: valuesFromReferenceColumn(referenceRows, 0),
-      getByMethods: valuesFromReferenceColumn(referenceRows, 1),
-      sourceFunds: valuesFromReferenceColumn(referenceRows, 2),
-      statuses: valuesFromReferenceColumn(referenceRows, 3),
-      booleans: valuesFromReferenceColumn(referenceRows, 4),
+      categories: referenceValuesByHeader(referenceRows, "Categories"),
+      types: referenceValuesByHeader(referenceRows, "Types"),
+      classes: referenceValuesByHeader(referenceRows, "Classes"),
+      units: referenceValuesByHeader(referenceRows, "Units"),
+      buildings: referenceValuesByHeader(referenceRows, "Buildings"),
+      rooms: referenceValuesByHeader(referenceRows, "Rooms"),
+      owners: referenceValuesByHeader(referenceRows, "Owners"),
+      institutes: referenceValuesByHeader(referenceRows, "Institutes"),
+      departments: referenceValuesByHeader(referenceRows, "Departments"),
+      sections: referenceValuesByHeader(referenceRows, "Sections"),
+      responsibleWork: referenceValuesByHeader(referenceRows, "ResponsibleWork"),
+      getByMethods: referenceValuesByHeader(referenceRows, "GetByMethods"),
+      statuses: referenceValuesByHeader(referenceRows, "Statuses"),
+      booleans: referenceValuesByHeader(referenceRows, "Verified"),
+      assetReturns: referenceValuesByHeader(referenceRows, "AssetReturn"),
     },
   };
 }
@@ -117,8 +147,15 @@ function captureTemplateLayout(source: ExcelJS.Worksheet, columnCount: number): 
     }),
     headerStyles: Array.from({ length: columnCount }, (_, index) => cloneStyle(headerRow.getCell(index + 1).style)),
     rowStyles: Array.from({ length: columnCount }, (_, index) => cloneStyle(dataRow.getCell(index + 1).style)),
+    rowDataValidations: Array.from(
+      { length: columnCount },
+      (_, index) => cloneStyle(dataRow.getCell(index + 1).dataValidation),
+    ),
     headerHeight: headerRow.height,
     rowHeight: dataRow.height,
+    sheetViews: cloneStyle(source.views),
+    sheetPageSetup: cloneStyle(source.pageSetup),
+    sheetProperties: cloneStyle(source.properties),
   };
 }
 
@@ -128,6 +165,10 @@ function applyTemplateSheet(
   columns: string[],
   layout: TemplateLayout,
 ): void {
+  (target as any).views = cloneStyle(layout.sheetViews) || [];
+  (target as any).pageSetup = cloneStyle(layout.sheetPageSetup) || {};
+  (target as any).properties = cloneStyle(layout.sheetProperties) || {};
+
   for (let columnIndex = 0; columnIndex < columns.length; columnIndex += 1) {
     const column = target.getColumn(columnIndex + 1);
     const columnLayout = layout.columns[columnIndex];
@@ -145,8 +186,11 @@ function applyTemplateSheet(
     if (layout.rowHeight !== undefined) targetRow.height = layout.rowHeight;
     columns.forEach((column, columnIndex) => {
       const cell = targetRow.getCell(columnIndex + 1);
-      cell.value = (row[column] ?? "") as any;
+      const value = row[column];
+      cell.value = (value === undefined || value === null || value === "" ? null : value) as any;
       cell.style = cloneStyle(layout.rowStyles[columnIndex]) as any;
+      const dataValidation = cloneStyle(layout.rowDataValidations[columnIndex]);
+      if (dataValidation) cell.dataValidation = dataValidation as ExcelJS.DataValidation;
     });
   });
 }

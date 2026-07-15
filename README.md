@@ -1,17 +1,17 @@
 # Latest Excel Converter
 
-เว็บแอป Next.js สำหรับแปลงข้อมูลจากไฟล์ Excel หลายรูปแบบให้เป็นไฟล์ตามเทมเพลตมาตรฐาน 44 คอลัมน์ พร้อมตรวจสอบข้อมูล แนะนำการจับคู่คอลัมน์ และดาวน์โหลดผลลัพธ์เป็นไฟล์ `.xlsx`
+เว็บแอป Next.js สำหรับแปลงข้อมูลจากไฟล์ Excel หลายรูปแบบให้เป็นไฟล์ตามเทมเพลตมาตรฐาน 50 คอลัมน์ พร้อมตรวจสอบข้อมูล แนะนำการจับคู่คอลัมน์ และดาวน์โหลดผลลัพธ์เป็นไฟล์ `.xlsx`
 
 ## ความสามารถหลัก
 
 - รองรับไฟล์ `.xlsx` และ `.xls` ขนาดไม่เกิน 20 MB
-- ตรวจทุกชีตและแปลงเฉพาะตารางข้อมูลรายสินทรัพย์ที่เข้ากับ Template 44 คอลัมน์
+- ตรวจทุกชีตและแปลงเฉพาะตารางข้อมูลรายสินทรัพย์ที่เข้ากับ Template 50 คอลัมน์
 - ชีตสรุปที่อ้างอิงยอดจากชีตอื่น เช่น `แบบกข.` จะไม่แปลงซ้ำ และจะไม่ถูกคัดลอกเป็นชีตต้นฉบับในไฟล์ผลลัพธ์
 - ตรวจจับรูปแบบชีตจากชื่อชีต header และ keyword
 - รองรับ AssetData, ข้อมูลสินทรัพย์ใหม่, ทะเบียนครุภัณฑ์หลายแถว, ข้อมูลโอน/ย้าย และตารางรูปแบบยืดหยุ่น
 - อ่านตารางที่ไม่มี header, header สองแถว และรหัสสินทรัพย์ที่แยกอยู่หลายคอลัมน์
 - แปลงข้อมูลเป็นโครงสร้างกลาง พร้อม carry-forward หมวดหมู่จากแถวหัวกลุ่ม
-- แนะนำ mapping ไปยังเทมเพลต 44 คอลัมน์เฉพาะชื่อหัวคอลัมน์ที่ตรงกันหรือ alias ที่ระบุไว้อย่างชัดเจน ไม่เดาจากคำบางส่วนหรือ fuzzy matching
+- แนะนำ mapping ไปยังเทมเพลต 50 คอลัมน์เฉพาะชื่อหัวคอลัมน์ที่ตรงกันหรือ alias ที่ระบุไว้อย่างชัดเจน ไม่เดาจากคำบางส่วนหรือ fuzzy matching
 - แสดงทุกชีตพร้อม profile, eligibility, เหตุผล, จำนวนแถว/error/warning และ checkbox เลือกเฉพาะชีตที่จะ export
 - เลือกเริ่มต้นเฉพาะชีต ready/warning ที่ผ่าน validation; review/unsupported/skipped ไม่ถูกเลือก
 - ตรวจ required fields, วันที่, ตัวเลข, สถานะ และรายการซ้ำ
@@ -63,7 +63,7 @@ Upload Excel
   -> POST /api/v1/parse
   -> อ่าน workbook และตรวจจับรูปแบบชีต
   -> Normalize ข้อมูลต้นทาง
-  -> แนะนำ mapping 44 คอลัมน์
+  -> แนะนำ mapping 50 คอลัมน์
   -> Preview และ validate
   -> POST /api/v1/export (mode=validate)
   -> ผู้ใช้แก้ mapping ได้ตามต้องการ
@@ -98,7 +98,7 @@ lib/sheet-profile.ts         ตรวจจับรูปแบบของช
 lib/datasource.ts            public facade และ orchestration ของ datasource
 lib/datasource/              types, helpers, profile detection และ parser แยกตามรูปแบบชีต
 lib/mapping.ts               template columns, aliases และ logic แนะนำ mapping
-lib/transform.ts             แปลงข้อมูลเป็น template 44 คอลัมน์
+lib/transform.ts             แปลงข้อมูลเป็น template 50 คอลัมน์
 lib/validate.ts               ตรวจสอบระดับชีตและระดับแถว
 lib/client-types.ts           types ที่ใช้ร่วมกันระหว่าง client และ API
 lib/sheet-selection.ts        นโยบายเลือกชีตเริ่มต้นสำหรับ UI/export

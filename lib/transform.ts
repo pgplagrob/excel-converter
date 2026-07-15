@@ -37,6 +37,17 @@ const AUTHORITATIVE_TEMPLATE_COLUMNS = new Set([
   ASSET_ITEM_COLUMN,
 ]);
 
+const FUND_COLUMNS = [
+  "เงินงบประมาณ",
+  "เงินสะสม/เงินทุนสำรองเงินสะสม",
+  "เงินอุดหนุนระบุวัตถุประสงค์/เฉพาะกิจ",
+  "เงินรับฝาก",
+  "รับโอน/รับบริจาค",
+  "เงินกู้",
+  "รายได้สะสม",
+  "ทุนดำเนินการ",
+] as const;
+
 function emptyTemplateRow(): Record<string, any> {
   const row: Record<string, any> = {};
   for (const column of TEMPLATE_COLUMNS) row[column] = "";
@@ -67,9 +78,47 @@ function cleanMoneyValue(value: any): any {
   return value;
 }
 
+function fundColumnForSource(value: any): (typeof FUND_COLUMNS)[number] | undefined {
+  const source = cellText(value).toLowerCase().replace(/\s+/g, "");
+  if (!source) return undefined;
+  if (source.includes("เงินงบประมาณ")) return "เงินงบประมาณ";
+  if (source.includes("เงินสะสม") || source.includes("เงินทุนสำรองเงินสะสม")) {
+    return "เงินสะสม/เงินทุนสำรองเงินสะสม";
+  }
+  if (source.includes("เงินอุดหนุน") || source.includes("เฉพาะกิจ")) {
+    return "เงินอุดหนุนระบุวัตถุประสงค์/เฉพาะกิจ";
+  }
+  if (source.includes("เงินรับฝาก")) return "เงินรับฝาก";
+  if (source.includes("รับโอน") || source.includes("รับบริจาค")) return "รับโอน/รับบริจาค";
+  if (source.includes("เงินกู้")) return "เงินกู้";
+  if (source.includes("รายได้สะสม") || source.includes("เงินรายได้")) return "รายได้สะสม";
+  if (source.includes("ทุนดำเนินการ")) return "ทุนดำเนินการ";
+  return undefined;
+}
+
 function sourceValue(sourceRow: Record<string, any>, publicField: string, internalField: string): any {
   const publicValue = sourceRow[publicField];
   return cellText(publicValue) ? publicValue : sourceRow[internalField];
+}
+
+function applyBudgetAllocation(
+  templateRow: Record<string, any>,
+  sourceRow: Record<string, any>,
+): Record<string, any> {
+  const hasFundAllocation = FUND_COLUMNS.some((column) => {
+    const value = cellText(templateRow[column]);
+    if (!value) return false;
+    const numericValue = Number(value.replace(/,/g, ""));
+    return Number.isFinite(numericValue) ? numericValue !== 0 : true;
+  });
+  if (hasFundAllocation) return templateRow;
+
+  const fundColumn = fundColumnForSource(
+    sourceValue(sourceRow, "budgetSource", INTERNAL.budgetSource),
+  );
+  const value = cleanMoneyValue(sourceValue(sourceRow, "value", INTERNAL.value));
+  if (fundColumn && value !== "") templateRow[fundColumn] = value;
+  return templateRow;
 }
 
 function startsWithMainAssetType(value: any): boolean {
@@ -226,7 +275,6 @@ function mapProfileRow(sourceRow: Record<string, any>, profile: SourceProfile): 
   if (profile === "TRANSFER_2567" || profile === "ASSET_DATA") {
     row[ASSET_DETAIL_COLUMN] = assetDetail;
     row["ได้มาจาก"] = sourceValue(sourceRow, "acquiredFrom", INTERNAL.acquiredFrom) ?? "";
-    row["แหล่งงบประมาณ"] = sourceValue(sourceRow, "budgetSource", INTERNAL.budgetSource) ?? "";
     row["อาคาร"] = sourceValue(sourceRow, "location", INTERNAL.location) ?? "";
     row["สถานะ"] = sourceRow[INTERNAL.status] || "";
   }
@@ -263,7 +311,8 @@ const DATE_COLUMNS = new Set([
   "วันที่ออกจำหน่าย",
   "วันที่เริ่มรับประกัน",
   "วันที่หมดประกัน",
-  "ณ วันที่ (ค่าเสื่อมยกมา)",
+  "วันที่ยกมา",
+  "วันหมดอายุ (ส่วนประกอบ)",
 ]);
 
 function resolveFallbackValue(
@@ -319,7 +368,6 @@ function mapFallbackRow(sourceRow: Record<string, any>, mapping: TemplateMapping
     templateRow["อาคาร"] = sourceRow.location ?? templateRow["อาคาร"] ?? "";
     templateRow["ได้มาโดย"] = sourceRow.acquiredBy ?? templateRow["ได้มาโดย"] ?? "";
     templateRow["ได้มาจาก"] = sourceRow.acquiredFrom ?? templateRow["ได้มาจาก"] ?? "";
-    templateRow["แหล่งงบประมาณ"] = sourceRow.budgetSource ?? templateRow["แหล่งงบประมาณ"] ?? "";
     templateRow["ระบุอื่น ๆ"] = sourceRow.note ?? templateRow["ระบุอื่น ๆ"] ?? "";
     templateRow["สถานะ"] = sourceRow[INTERNAL.status] ?? templateRow["สถานะ"] ?? "";
     templateRow["ต้องตรวจนับ"] = sourceRow[INTERNAL.needCount] ?? templateRow["ต้องตรวจนับ"] ?? "";
@@ -343,7 +391,11 @@ export function transformRowsToTemplateDataset(
     const templateRow = isKnownProfile(profile)
       ? mapProfileRow(sourceRow, profile)
       : mapFallbackRow(sourceRow, mapping);
-    return applyManualMapping(templateRow, sourceRow, manualMapping);
+    return applyManualMapping(
+      applyBudgetAllocation(templateRow, sourceRow),
+      sourceRow,
+      manualMapping,
+    );
   });
 }
 
