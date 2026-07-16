@@ -255,7 +255,7 @@ function mapProfileRow(sourceRow: Record<string, any>, profile: SourceProfile): 
   row[ASSET_ITEM_COLUMN] = sourceAssetItemShouldEmit(sourceRow) ? sourceAssetItem : "";
   row["มูลค่า"] = cleanMoneyValue(sourceValue(sourceRow, "value", INTERNAL.value));
   row["วันที่ได้รับ"] = sourceValue(sourceRow, "receivedDate", INTERNAL.receivedDate) ?? "";
-  row["งานที่รับผิดชอบ"] = sourceValue(sourceRow, "responsibleUnit", INTERNAL.responsibleUnit) ?? "";
+  row["งาน"] = sourceValue(sourceRow, "responsibleUnit", INTERNAL.responsibleUnit) ?? "";
   row["สถานะ"] = sourceRow[INTERNAL.status] ?? "";
   row["ต้องตรวจนับ"] = sourceRow[INTERNAL.needCount] ?? "";
   row["คิดค่าเสื่อม"] = sourceRow[INTERNAL.depreciationFlag] ?? "";
@@ -364,7 +364,7 @@ function mapFallbackRow(sourceRow: Record<string, any>, mapping: TemplateMapping
     templateRow["ประเภทสินทรัพย์"] = sourceAssetCategory(sourceRow);
     templateRow["มูลค่า"] = cleanMoneyValue(sourceRow.value ?? templateRow["มูลค่า"]);
     templateRow["วันที่ได้รับ"] = sourceRow.receivedDate ?? templateRow["วันที่ได้รับ"] ?? "";
-    templateRow["งานที่รับผิดชอบ"] = sourceRow.responsibleUnit ?? templateRow["งานที่รับผิดชอบ"] ?? "";
+    templateRow["งาน"] = sourceRow.responsibleUnit ?? templateRow["งาน"] ?? "";
     templateRow["อาคาร"] = sourceRow.location ?? templateRow["อาคาร"] ?? "";
     templateRow["ได้มาโดย"] = sourceRow.acquiredBy ?? templateRow["ได้มาโดย"] ?? "";
     templateRow["ได้มาจาก"] = sourceRow.acquiredFrom ?? templateRow["ได้มาจาก"] ?? "";
@@ -380,6 +380,15 @@ function mapFallbackRow(sourceRow: Record<string, any>, mapping: TemplateMapping
   return templateRow;
 }
 
+function forceFlagColumns(templateRow: Record<string, any>): Record<string, any> {
+  templateRow["ต้องตรวจนับ"] = "True";
+  templateRow["คิดค่าเสื่อม"] = cellText(templateRow["คิดค่าเสื่อม"]) || "False";
+  templateRow["ดึงอายุจากค่ากลาง"] = cellText(templateRow["ดึงอายุจากค่ากลาง"]) || "False";
+  templateRow["ของสำคัญ"] = cellText(templateRow["ของสำคัญ"]) || "False";
+  templateRow["ส่งคืนสินทรัพย์"] = cellText(templateRow["ส่งคืนสินทรัพย์"]) || "false";
+  return templateRow;
+}
+
 export function transformRowsToTemplateDataset(
   rows: Record<string, any>[],
   mapping: TemplateMapping,
@@ -391,10 +400,12 @@ export function transformRowsToTemplateDataset(
     const templateRow = isKnownProfile(profile)
       ? mapProfileRow(sourceRow, profile)
       : mapFallbackRow(sourceRow, mapping);
-    return applyManualMapping(
-      applyBudgetAllocation(templateRow, sourceRow),
-      sourceRow,
-      manualMapping,
+    return forceFlagColumns(
+      applyManualMapping(
+        applyBudgetAllocation(templateRow, sourceRow),
+        sourceRow,
+        manualMapping,
+      ),
     );
   });
 }

@@ -256,9 +256,9 @@ test("assetData mapping uses normalized fields and PurchasePrice fallback rule",
   assert.equal(rows[0]["มูลค่า"], 25000);
   assert.equal(rows[0]["อาคาร"], "อาคาร 1");
   assert.equal(rows[0]["สถานะ"], "ชำรุด");
-  assert.equal(rows[0]["ต้องตรวจนับ"], "");
-  assert.equal(rows[0]["คิดค่าเสื่อม"], "");
-  assert.equal(rows[0]["ของสำคัญ"], "");
+  assert.equal(rows[0]["ต้องตรวจนับ"], "True");
+  assert.equal(rows[0]["คิดค่าเสื่อม"], "False");
+  assert.equal(rows[0]["ของสำคัญ"], "False");
   assert.equal(manualRows[0]["ชื่อสินทรัพย์"], "SAMSUNG");
   assert.equal(clearedRows[0]["ชื่อสินทรัพย์"], "");
 });
@@ -335,9 +335,33 @@ test("new asset sheets keep missing asset names blank and preserve source item/d
   assert.equal(rows[0]["ชนิดสินทรัพย์"], "ครุภัณฑ์สำนักงาน");
   assert.equal(rows[0]["ประเภทสินทรัพย์"], "");
   assert.equal(rows[0]["สถานะ"], "");
-  assert.equal(rows[0]["ต้องตรวจนับ"], "");
-  assert.equal(rows[0]["คิดค่าเสื่อม"], "");
-  assert.equal(rows[0]["ของสำคัญ"], "");
+  assert.equal(rows[0]["ต้องตรวจนับ"], "True");
+  assert.equal(rows[0]["คิดค่าเสื่อม"], "False");
+  assert.equal(rows[0]["ของสำคัญ"], "False");
+});
+
+test("new asset sheets repeat the asset-item group label on every row in that group", () => {
+  const workbook = createDataSourceWorkbook("new-assets-grouped.xlsx", [
+    {
+      sheetName: "ครุภัณฑ์ใหม่2567",
+      matrix: [
+        ["ลำดับ", "รหัสสินทรัพย์", "ชนิดสินทรัพย์", "รายละเอียดสินทรัพย์", "วันที่ได้มา", "", "", "ราคาสินทรัพย์"],
+        ["", "", "ครุภัณฑ์สำนักงาน"],
+        ["", "", "เครื่องปรับอากาศ (420)"],
+        [1, "420-67-0485", "ครุภัณฑ์สำนักงาน", "เครื่องปรับอากาศ แบบติดผนัง Midia 24,000 BTU", 19, 3, 2567, 24900],
+        [2, "420-67-0489", "ครุภัณฑ์สำนักงาน", "เครื่องปรับอากาศแบบติดผนัง Midia 30,000 BTU", 11, 7, 2567, 46900],
+        [3, "420-66-0468", "ครุภัณฑ์สำนักงาน", "เครื่องปรับอากาศแบบแยกส่วน ขนาด 30,000 BTU", 18, 12, 2566, 47200],
+        ["", "", "ตู้ (406)"],
+        [1, "406-66-1398", "ครุภัณฑ์สำนักงาน", "ตู้ไม้บานเปิด 6 บานประตู", 17, 12, 2566, 27000],
+      ],
+    },
+  ]);
+  const rows = transformRowsToTemplateDataset(workbook.sheets[0].rows, {});
+
+  assert.equal(rows[0]["รายการสินทรัพย์"], "เครื่องปรับอากาศ (420)");
+  assert.equal(rows[1]["รายการสินทรัพย์"], "เครื่องปรับอากาศ (420)");
+  assert.equal(rows[2]["รายการสินทรัพย์"], "เครื่องปรับอากาศ (420)");
+  assert.equal(rows[3]["รายการสินทรัพย์"], "ตู้ (406)");
 });
 
 test("parses supported headerless positional asset layouts", () => {
@@ -378,7 +402,7 @@ test("parses supported headerless positional asset layouts", () => {
   assert.equal(departmentRows[0]["ชื่อสินทรัพย์"], "โต๊ะทำงาน");
   assert.equal(departmentRows[0]["วันที่ได้รับ"], "01/05/2024");
   assert.equal(departmentRows[0]["มูลค่า"], 1200);
-  assert.equal(departmentRows[0]["งานที่รับผิดชอบ"], "งานพัสดุ");
+  assert.equal(departmentRows[0]["งาน"], "งานพัสดุ");
   assert.equal(splitCodeRows[0]["รหัสสินทรัพย์"], "055-66-0281");
   assert.equal(splitCodeRows[0]["วันที่ได้รับ"], "07/09/2023");
   assert.equal(splitCodeRows[0]["มูลค่า"], 6420);
@@ -387,7 +411,7 @@ test("parses supported headerless positional asset layouts", () => {
   assert.equal(consolidatedRows[0]["รหัสสินทรัพย์"], "401-65-9822");
   assert.equal(consolidatedRows[0]["ชื่อสินทรัพย์"], "เก้าอี้ทำงาน");
   assert.equal(consolidatedRows[0]["รายละเอียด"], "เก้าอี้ทำงาน MONO");
-  assert.equal(consolidatedRows[0]["งานที่รับผิดชอบ"], "กองการเจ้าหน้าที่");
+  assert.equal(consolidatedRows[0]["งาน"], "กองการเจ้าหน้าที่");
   assert.equal(consolidatedRows[0]["ประเภทสินทรัพย์"], "");
   assert.equal(consolidatedRows[0]["ชนิดสินทรัพย์"], "ครุภัณฑ์สำนักงาน");
 });
@@ -414,7 +438,7 @@ test("parses two-row standard asset tables and maps funding columns", () => {
   assert.equal(rows[0]["ชนิดสินทรัพย์"], "ครุภัณฑ์สำนักงาน");
   assert.equal(rows[0]["สถานะ"], "ปกติ");
   assert.equal(rows[0]["เงินงบประมาณ"], 1200);
-  assert.equal(rows[0]["ส่งคืนสินทรัพย์"], "");
+  assert.equal(rows[0]["ส่งคืนสินทรัพย์"], "false");
 });
 
 test("flexible transform keeps enum fields out of fuzzy mappings and normalizes deterioration", () => {
@@ -440,8 +464,8 @@ test("flexible transform keeps enum fields out of fuzzy mappings and normalizes 
   assert.equal(rows[0]["ชนิดสินทรัพย์"], "ครุภัณฑ์สำนักงาน");
   assert.equal(rows[0]["เงินงบประมาณ"], 1200);
   assert.equal(rows[0]["สถานะ"], "ชำรุด");
-  assert.equal(rows[0]["ส่งคืนสินทรัพย์"], "");
-  assert.equal(rows[0]["คิดค่าเสื่อม"], "");
+  assert.equal(rows[0]["ส่งคืนสินทรัพย์"], "false");
+  assert.equal(rows[0]["คิดค่าเสื่อม"], "False");
 });
 
 test("reads legacy xls workbooks", async () => {
@@ -536,7 +560,7 @@ test("registry parser composes asset codes split across columns", () => {
   assert.equal(rows[2]["รหัสสินทรัพย์"], "1-401-67-10088");
   assert.equal(rows[2]["วันที่ได้รับ"], "21/02/2024");
   assert.equal(rows[2]["มูลค่า"], 4800);
-  assert.equal(rows[2]["งานที่รับผิดชอบ"], "งานตลาด");
+  assert.equal(rows[2]["งาน"], "งานตลาด");
   assert.equal(rows.length, 3);
 });
 
@@ -560,7 +584,7 @@ test("registry parser supports a single header row without dropping early assets
   assert.equal(rows[0]["ชื่อสินทรัพย์"], "โต๊ะทำงาน");
   assert.equal(rows[0]["วันที่ได้รับ"], "01/05/2024");
   assert.equal(rows[0]["มูลค่า"], 1200);
-  assert.equal(rows[0]["งานที่รับผิดชอบ"], "งานพัสดุ");
+  assert.equal(rows[0]["งาน"], "งานพัสดุ");
 });
 
 test("registry parser reads split day month year before value and responsible unit", () => {
@@ -580,7 +604,7 @@ test("registry parser reads split day month year before value and responsible un
   assert.equal(rows.length, 1);
   assert.equal(rows[0]["วันที่ได้รับ"], "30/07/1999");
   assert.equal(rows[0]["มูลค่า"], 75435);
-  assert.equal(rows[0]["งานที่รับผิดชอบ"], "งานแผนที่");
+  assert.equal(rows[0]["งาน"], "งานแผนที่");
   assert.equal(rows[0]["สถานะ"], "ปกติ");
 });
 
@@ -601,17 +625,17 @@ test("manual mapping overrides profile-derived responsible unit and can explicit
 
   const remappedRows = transformRowsToTemplateDataset(
     sheet.rows,
-    { ...autoMapping, "งานที่รับผิดชอบ": "note" },
-    { "งานที่รับผิดชอบ": "note" },
+    { ...autoMapping, "งาน": "note" },
+    { "งาน": "note" },
   );
   const clearedRows = transformRowsToTemplateDataset(
     sheet.rows,
-    { ...autoMapping, "งานที่รับผิดชอบ": "" },
-    { "งานที่รับผิดชอบ": "" },
+    { ...autoMapping, "งาน": "" },
+    { "งาน": "" },
   );
 
-  assert.equal(remappedRows[0]["งานที่รับผิดชอบ"], "งานพัสดุ");
-  assert.equal(clearedRows[0]["งานที่รับผิดชอบ"], "");
+  assert.equal(remappedRows[0]["งาน"], "งานพัสดุ");
+  assert.equal(clearedRows[0]["งาน"], "");
 });
 
 test("manual mapping copies source values exactly without date normalization", () => {

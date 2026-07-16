@@ -19,7 +19,6 @@ export function parseNewAssetSheet(sheetName: string, matrix: any[][]): DataSour
   let currentAssetType = "";
   let currentAssetTypeWasEmitted = false;
   let currentAssetItem = "";
-  let currentAssetItemWasEmitted = false;
 
   for (let index = headerRowIndex + 1; index < matrix.length; index += 1) {
     const sourceRow = matrix[index] || [];
@@ -35,10 +34,8 @@ export function parseNewAssetSheet(sheetName: string, matrix: any[][]): DataSour
         currentAssetType = columnC;
         currentAssetTypeWasEmitted = false;
         currentAssetItem = "";
-        currentAssetItemWasEmitted = false;
       } else if (looksLikeAssetItemGroup(columnC)) {
         currentAssetItem = columnC;
-        currentAssetItemWasEmitted = false;
       } else {
         continue;
       }
@@ -63,13 +60,9 @@ export function parseNewAssetSheet(sheetName: string, matrix: any[][]): DataSour
     const nextAssetItem = looksLikeAssetItemGroup(columnC) ? columnC : currentAssetItem;
     if (nextAssetItem && nextAssetItem !== currentAssetItem) {
       currentAssetItem = nextAssetItem;
-      currentAssetItemWasEmitted = false;
     }
     const sourceAssetItem = currentAssetItem;
-    const sourceAssetItemEmitOnce = Boolean(sourceAssetItem && !currentAssetItemWasEmitted);
-    if (sourceAssetItemEmitOnce) {
-      currentAssetItemWasEmitted = true;
-    }
+    const sourceAssetItemEmitOnce = Boolean(sourceAssetItem);
     const row = withCommonMeta(
       buildRawRow(headers, sourceRow),
       "NEW_ASSET_2567",

@@ -5,95 +5,95 @@
     "unreadableFiles": 0,
     "totalSheets": 198,
     "exportableSheets": 168,
-    "readySheets": 84,
-    "warningSheets": 84,
+    "readySheets": 0,
+    "warningSheets": 168,
     "reviewSheets": 0,
     "unsupportedSheets": 10,
     "skippedSheets": 20,
     "totalRows": 79767,
     "totalErrors": 0,
-    "totalWarnings": 148
+    "totalWarnings": 82021
   },
   "topIssueTypes": [
     {
-      "type": "warning:มูลค่า:ค่าควรเป็นตัวเลขในคอลัมน์ \"มูลค่า\" (พบค่า: กรมฯ ให้)",
-      "count": 6
+      "type": "warning:งานที่รับผิดชอบ:ค่าในคอลัมน์ \"งานที่รับผิดชอบ\" ไม่อยู่ใน Reference: ส่วนการโยธา/งานไฟฟ้าสาธารณะ",
+      "count": 8139
     },
     {
-      "type": "warning:มูลค่า:ค่าควรเป็นตัวเลขในคอลัมน์ \"มูลค่า\" (พบค่า:  งานธุรการ สำนักปลัดเทศบาล)",
-      "count": 6
+      "type": "warning:สำนัก:ค่าในคอลัมน์ \"สำนัก\" ไม่อยู่ใน Reference: สำนักช่าง",
+      "count": 7014
     },
     {
-      "type": "warning:แหล่งงบประมาณ:ค่าแหล่งงบประมาณไม่อยู่ใน Reference: เงินงบประมาณค้างจ่าย",
-      "count": 6
+      "type": "warning:อาคาร:ค่าในคอลัมน์ \"อาคาร\" ไม่อยู่ใน Reference: สำนักช่าง",
+      "count": 7014
     },
     {
-      "type": "warning:row:แถวส่งออกซ้ำกับแถวที่ 1 แบบทั้งแถว ระบบอนุญาตให้รหัสสินทรัพย์ซ้ำได้เฉพาะกรณีที่ข้อมูลช่องอื่นแตกต่างกัน",
-      "count": 6
+      "type": "warning:งานที่รับผิดชอบ:ค่าในคอลัมน์ \"งานที่รับผิดชอบ\" ไม่อยู่ใน Reference: ส่วนการโยธา / งานบำรุงรักษาอาคารและสถานที่",
+      "count": 5708
     },
     {
-      "type": "warning:sheet:ข้าม 8 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
-      "count": 5
+      "type": "warning:งานที่รับผิดชอบ:ค่าในคอลัมน์ \"งานที่รับผิดชอบ\" ไม่อยู่ใน Reference: งานธุรการ+สารบรรณ",
+      "count": 2311
     },
     {
-      "type": "warning:มูลค่า:ค่าควรเป็นตัวเลขในคอลัมน์ \"มูลค่า\" (พบค่า: บริจาค)",
-      "count": 4
+      "type": "warning:อาคาร:ค่าในคอลัมน์ \"อาคาร\" ไม่อยู่ใน Reference: สำนักปลัดเทศบาล",
+      "count": 2218
     },
     {
-      "type": "warning:sheet:ข้าม 1 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
-      "count": 4
+      "type": "warning:สำนัก:ค่าในคอลัมน์ \"สำนัก\" ไม่อยู่ใน Reference: สำนักปลัดเทศบาล",
+      "count": 2182
     },
     {
-      "type": "warning:sheet:ข้าม 2 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
-      "count": 4
+      "type": "warning:งานที่รับผิดชอบ:ค่าในคอลัมน์ \"งานที่รับผิดชอบ\" ไม่อยู่ใน Reference: ส่วนการโยธา / งานไฟฟ้าสาธารณะ",
+      "count": 2028
     },
     {
-      "type": "warning:sheet:ข้าม 4 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
-      "count": 4
+      "type": "warning:อาคาร:ค่าในคอลัมน์ \"อาคาร\" ไม่อยู่ใน Reference: ขอจำหน่าย",
+      "count": 1943
     },
     {
-      "type": "warning:sheet:ข้าม 5 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
-      "count": 4
+      "type": "warning:งานที่รับผิดชอบ:ค่าในคอลัมน์ \"งานที่รับผิดชอบ\" ไม่อยู่ใน Reference: งานธุรการ",
+      "count": 1934
     },
     {
-      "type": "warning:sheet:ข้าม 16 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
-      "count": 3
+      "type": "warning:สำนัก:ค่าในคอลัมน์ \"สำนัก\" ไม่อยู่ใน Reference: สำนักการศึกษา",
+      "count": 1810
     },
     {
-      "type": "warning:sheet:ข้าม 23 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
-      "count": 3
+      "type": "warning:อาคาร:ค่าในคอลัมน์ \"อาคาร\" ไม่อยู่ใน Reference: สำนักการศึกษา",
+      "count": 1810
     },
     {
-      "type": "warning:sheet:ข้าม 3 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
-      "count": 3
+      "type": "warning:งานที่รับผิดชอบ:ค่าในคอลัมน์ \"งานที่รับผิดชอบ\" ไม่อยู่ใน Reference: ตลาดอัศวิน",
+      "count": 1775
     },
     {
-      "type": "warning:sheet:ข้าม 7 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
-      "count": 3
+      "type": "warning:สำนัก:ค่าในคอลัมน์ \"สำนัก\" ไม่อยู่ใน Reference: กองสาธารณสุขและสิ่งแวดล้อม",
+      "count": 1686
     },
     {
-      "type": "warning:มูลค่า:ค่าควรเป็นตัวเลขในคอลัมน์ \"มูลค่า\" (พบค่า: มิวเซียมลำปาง)",
-      "count": 2
+      "type": "warning:อาคาร:ค่าในคอลัมน์ \"อาคาร\" ไม่อยู่ใน Reference: กองสาธารณสุขและสิ่งแวดล้อม",
+      "count": 1686
     },
     {
-      "type": "warning:row:แถวส่งออกซ้ำกับแถวที่ 285 แบบทั้งแถว ระบบอนุญาตให้รหัสสินทรัพย์ซ้ำได้เฉพาะกรณีที่ข้อมูลช่องอื่นแตกต่างกัน",
-      "count": 2
+      "type": "warning:สำนัก:ค่าในคอลัมน์ \"สำนัก\" ไม่อยู่ใน Reference: กองยุทธศาสตร์และงบประมาณ",
+      "count": 1084
     },
     {
-      "type": "warning:row:แถวส่งออกซ้ำกับแถวที่ 9 แบบทั้งแถว ระบบอนุญาตให้รหัสสินทรัพย์ซ้ำได้เฉพาะกรณีที่ข้อมูลช่องอื่นแตกต่างกัน",
-      "count": 2
+      "type": "warning:อาคาร:ค่าในคอลัมน์ \"อาคาร\" ไม่อยู่ใน Reference: กองยุทธศาสตร์และงบประมาณ",
+      "count": 1084
     },
     {
-      "type": "warning:sheet:ข้าม 10 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
-      "count": 2
+      "type": "warning:อาคาร:ค่าในคอลัมน์ \"อาคาร\" ไม่อยู่ใน Reference: กองคลัง",
+      "count": 1025
     },
     {
-      "type": "warning:sheet:ข้าม 14 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
-      "count": 2
+      "type": "warning:งานที่รับผิดชอบ:ค่าในคอลัมน์ \"งานที่รับผิดชอบ\" ไม่อยู่ใน Reference: งานป้องกันฯ",
+      "count": 892
     },
     {
-      "type": "warning:sheet:ข้าม 15 แถวที่มีลำดับ/ชื่อ แต่ไม่มีรหัสสินทรัพย์ที่สมบูรณ์",
-      "count": 2
+      "type": "warning:งานที่รับผิดชอบ:ค่าในคอลัมน์ \"งานที่รับผิดชอบ\" ไม่อยู่ใน Reference: งานรักษาฯ",
+      "count": 770
     }
   ],
   "files": [
@@ -108,12 +108,12 @@
           "sheetName": "สำนักงาน",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 59,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 66
         },
         {
           "sheetName": "คอมพิวเตอร์",
@@ -124,29 +124,29 @@
           "reason": "validated with no blocking errors",
           "rowCount": 65,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 67
         },
         {
           "sheetName": "วิทยาศาสตร์และการแพทย์",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 1,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 3
         },
         {
           "sheetName": "ต่ำกว่าเกณฑ์",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 8,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 10
         }
       ]
     },
@@ -172,12 +172,12 @@
           "sheetName": "ต่ำกว่าเกณฑ์67",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 77,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 77
         },
         {
           "sheetName": "งบ67",
@@ -199,7 +199,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 865,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 739
         },
         {
           "sheetName": "คอมพิวเตอร์",
@@ -210,117 +210,117 @@
           "reason": "validated with no blocking errors",
           "rowCount": 290,
           "errorCount": 0,
-          "warningCount": 3
+          "warningCount": 251
         },
         {
           "sheetName": "ไฟฟ้าและวิทยุ",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 175,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 150
         },
         {
           "sheetName": "การศึกษา",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 5,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 5
         },
         {
           "sheetName": "ยานพาหนะ",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 1,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 1
         },
         {
           "sheetName": "งานบ้าน",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 45,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 40
         },
         {
           "sheetName": "โฆษณา",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 46,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 46
         },
         {
           "sheetName": "การเกษตร",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 3,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 2
         },
         {
           "sheetName": "วิทยาศาสตร์",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 12,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 12
         },
         {
           "sheetName": "ก่อสร้าง",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 1,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 1
         },
         {
           "sheetName": "กีฬา",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 277,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 3
         },
         {
           "sheetName": "โรงงาน",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 2,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 2
         },
         {
           "sheetName": "อื่นๆ",
@@ -331,7 +331,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 11,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 12
         }
       ]
     },
@@ -351,7 +351,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 25,
           "errorCount": 0,
-          "warningCount": 2
+          "warningCount": 39
         },
         {
           "sheetName": "ตัดจำหน่าย2567",
@@ -362,7 +362,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 137,
           "errorCount": 0,
-          "warningCount": 2
+          "warningCount": 69
         },
         {
           "sheetName": "โอน2567",
@@ -373,29 +373,29 @@
           "reason": "validated with no blocking errors",
           "rowCount": 115,
           "errorCount": 0,
-          "warningCount": 7
+          "warningCount": 134
         },
         {
           "sheetName": "ครุภัณฑ์ใหม่2567 ต่ำกว่าเกณฑ์",
           "detectedProfile": "newAsset",
           "sourceProfile": "NEW_ASSET_2567",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 136,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 143
         },
         {
           "sheetName": "โอนอาคาร2567",
           "detectedProfile": "transfer",
           "sourceProfile": "TRANSFER_2567",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 1,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 2
         },
         {
           "sheetName": "แบบกข.",
@@ -417,7 +417,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 6,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 8
         },
         {
           "sheetName": "สิ่งปลูกสร้าง",
@@ -428,7 +428,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 125,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 127
         },
         {
           "sheetName": "สำนักงาน",
@@ -439,117 +439,117 @@
           "reason": "validated with no blocking errors",
           "rowCount": 1212,
           "errorCount": 0,
-          "warningCount": 8
+          "warningCount": 1228
         },
         {
           "sheetName": "ยานพาหนะฯ",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 58,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 61
         },
         {
           "sheetName": "การเกษตร",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 25,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 27
         },
         {
           "sheetName": "ไฟฟ้าและวิทยุ",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 155,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 163
         },
         {
           "sheetName": "โฆษณา",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 46,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 54
         },
         {
           "sheetName": "วิทยาศาสตร์",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 20,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 23
         },
         {
           "sheetName": "งานบ้านงานครัว",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 71,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 77
         },
         {
           "sheetName": "โรงงาน",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 12,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 15
         },
         {
           "sheetName": "อื่นๆ",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 20,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 22
         },
         {
           "sheetName": "กีฬา",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 5,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 6
         },
         {
           "sheetName": "ศึกษา",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 6,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 7
         },
         {
           "sheetName": "คอมพิวเตอร์",
@@ -560,7 +560,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 210,
           "errorCount": 0,
-          "warningCount": 4
+          "warningCount": 189
         },
         {
           "sheetName": "ส่งคลัง (ต)",
@@ -571,7 +571,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 217,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 193
         }
       ]
     },
@@ -591,7 +591,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 14933,
           "errorCount": 0,
-          "warningCount": 5
+          "warningCount": 28377
         },
         {
           "sheetName": "Sheet2",
@@ -613,7 +613,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 14558,
           "errorCount": 0,
-          "warningCount": 2
+          "warningCount": 94
         }
       ]
     },
@@ -633,7 +633,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 1157,
           "errorCount": 0,
-          "warningCount": 2
+          "warningCount": 2346
         },
         {
           "sheetName": "คุรุภัณพ์สำนักงาน รวมทุกงาน",
@@ -644,7 +644,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 6125,
           "errorCount": 0,
-          "warningCount": 4
+          "warningCount": 9519
         }
       ]
     },
@@ -659,12 +659,12 @@
           "sheetName": "สำนักงาน",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 59,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 66
         },
         {
           "sheetName": "คอมพิวเตอร์",
@@ -675,29 +675,29 @@
           "reason": "validated with no blocking errors",
           "rowCount": 65,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 67
         },
         {
           "sheetName": "วิทยาศาสตร์และการแพทย์",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 1,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 3
         },
         {
           "sheetName": "ต่ำกว่าเกณฑ์",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 8,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 10
         }
       ]
     },
@@ -745,12 +745,12 @@
           "sheetName": "อสังหาริมทรัพย์ (2)",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 4,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 4
         },
         {
           "sheetName": "สำนักงาน (2)",
@@ -761,51 +761,51 @@
           "reason": "validated with no blocking errors",
           "rowCount": 502,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 521
         },
         {
           "sheetName": " ยานพาหนะและขนส่ง (2)",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 7,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 8
         },
         {
           "sheetName": "โฆษณาและเผยแพร่ (2)",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 11,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 15
         },
         {
           "sheetName": "สำรวจ (2)",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 2,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 3
         },
         {
           "sheetName": "งานบ้านงานครัว (2)",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 6,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 8
         },
         {
           "sheetName": "คอมพิวเตอร์ (2)",
@@ -816,7 +816,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 301,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 303
         },
         {
           "sheetName": "จำหน่าย (2)",
@@ -827,29 +827,29 @@
           "reason": "validated with no blocking errors",
           "rowCount": 36,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 46
         },
         {
           "sheetName": "กองคลัง (รวม) (ต) (2)",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 191,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 203
         },
         {
           "sheetName": "จำหน่าย (ต) (2)",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 8,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 13
         }
       ]
     },
@@ -864,34 +864,34 @@
           "sheetName": "สำนักงาน",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 120,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 128
         },
         {
           "sheetName": "คอมพิวเตอร์",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 20,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 20
         },
         {
           "sheetName": "ต่ำกว่าเกณฑ์",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 3,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 6
         },
         {
           "sheetName": "Sheet1",
@@ -917,34 +917,34 @@
           "sheetName": "1.สำนักงาน",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 12,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 15
         },
         {
           "sheetName": "5.คอมพิวเตอร์",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 16,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 16
         },
         {
           "sheetName": "ต่ำกว่าเกณฑ์",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 4,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 6
         },
         {
           "sheetName": "Sheet1",
@@ -981,34 +981,34 @@
           "sheetName": "สำนักงาน",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 16,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 19
         },
         {
           "sheetName": "คอมพิวเตอร์",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 11,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 11
         },
         {
           "sheetName": "ต่ำกว่าเกณฑ์",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 1,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 2
         }
       ]
     },
@@ -1023,23 +1023,23 @@
           "sheetName": "ครุภัณฑ์งานวิจัย2566",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 18,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 21
         },
         {
           "sheetName": "Sheet1",
           "detectedProfile": "unknown",
           "sourceProfile": "FLEXIBLE_ASSET_TABLE",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 11,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 9
         }
       ]
     },
@@ -1054,34 +1054,34 @@
           "sheetName": "สำนักงาน",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 15,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 16
         },
         {
           "sheetName": "คอมพิวเตอร์",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 49,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 50
         },
         {
           "sheetName": "ต่ำกว่าเกณฑ์",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 1,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 1
         }
       ]
     },
@@ -1101,40 +1101,40 @@
           "reason": "validated with no blocking errors",
           "rowCount": 37,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 38
         },
         {
           "sheetName": "1.สำนักงาน",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 80,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 92
         },
         {
           "sheetName": "2.ไฟฟ้า",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 565,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 570
         },
         {
           "sheetName": "3.โฆษณา",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 44,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 52
         },
         {
           "sheetName": "5.คอมพิวเตอร์",
@@ -1145,29 +1145,29 @@
           "reason": "validated with no blocking errors",
           "rowCount": 26,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 27
         },
         {
           "sheetName": "6.ยานพาหนะ",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 1,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 1
         },
         {
           "sheetName": "ต่ำกว่าเกณฑ์ ",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 63,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 65
         },
         {
           "sheetName": "Sheet1",
@@ -1195,12 +1195,12 @@
           "sheetName": "Sheet3",
           "detectedProfile": "unknown",
           "sourceProfile": "FLEXIBLE_ASSET_TABLE",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 8,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 1
         }
       ]
     },
@@ -1231,7 +1231,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 1544,
           "errorCount": 0,
-          "warningCount": 2
+          "warningCount": 1413
         },
         {
           "sheetName": "ปกติ(ชำรุด)",
@@ -1242,7 +1242,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 95,
           "errorCount": 0,
-          "warningCount": 2
+          "warningCount": 94
         },
         {
           "sheetName": "3.ตำกว่าเกณฑ์",
@@ -1253,7 +1253,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 204,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 205
         },
         {
           "sheetName": "ต่ำกว่าเกณฑ์(ชำรุด)",
@@ -1264,7 +1264,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 10,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 11
         },
         {
           "sheetName": "สรุป",
@@ -1286,7 +1286,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 1200,
           "errorCount": 0,
-          "warningCount": 2
+          "warningCount": 1082
         },
         {
           "sheetName": "3.ยานพาหนะ",
@@ -1297,7 +1297,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 39,
           "errorCount": 0,
-          "warningCount": 2
+          "warningCount": 38
         },
         {
           "sheetName": "4.เกษตร",
@@ -1308,7 +1308,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 20,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 19
         },
         {
           "sheetName": "5.ก่อสร้าง",
@@ -1319,7 +1319,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 49,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 42
         },
         {
           "sheetName": "6.ไฟฟ้า",
@@ -1330,7 +1330,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 26,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 23
         },
         {
           "sheetName": "7.โมษณา",
@@ -1341,7 +1341,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 9,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 10
         },
         {
           "sheetName": "8.วิทยาศาสตร์",
@@ -1352,7 +1352,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 134,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 135
         },
         {
           "sheetName": "9.งานบ้าน",
@@ -1363,29 +1363,29 @@
           "reason": "validated with no blocking errors",
           "rowCount": 85,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 85
         },
         {
           "sheetName": "10.โรงงาน",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 1,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 1
         },
         {
           "sheetName": "12.กีฬา",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 46,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 46
         },
         {
           "sheetName": "15.คอม",
@@ -1396,7 +1396,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 77,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 78
         },
         {
           "sheetName": "หน้าคั่น",
@@ -1444,12 +1444,12 @@
           "sheetName": "ต่ำกว่าเกณฑ์67",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 77,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 77
         },
         {
           "sheetName": "งบ67",
@@ -1471,7 +1471,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 865,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 739
         },
         {
           "sheetName": "คอมพิวเตอร์",
@@ -1482,117 +1482,117 @@
           "reason": "validated with no blocking errors",
           "rowCount": 290,
           "errorCount": 0,
-          "warningCount": 3
+          "warningCount": 251
         },
         {
           "sheetName": "ไฟฟ้าและวิทยุ",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 175,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 150
         },
         {
           "sheetName": "การศึกษา",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 5,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 5
         },
         {
           "sheetName": "ยานพาหนะ",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 1,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 1
         },
         {
           "sheetName": "งานบ้าน",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 45,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 40
         },
         {
           "sheetName": "โฆษณา",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 46,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 46
         },
         {
           "sheetName": "การเกษตร",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 3,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 2
         },
         {
           "sheetName": "วิทยาศาสตร์",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 12,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 12
         },
         {
           "sheetName": "ก่อสร้าง",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 1,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 1
         },
         {
           "sheetName": "กีฬา",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 277,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 3
         },
         {
           "sheetName": "โรงงาน",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 2,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 2
         },
         {
           "sheetName": "อื่นๆ",
@@ -1603,7 +1603,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 11,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 12
         }
       ]
     },
@@ -1623,7 +1623,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 171,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 144
         },
         {
           "sheetName": "ซ่อมบำรุงครุภัณฑ์66 ต่ำเกณ",
@@ -1678,7 +1678,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 21,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 22
         },
         {
           "sheetName": "ครุภัณฑ์67",
@@ -1689,7 +1689,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 240,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 213
         }
       ]
     },
@@ -1709,7 +1709,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 57,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 58
         },
         {
           "sheetName": "ครุภัณฑ์ต่ำกว่าเกณฑ์ ตามรหัส",
@@ -1720,18 +1720,18 @@
           "reason": "validated with no blocking errors",
           "rowCount": 30,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 31
         },
         {
           "sheetName": "จำหน่าย",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 2,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 2
         },
         {
           "sheetName": "งบทรัพย์สิน",
@@ -1773,7 +1773,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 1742,
           "errorCount": 0,
-          "warningCount": 2
+          "warningCount": 1741
         },
         {
           "sheetName": "2.ครุภัณฑ์ยานพาหนะฯ (รวมทุกงาน)",
@@ -1784,7 +1784,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 113,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 114
         },
         {
           "sheetName": "3. ครุภัณฑ์การเกษตร(รวมทุกงาน)",
@@ -1795,7 +1795,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 140,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 141
         },
         {
           "sheetName": "4.ครุภัณฑ์ก่อสร้าง",
@@ -1806,7 +1806,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 61,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 62
         },
         {
           "sheetName": "5. ครุภัณฑ์ไฟฟ้าฯ",
@@ -1817,7 +1817,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 3065,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 3066
         },
         {
           "sheetName": "6. ครุภัณฑ์โฆษณาและเผยแพร่",
@@ -1828,7 +1828,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 13,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 14
         },
         {
           "sheetName": "7.ครุภัณฑ์วิทยาศาสตร์ฯ",
@@ -1839,7 +1839,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 12,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 9
         },
         {
           "sheetName": "8.ครุภัณฑ์งานบ้านฯ",
@@ -1850,7 +1850,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 54,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 55
         },
         {
           "sheetName": "9.ครุภัณฑ์โรงงาน",
@@ -1861,7 +1861,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 81,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 79
         },
         {
           "sheetName": "10.ครุภัณฑ์กีฬา",
@@ -1872,7 +1872,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 115,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 116
         },
         {
           "sheetName": "11.ครุภัณฑ์สำรวจ",
@@ -1883,7 +1883,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 6,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 7
         },
         {
           "sheetName": "12.ครุภัณฑ์คอมฯ",
@@ -1894,7 +1894,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 99,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 101
         },
         {
           "sheetName": "13.ครุภัณฑ์อื่น",
@@ -1905,7 +1905,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 69,
           "errorCount": 0,
-          "warningCount": 3
+          "warningCount": 72
         },
         {
           "sheetName": "14.ครุภัณฑ์ต่ำกว่าเกณฑ์",
@@ -1916,7 +1916,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 362,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 363
         },
         {
           "sheetName": "15.ครุภัณฑ์ไม่แสดงในงบ",
@@ -1927,7 +1927,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 625,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 626
         },
         {
           "sheetName": "16.ที่ดินและสิ่งก่อสร้าง",
@@ -1938,7 +1938,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 40,
           "errorCount": 0,
-          "warningCount": 3
+          "warningCount": 39
         },
         {
           "sheetName": "ชำรุด_จำหน่าย 67",
@@ -1949,7 +1949,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 41,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 42
         },
         {
           "sheetName": "เสื่อมสภาพ_จำหน่าย 67",
@@ -1960,7 +1960,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 2161,
           "errorCount": 0,
-          "warningCount": 2
+          "warningCount": 2163
         },
         {
           "sheetName": "อื่นๆ_จำหน่าย 67",
@@ -1971,7 +1971,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 5,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 6
         }
       ]
     },
@@ -1991,7 +1991,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 25,
           "errorCount": 0,
-          "warningCount": 2
+          "warningCount": 39
         },
         {
           "sheetName": "ตัดจำหน่าย2567",
@@ -2002,7 +2002,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 137,
           "errorCount": 0,
-          "warningCount": 2
+          "warningCount": 69
         },
         {
           "sheetName": "โอน2567",
@@ -2013,29 +2013,29 @@
           "reason": "validated with no blocking errors",
           "rowCount": 115,
           "errorCount": 0,
-          "warningCount": 7
+          "warningCount": 134
         },
         {
           "sheetName": "ครุภัณฑ์ใหม่2567 ต่ำกว่าเกณฑ์",
           "detectedProfile": "newAsset",
           "sourceProfile": "NEW_ASSET_2567",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 136,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 143
         },
         {
           "sheetName": "โอนอาคาร2567",
           "detectedProfile": "transfer",
           "sourceProfile": "TRANSFER_2567",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 1,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 2
         },
         {
           "sheetName": "แบบกข.",
@@ -2057,7 +2057,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 6,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 8
         },
         {
           "sheetName": "สิ่งปลูกสร้าง",
@@ -2068,7 +2068,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 125,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 127
         },
         {
           "sheetName": "สำนักงาน",
@@ -2079,117 +2079,117 @@
           "reason": "validated with no blocking errors",
           "rowCount": 1212,
           "errorCount": 0,
-          "warningCount": 8
+          "warningCount": 1228
         },
         {
           "sheetName": "ยานพาหนะฯ",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 58,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 61
         },
         {
           "sheetName": "การเกษตร",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 25,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 27
         },
         {
           "sheetName": "ไฟฟ้าและวิทยุ",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 155,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 163
         },
         {
           "sheetName": "โฆษณา",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 46,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 54
         },
         {
           "sheetName": "วิทยาศาสตร์",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 20,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 23
         },
         {
           "sheetName": "งานบ้านงานครัว",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 71,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 77
         },
         {
           "sheetName": "โรงงาน",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 12,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 15
         },
         {
           "sheetName": "อื่นๆ",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 20,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 22
         },
         {
           "sheetName": "กีฬา",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 5,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 6
         },
         {
           "sheetName": "ศึกษา",
           "detectedProfile": "registry",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 6,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 7
         },
         {
           "sheetName": "คอมพิวเตอร์",
@@ -2200,7 +2200,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 210,
           "errorCount": 0,
-          "warningCount": 4
+          "warningCount": 189
         },
         {
           "sheetName": "ส่งคลัง (ต)",
@@ -2211,7 +2211,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 217,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 193
         }
       ]
     },
@@ -2231,7 +2231,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 15160,
           "errorCount": 0,
-          "warningCount": 2
+          "warningCount": 15397
         },
         {
           "sheetName": "Help",
@@ -2273,7 +2273,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 1544,
           "errorCount": 0,
-          "warningCount": 2
+          "warningCount": 1413
         },
         {
           "sheetName": "ปกติ(ชำรุด)",
@@ -2284,7 +2284,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 95,
           "errorCount": 0,
-          "warningCount": 2
+          "warningCount": 94
         },
         {
           "sheetName": "3.ตำกว่าเกณฑ์",
@@ -2295,7 +2295,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 204,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 205
         },
         {
           "sheetName": "ต่ำกว่าเกณฑ์(ชำรุด)",
@@ -2306,7 +2306,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 10,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 11
         },
         {
           "sheetName": "สรุป",
@@ -2328,7 +2328,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 1200,
           "errorCount": 0,
-          "warningCount": 2
+          "warningCount": 1082
         },
         {
           "sheetName": "3.ยานพาหนะ",
@@ -2339,7 +2339,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 39,
           "errorCount": 0,
-          "warningCount": 2
+          "warningCount": 38
         },
         {
           "sheetName": "4.เกษตร",
@@ -2350,7 +2350,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 20,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 19
         },
         {
           "sheetName": "5.ก่อสร้าง",
@@ -2361,7 +2361,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 49,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 42
         },
         {
           "sheetName": "6.ไฟฟ้า",
@@ -2372,7 +2372,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 26,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 23
         },
         {
           "sheetName": "7.โมษณา",
@@ -2383,7 +2383,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 9,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 10
         },
         {
           "sheetName": "8.วิทยาศาสตร์",
@@ -2394,7 +2394,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 134,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 135
         },
         {
           "sheetName": "9.งานบ้าน",
@@ -2405,29 +2405,29 @@
           "reason": "validated with no blocking errors",
           "rowCount": 85,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 85
         },
         {
           "sheetName": "10.โรงงาน",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 1,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 1
         },
         {
           "sheetName": "12.กีฬา",
           "detectedProfile": "disposal",
           "sourceProfile": "REGISTER_3_ROW_HEADER",
-          "status": "ready",
+          "status": "warning",
           "eligibility": "exportable",
           "reason": "validated with no blocking errors",
           "rowCount": 46,
           "errorCount": 0,
-          "warningCount": 0
+          "warningCount": 46
         },
         {
           "sheetName": "15.คอม",
@@ -2438,7 +2438,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 77,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 78
         },
         {
           "sheetName": "หน้าคั่น",

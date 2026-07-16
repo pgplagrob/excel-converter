@@ -207,7 +207,10 @@ export function parseFlexibleAssetSheet(
     const assetCategoryIndex = findColumnIndex(headers, ["ประเภทสินทรัพย์"]);
     const receivedDateIndex = findColumnIndex(headers, ["วันที่ได้มา", "วันที่ได้รับ", "วันเดือนปี"]);
     const valueIndex = findColumnIndex(headers, ["ราคาสินทรัพย์", "มูลค่าสินทรัพย์", "ราคาที่ได้มา", "มูลค่า"]);
-    const responsibleUnitIndex = findColumnIndex(headers, ["งานที่รับผิดชอบ", "หน่วยงาน"]);
+    const responsibleUnitIndex =
+      findColumnIndex(headers, ["งานที่รับผิดชอบ", "หน่วยงาน"]) >= 0
+        ? findColumnIndex(headers, ["งานที่รับผิดชอบ", "หน่วยงาน"])
+        : findColumnIndex(headers, ["งาน"]);
     const locationIndex = findColumnIndex(headers, ["อาคาร", "สถานที่ตั้ง"]);
     const acquiredByIndex = findColumnIndex(headers, ["ได้มาโดย"]);
     const acquiredFromIndex = findColumnIndex(headers, ["ได้มาจาก"]);
