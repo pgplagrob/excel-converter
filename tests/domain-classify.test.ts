@@ -117,6 +117,59 @@ test("invalid / mismatched cutoff blocks an in-scope candidate (no silent fallba
   assert.ok(mismatch.reasonCodes.includes("CUTOFF_FISCAL_YEAR_MISMATCH"));
 });
 
+test("cutoff validation covers land / below-threshold / equipment-before-2560 (runs before C1/C2/C4)", () => {
+  // Land + invalid cutoff -> blocked (previously land short-circuited to สท.2).
+  const land = classifyReport(
+    baseAsset({ assetGroup: "LAND", acquisitionDateISO: "2015-01-01", costSatang: baht(50_000_000) }),
+    { ...basePolicy(), cutoffDateISO: "not-a-date" },
+  );
+  assert.equal(land.classification, "NEEDS_REVIEW");
+  assert.ok(land.reasonCodes.includes("INVALID_CUTOFF_DATE"));
+
+  // Below-threshold + mismatched cutoff -> blocked.
+  const below = classifyReport(
+    equipment({ costSatang: baht(9000) }),
+    { ...officePolicy, cutoffDateISO: "2018-09-30", fiscalYearBE: 2560 },
+  );
+  assert.equal(below.classification, "NEEDS_REVIEW");
+  assert.ok(below.reasonCodes.includes("CUTOFF_FISCAL_YEAR_MISMATCH"));
+});
+
+test("acquisition after cutoff is blocked for a below-threshold item (no day-15 policy needed)", () => {
+  const result = classifyReport(
+    equipment({ costSatang: baht(9000), acquisitionDateISO: "2019-01-01" }),
+    officePolicy, // acquisitionDay15Rule undefined
+  );
+  assert.equal(result.classification, "NEEDS_REVIEW");
+  assert.ok(result.reasonCodes.includes("ACQUIRED_AFTER_CUTOFF"));
+  assert.ok(!result.reasonCodes.includes("DAY15_POLICY_REQUIRED"));
+});
+
+test("non-depreciated items on the 15th do not require the day-15 policy", () => {
+  // Below-threshold item acquired on the 15th, no day-15 policy -> still สท.3.
+  const below = classifyReport(
+    equipment({ costSatang: baht(9000), acquisitionDateISO: "2018-04-15" }),
+    officePolicy,
+  );
+  assert.equal(below.classification, "SOR_THOR_3");
+  assert.ok(!below.reasonCodes.includes("DAY15_POLICY_REQUIRED"));
+});
+
+test("invalid numeric cost is distinguished from negative cost", () => {
+  const nan = classifyReport(equipment({ costSatang: Number.NaN }), officePolicy);
+  assert.ok(nan.reasonCodes.includes("INVALID_COST_NOT_FINITE"));
+
+  const inf = classifyReport(equipment({ costSatang: Number.POSITIVE_INFINITY }), officePolicy);
+  assert.ok(inf.reasonCodes.includes("INVALID_COST_NOT_FINITE"));
+
+  const fractional = classifyReport(equipment({ costSatang: 100.5 }), officePolicy);
+  assert.ok(fractional.reasonCodes.includes("INVALID_COST_NOT_INTEGER"));
+
+  const negative = classifyReport(equipment({ costSatang: -100 }), officePolicy);
+  assert.ok(negative.reasonCodes.includes("NEGATIVE_COST"));
+  assert.ok(!negative.reasonCodes.includes("INVALID_COST_NOT_FINITE"));
+});
+
 test("all 8 asset groups (สท.1 sections 1-8) are classified without falling through", () => {
   // Representative useful-life key per group (LAND is non-depreciable, no key).
   const groupToLifeKey: Record<AssetGroup, UsefulLifeCategoryKey | null> = {

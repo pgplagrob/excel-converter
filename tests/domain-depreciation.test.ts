@@ -226,6 +226,80 @@ test("source life and source rate that contradict each other are flagged", () =>
   assert.ok(result.reasonCodes.includes("SOURCE_LIFE_RATE_INTERNAL_CONFLICT"));
 });
 
+test("source accumulated depreciation that is negative or exceeds cost is flagged (even for สท.3)", () => {
+  // Below-threshold (non-depreciated) item still surfaces source data problems.
+  const negative = calculateDepreciation(
+    baseAsset({
+      assetGroup: "EQUIPMENT",
+      usefulLifeCategoryKey: "EQUIP_OFFICE",
+      acquisitionDateISO: "2018-03-01",
+      costSatang: baht(9000),
+      sourceAccumulatedDepreciationSatang: baht(-100),
+    }),
+    basePolicy(),
+  );
+  assert.equal(negative.shouldDepreciate, false);
+  assert.ok(negative.reasonCodes.includes("SOURCE_ACCUM_NEGATIVE"));
+
+  const over = calculateDepreciation(
+    baseAsset({
+      assetGroup: "EQUIPMENT",
+      usefulLifeCategoryKey: "EQUIP_OFFICE",
+      acquisitionDateISO: "2018-03-01",
+      costSatang: baht(9000),
+      sourceAccumulatedDepreciationSatang: baht(9500),
+    }),
+    basePolicy(),
+  );
+  assert.ok(over.reasonCodes.includes("SOURCE_ACCUM_EXCEEDS_COST"));
+});
+
+test("source net book value inconsistent with cost - source accumulated is flagged", () => {
+  const result = calculateDepreciation(
+    baseAsset({
+      assetGroup: "EQUIPMENT",
+      usefulLifeCategoryKey: "EQUIP_OFFICE",
+      acquisitionDateISO: "2018-03-01",
+      costSatang: baht(9000),
+      sourceAccumulatedDepreciationSatang: baht(2000),
+      sourceNetBookValueSatang: baht(5000), // should be 7,000
+    }),
+    basePolicy(),
+  );
+  assert.ok(result.reasonCodes.includes("SOURCE_NBV_INCONSISTENT"));
+});
+
+test("source net book value differing from the calculated net book value is flagged", () => {
+  const policy = withUsefulLife(basePolicy(), "EQUIP_OFFICE", 8, 3, 12);
+  const result = calculateDepreciation(
+    baseAsset({
+      assetGroup: "EQUIPMENT",
+      usefulLifeCategoryKey: "EQUIP_OFFICE",
+      acquisitionDateISO: "2017-04-01",
+      costSatang: baht(48000), // calc net = 48,000 - 9,000 = 39,000
+      sourceNetBookValueSatang: baht(30000),
+    }),
+    policy,
+  );
+  assert.equal(result.shouldDepreciate, true);
+  assert.ok(result.reasonCodes.includes("SOURCE_NBV_VS_CALC_VARIANCE"));
+});
+
+test("a negative residual policy is blocked (must not let depreciation exceed cost)", () => {
+  const policy = withUsefulLife(basePolicy({ residualBookValueSatang: -100 }), "EQUIP_OFFICE", 8, 3, 12);
+  const result = calculateDepreciation(
+    baseAsset({
+      assetGroup: "EQUIPMENT",
+      usefulLifeCategoryKey: "EQUIP_OFFICE",
+      acquisitionDateISO: "2017-04-01",
+      costSatang: baht(48000),
+    }),
+    policy,
+  );
+  assert.equal(result.shouldDepreciate, false);
+  assert.ok(result.blockingIssues.includes("INVALID_RESIDUAL_POLICY"));
+});
+
 test("consistent source life+rate produces no source conflicts", () => {
   const policy = withUsefulLife(basePolicy(), "EQUIP_OFFICE", 8, 3, 12);
   const result = calculateDepreciation(

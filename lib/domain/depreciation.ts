@@ -136,6 +136,29 @@ function sourceConsistencyIssues(
   return codes;
 }
 
+/**
+ * Source cross-field checks that do not require a calculated value, so they
+ * apply to every asset once cost is valid — including non-depreciated ones.
+ */
+function sourceInternalIssues(asset: NormalizedAsset, costSatang: number): ReasonCode[] {
+  const codes: ReasonCode[] = [];
+  const accum = asset.sourceAccumulatedDepreciationSatang;
+  const nbv = asset.sourceNetBookValueSatang;
+  const hasAccum = accum !== undefined && accum !== null && Number.isFinite(accum);
+  const hasNbv = nbv !== undefined && nbv !== null && Number.isFinite(nbv);
+
+  if (hasAccum && (accum as number) < 0) codes.push(REASON.SOURCE_ACCUM_NEGATIVE);
+  if (hasAccum && (accum as number) > costSatang) codes.push(REASON.SOURCE_ACCUM_EXCEEDS_COST);
+  if (hasAccum && hasNbv && Math.abs((nbv as number) - (costSatang - (accum as number))) > VARIANCE_TOLERANCE_SATANG) {
+    codes.push(REASON.SOURCE_NBV_INCONSISTENT);
+  }
+  return codes;
+}
+
+function isValidResidualPolicy(residualSatang: number): boolean {
+  return Number.isFinite(residualSatang) && Number.isInteger(residualSatang) && residualSatang >= 0;
+}
+
 function nonDepreciated(
   asset: NormalizedAsset,
   policy: ReportingPolicy,
@@ -219,21 +242,29 @@ export function calculateDepreciation(
     return blocked(asset, policy, classification.reasonCodes, steps);
   }
 
+  // Classification passed, so cost is valid (finite, integer, non-negative).
+  const cost = asset.costSatang as number;
+  const internalIssues = sourceInternalIssues(asset, cost);
+
   // Explicitly non-depreciated report cases (no reported depreciation figures).
   if (classification.reasonCodes.includes(REASON.LAND_NON_DEPRECIABLE)) {
-    return nonDepreciated(asset, policy, [REASON.NON_DEPRECIABLE_BY_RULE, REASON.LAND_NON_DEPRECIABLE], steps);
+    return nonDepreciated(asset, policy, [REASON.NON_DEPRECIABLE_BY_RULE, REASON.LAND_NON_DEPRECIABLE, ...internalIssues], steps);
   }
   if (classification.reasonCodes.includes(REASON.BELOW_THRESHOLD)) {
-    return nonDepreciated(asset, policy, [REASON.NOT_DEPRECIATED_BELOW_THRESHOLD], steps);
+    return nonDepreciated(asset, policy, [REASON.NOT_DEPRECIATED_BELOW_THRESHOLD, ...internalIssues], steps);
   }
   if (classification.reasonCodes.includes(REASON.EQUIPMENT_BEFORE_FY2560)) {
-    return nonDepreciated(asset, policy, [REASON.NOT_DEPRECIATED_EQUIPMENT_BEFORE_FY2560], steps);
+    return nonDepreciated(asset, policy, [REASON.NOT_DEPRECIATED_EQUIPMENT_BEFORE_FY2560, ...internalIssues], steps);
   }
   if (classification.classification === "EXCLUDED") {
-    return nonDepreciated(asset, policy, [REASON.OUT_OF_REPORT_SCOPE], steps);
+    return nonDepreciated(asset, policy, [REASON.OUT_OF_REPORT_SCOPE, ...internalIssues], steps);
   }
 
-  const cost = asset.costSatang as number;
+  // A malformed residual would let accumulated depreciation exceed cost — block.
+  if (!isValidResidualPolicy(policy.residualBookValueSatang)) {
+    return blocked(asset, policy, [REASON.INVALID_RESIDUAL_POLICY], steps);
+  }
+
   const timing = resolveTiming(asset, policy);
   if (!timing.ok) return blocked(asset, policy, [timing.blocking], steps);
   const { life, rangeMin, rangeMax, elapsedMonths } = timing;
@@ -259,7 +290,14 @@ export function calculateDepreciation(
     cappedAtResidual: line.capped,
   };
 
-  const sourceIssues = sourceConsistencyIssues(asset, life, line.ratePct, line.accumulated);
+  const sourceIssues: ReasonCode[] = [
+    ...internalIssues,
+    ...sourceConsistencyIssues(asset, life, line.ratePct, line.accumulated),
+  ];
+  const srcNbv = asset.sourceNetBookValueSatang;
+  if (srcNbv !== undefined && srcNbv !== null && Number.isFinite(srcNbv) && Math.abs(srcNbv - line.net) > VARIANCE_TOLERANCE_SATANG) {
+    sourceIssues.push(REASON.SOURCE_NBV_VS_CALC_VARIANCE);
+  }
 
   // A fully depreciated asset is reported in สท.3: it must NOT be shown as
   // actively depreciating. Its arithmetic is exposed only as evidence.

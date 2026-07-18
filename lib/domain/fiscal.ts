@@ -50,6 +50,15 @@ export function isValidIsoDate(value: string | null | undefined): boolean {
   return parseIsoDate(value) !== null;
 }
 
+function dateOrdinal(date: CalendarDate): number {
+  return date.year * 10000 + date.month * 100 + date.day;
+}
+
+/** True if `a` falls strictly after `b` on the calendar (day granularity). */
+export function isDateAfter(a: CalendarDate, b: CalendarDate): boolean {
+  return dateOrdinal(a) > dateOrdinal(b);
+}
+
 /**
  * The Buddhist-Era fiscal year that a Gregorian date belongs to.
  * October–December belongs to the next fiscal year.

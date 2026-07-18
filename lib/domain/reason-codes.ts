@@ -21,9 +21,12 @@ export const REASON = {
 
   // --- NEEDS_REVIEW / blocking reasons (missing data or unresolved policy) ---
   MISSING_COST: "MISSING_COST",
+  INVALID_COST_NOT_FINITE: "INVALID_COST_NOT_FINITE",
+  INVALID_COST_NOT_INTEGER: "INVALID_COST_NOT_INTEGER",
   MISSING_ACQUISITION_DATE: "MISSING_ACQUISITION_DATE",
   INVALID_ACQUISITION_DATE: "INVALID_ACQUISITION_DATE",
   MISSING_ASSET_GROUP: "MISSING_ASSET_GROUP",
+  INVALID_RESIDUAL_POLICY: "INVALID_RESIDUAL_POLICY",
   AMBIGUOUS_USEFUL_LIFE_CATEGORY: "AMBIGUOUS_USEFUL_LIFE_CATEGORY",
   NO_USEFUL_LIFE_POLICY: "NO_USEFUL_LIFE_POLICY",
   USEFUL_LIFE_OUT_OF_RANGE: "USEFUL_LIFE_OUT_OF_RANGE",
@@ -39,6 +42,10 @@ export const REASON = {
   SOURCE_USEFUL_LIFE_CONFLICT: "SOURCE_USEFUL_LIFE_CONFLICT",
   SOURCE_RATE_POLICY_CONFLICT: "SOURCE_RATE_POLICY_CONFLICT",
   SOURCE_LIFE_RATE_INTERNAL_CONFLICT: "SOURCE_LIFE_RATE_INTERNAL_CONFLICT",
+  SOURCE_ACCUM_NEGATIVE: "SOURCE_ACCUM_NEGATIVE",
+  SOURCE_ACCUM_EXCEEDS_COST: "SOURCE_ACCUM_EXCEEDS_COST",
+  SOURCE_NBV_INCONSISTENT: "SOURCE_NBV_INCONSISTENT",
+  SOURCE_NBV_VS_CALC_VARIANCE: "SOURCE_NBV_VS_CALC_VARIANCE",
 } as const;
 
 export type ReasonCode = (typeof REASON)[keyof typeof REASON];
@@ -57,9 +64,12 @@ export const REASON_EXPLANATION_TH: Record<ReasonCode, string> = {
     "ไม่คิดค่าเสื่อมราคาเนื่องจากเป็นครุภัณฑ์ที่ได้มาก่อนปีงบประมาณ พ.ศ. 2560",
   DEPRECIATION_CAPPED_AT_RESIDUAL: "ค่าเสื่อมสะสมถูกจำกัดไม่ให้เกินราคาทุนหักมูลค่าคงเหลือตามบัญชี",
   MISSING_COST: "ไม่มีข้อมูลราคาทุน จึงต้องตรวจสอบก่อน",
+  INVALID_COST_NOT_FINITE: "ราคาทุนไม่ใช่ตัวเลขที่ถูกต้อง (NaN หรือ Infinity)",
+  INVALID_COST_NOT_INTEGER: "ราคาทุนไม่ใช่จำนวนเต็มหน่วยสตางค์",
   MISSING_ACQUISITION_DATE: "ไม่มีข้อมูลวันที่ได้มา จึงต้องตรวจสอบก่อน",
   INVALID_ACQUISITION_DATE: "วันที่ได้มาไม่สามารถแปลงเป็นวันที่มาตรฐานได้",
   MISSING_ASSET_GROUP: "ไม่สามารถระบุกลุ่มประเภทสินทรัพย์ได้ จึงต้องตรวจสอบก่อน",
+  INVALID_RESIDUAL_POLICY: "มูลค่าคงเหลือตามบัญชี (residual) ใน policy ต้องเป็นจำนวนเต็มสตางค์ที่ไม่ติดลบ",
   AMBIGUOUS_USEFUL_LIFE_CATEGORY: "ไม่สามารถจับคู่ประเภทสินทรัพย์กับตารางอายุการใช้งานได้",
   NO_USEFUL_LIFE_POLICY: "ยังไม่มี policy การเลือกอายุการใช้งานสำหรับสินทรัพย์นี้",
   USEFUL_LIFE_OUT_OF_RANGE: "อายุการใช้งานที่กำหนดอยู่นอกช่วงที่คู่มือกำหนด",
@@ -75,4 +85,8 @@ export const REASON_EXPLANATION_TH: Record<ReasonCode, string> = {
   SOURCE_USEFUL_LIFE_CONFLICT: "อายุการใช้งานจากต้นทางต่างจากอายุที่เลือกตาม policy",
   SOURCE_RATE_POLICY_CONFLICT: "อัตราค่าเสื่อมจากต้นทางไม่สอดคล้องกับอายุการใช้งานที่เลือกตาม policy",
   SOURCE_LIFE_RATE_INTERNAL_CONFLICT: "อายุการใช้งานและอัตราค่าเสื่อมจากต้นทางขัดแย้งกันเอง",
+  SOURCE_ACCUM_NEGATIVE: "ค่าเสื่อมสะสมจากต้นทางติดลบ",
+  SOURCE_ACCUM_EXCEEDS_COST: "ค่าเสื่อมสะสมจากต้นทางเกินราคาทุน",
+  SOURCE_NBV_INCONSISTENT: "มูลค่าสุทธิจากต้นทางไม่เท่ากับราคาทุนหักค่าเสื่อมสะสมจากต้นทาง",
+  SOURCE_NBV_VS_CALC_VARIANCE: "มูลค่าสุทธิจากต้นทางต่างจากมูลค่าสุทธิที่คำนวณได้",
 };

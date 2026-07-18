@@ -16,6 +16,7 @@
 import {
   elapsedMonthsToCutoff,
   isAcquiredBeforeFiscalYear,
+  isDateAfter,
   parseIsoDate,
   resolvePolicyCutoff,
 } from "./fiscal";
@@ -71,9 +72,30 @@ export function classifyReport(
   }
 
   const costSatang = asset.costSatang as number;
+  if (!Number.isFinite(costSatang)) {
+    evaluated.push("C0:cost-not-finite");
+    return build(asset, "NEEDS_REVIEW", [REASON.INVALID_COST_NOT_FINITE], evaluated, ["cost"], policy);
+  }
+  if (!Number.isInteger(costSatang)) {
+    evaluated.push("C0:cost-not-integer");
+    return build(asset, "NEEDS_REVIEW", [REASON.INVALID_COST_NOT_INTEGER], evaluated, ["cost"], policy);
+  }
   if (costSatang < 0) {
     evaluated.push("C0:negative-cost");
     return build(asset, "NEEDS_REVIEW", [REASON.NEGATIVE_COST], evaluated, ["cost"], policy);
+  }
+
+  // --- Cutoff validation applies to EVERY item (land, below-threshold,
+  // equipment-before-2560 included). It never enforces the day-15 policy, which
+  // is only needed to count elapsed months for depreciated items (C3 below). ---
+  const cutoffResolution = resolvePolicyCutoff(policy.cutoffDateISO, policy.fiscalYearBE);
+  if (!cutoffResolution.ok) {
+    evaluated.push("C0:cutoff");
+    return build(asset, "NEEDS_REVIEW", [cutoffResolution.blocking], evaluated, ["cutoffDate"], policy);
+  }
+  if (isDateAfter(acquisition, cutoffResolution.cutoff)) {
+    evaluated.push("C0:acquired-after-cutoff");
+    return build(asset, "NEEDS_REVIEW", [REASON.ACQUIRED_AFTER_CUTOFF], evaluated, ["acquisitionDate"], policy);
   }
 
   // --- C1: land ---
@@ -112,10 +134,8 @@ export function classifyReport(
     return build(asset, "NEEDS_REVIEW", [lifeSelection.blocking], evaluated, ["usefulLifeYears"], policy);
   }
 
-  const cutoffResolution = resolvePolicyCutoff(policy.cutoffDateISO, policy.fiscalYearBE);
-  if (!cutoffResolution.ok) {
-    return build(asset, "NEEDS_REVIEW", [cutoffResolution.blocking], evaluated, ["cutoffDate"], policy);
-  }
+  // Cutoff already validated above; only the day-15 policy can still block here,
+  // and only for depreciated (สท.2-candidate) items — never for สท.3/land.
   const elapsed = elapsedMonthsToCutoff(acquisition, cutoffResolution.cutoff, policy.acquisitionDay15Rule);
   if (!elapsed.ok) {
     return build(asset, "NEEDS_REVIEW", [elapsed.blocking], evaluated, [], policy);
