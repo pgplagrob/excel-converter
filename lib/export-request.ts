@@ -1,5 +1,12 @@
 import type { ExportMode, ExportRequest, ExportSheetInput, MappingSuggestion } from "./client-types";
 import { TEMPLATE_COLUMNS } from "./mapping";
+import { parseOrganizationMetadata, parseReportingPolicy, PolicyValidationError } from "./reporting/policy-validation";
+import {
+  parseCategoryMappingOverrides,
+  parseReferenceOverrides,
+  parseRowOverrideInputs,
+  parseSelectedOutputs,
+} from "./reporting/request-validation";
 
 const MAX_SHEETS = 100;
 const MAX_MAPPINGS = TEMPLATE_COLUMNS.length;
@@ -159,10 +166,42 @@ export function parseExportRequest(value: unknown): ExportRequest {
     throw new ExportRequestValidationError("sheets contains duplicate sheet names.");
   }
 
+  // P1 additions: every field below is optional. A request that omits all of
+  // them is byte-for-byte the same shape the Template-50 pipeline has always
+  // accepted. Field-specific validation errors from the reporting layer are
+  // re-wrapped so callers only ever need to catch ExportRequestValidationError.
+  let reportingPolicy: ExportRequest["reportingPolicy"];
+  let organizationMetadata: ExportRequest["organizationMetadata"];
+  let selectedOutputs: ExportRequest["selectedOutputs"];
+  let categoryMappings: ExportRequest["categoryMappings"];
+  let rowOverrides: ExportRequest["rowOverrides"];
+  let referenceOverrides: ExportRequest["referenceOverrides"];
+  try {
+    if (value.reportingPolicy !== undefined) reportingPolicy = parseReportingPolicy(value.reportingPolicy);
+    if (value.organizationMetadata !== undefined) organizationMetadata = parseOrganizationMetadata(value.organizationMetadata);
+    if (value.selectedOutputs !== undefined) selectedOutputs = parseSelectedOutputs(value.selectedOutputs);
+    if (value.categoryMappings !== undefined) categoryMappings = parseCategoryMappingOverrides(value.categoryMappings);
+    if (value.rowOverrides !== undefined) rowOverrides = parseRowOverrideInputs(value.rowOverrides);
+    if (value.referenceOverrides !== undefined) referenceOverrides = parseReferenceOverrides(value.referenceOverrides);
+  } catch (err) {
+    if (err instanceof PolicyValidationError) {
+      throw new ExportRequestValidationError(`${err.field}: ${err.message}`);
+    }
+    throw err;
+  }
+  const draft = value.draft !== undefined ? Boolean(value.draft) : undefined;
+
   return {
     ...(mode !== undefined ? { mode: mode as ExportMode } : {}),
     analysisId,
     sourceFileName: optionalString(value.sourceFileName, "sourceFileName"),
     sheets,
+    ...(reportingPolicy !== undefined ? { reportingPolicy } : {}),
+    ...(organizationMetadata !== undefined ? { organizationMetadata } : {}),
+    ...(selectedOutputs !== undefined ? { selectedOutputs } : {}),
+    ...(categoryMappings !== undefined ? { categoryMappings } : {}),
+    ...(rowOverrides !== undefined ? { rowOverrides } : {}),
+    ...(referenceOverrides !== undefined ? { referenceOverrides } : {}),
+    ...(draft !== undefined ? { draft } : {}),
   };
 }
