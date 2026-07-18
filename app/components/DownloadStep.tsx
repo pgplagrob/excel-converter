@@ -12,13 +12,6 @@ interface DownloadStepProps {
   onReset: () => void;
   loading: boolean;
   selectedSheetCount: number;
-  // P1: only rendered when a report output (สท.1-3 / Audit) beyond
-  // Template-50 was selected; undefined preserves the original behavior.
-  reportOutputsRequested?: boolean;
-  officialExportAllowed?: boolean;
-  blockingReasons?: string[];
-  draft?: boolean;
-  setDraft?: (value: boolean) => void;
 }
 
 export function DownloadStep({
@@ -30,11 +23,6 @@ export function DownloadStep({
   onReset,
   loading,
   selectedSheetCount,
-  reportOutputsRequested,
-  officialExportAllowed,
-  blockingReasons,
-  draft,
-  setDraft,
 }: DownloadStepProps) {
   return (
     <>
@@ -58,26 +46,6 @@ export function DownloadStep({
             <div className="num">{issueSummary.warningCount}</div>
             <div className="label">คำเตือน (ควรตรวจสอบ)</div>
           </div>
-        </div>
-      )}
-
-      {reportOutputsRequested && (
-        <div className="form-section">
-          <h3>อปท.-สท. / Audit</h3>
-          {officialExportAllowed === false && (
-            <div className="missing-fields-banner">
-              ยังไม่พร้อม export เป็นรายงานทางการ: {(blockingReasons || []).join("; ")}
-            </div>
-          )}
-          <label className="checkbox-row">
-            <input
-              type="checkbox"
-              checked={Boolean(draft)}
-              disabled={officialExportAllowed !== false}
-              onChange={(e) => setDraft?.(e.target.checked)}
-            />
-            สร้างเป็นฉบับร่าง (draft) — ต้องเลือกเมื่อยังมี blocking issue
-          </label>
         </div>
       )}
 
