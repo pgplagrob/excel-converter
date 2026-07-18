@@ -53,16 +53,29 @@ export async function POST(req: NextRequest) {
       search: parsed.search,
     });
 
+    // Distinct useful-life categories actually present in this workbook — lets
+    // the report-configuration UI list exactly which categories need an
+    // explicit-per-category override, without shipping every row to the client.
+    const usefulLifeCategoriesInUse = [
+      ...new Set(
+        calculated.rows
+          .map((row) => row.normalized.usefulLifeCategoryKey)
+          .filter((key): key is NonNullable<typeof key> => Boolean(key)),
+      ),
+    ];
+
     return NextResponse.json({
       rows: page.rows.map(toPreviewRowDto),
       page: page.page,
       pageSize: page.pageSize,
       total: page.total,
       totalPages: page.totalPages,
+      totalCalculatedRows: calculated.rows.length,
       warningGroups: groupWarnings(calculated.rows),
       reconciliation: calculated.reconciliation,
       blockingRowCount: calculated.blockingRowKeys.length,
       unresolvedCategoryValues: calculated.unresolvedCategoryValues,
+      usefulLifeCategoriesInUse,
     });
   } catch (err: unknown) {
     console.error(err);
