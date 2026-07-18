@@ -340,6 +340,35 @@ function applyManualMapping(
   return templateRow;
 }
 
+// The parser's normalized `responsibleUnit` field and the auto-mapped
+// "งานที่รับผิดชอบ" template column can both originate from the very same
+// source cell (e.g. a header literally named "งานที่รับผิดชอบ"). Copying
+// `responsibleUnit` into "งาน" unconditionally therefore duplicated that one
+// source value into two template columns. This only backfills "งาน" when it
+// is genuinely still empty (no source header actually mapped to "งาน" itself,
+// as happens for headerless/positional layouts) AND doing so would not repeat
+// a value already placed in "งานที่รับผิดชอบ" by the mapping loop above.
+function resolveResponsibleWorkFallback(
+  templateRow: Record<string, any>,
+  sourceRow: Record<string, any>,
+): any {
+  const existingWork = cellText(templateRow["งาน"]);
+  if (existingWork) return templateRow["งาน"];
+
+  const responsibleUnit = sourceRow.responsibleUnit;
+  const responsibleUnitText = cellText(responsibleUnit);
+  if (!responsibleUnitText) return templateRow["งาน"] ?? "";
+
+  const mappedResponsibleWork = cellText(templateRow["งานที่รับผิดชอบ"]);
+  if (mappedResponsibleWork && mappedResponsibleWork === responsibleUnitText) {
+    // Already surfaced verbatim in "งานที่รับผิดชอบ" via the source header
+    // mapping; leave "งาน" empty rather than duplicating the same value.
+    return templateRow["งาน"] ?? "";
+  }
+
+  return responsibleUnit;
+}
+
 function mapFallbackRow(sourceRow: Record<string, any>, mapping: TemplateMapping): Record<string, any> {
   const templateRow = emptyTemplateRow();
   for (const templateColumn of TEMPLATE_COLUMNS) {
@@ -364,7 +393,7 @@ function mapFallbackRow(sourceRow: Record<string, any>, mapping: TemplateMapping
     templateRow["ประเภทสินทรัพย์"] = sourceAssetCategory(sourceRow);
     templateRow["มูลค่า"] = cleanMoneyValue(sourceRow.value ?? templateRow["มูลค่า"]);
     templateRow["วันที่ได้รับ"] = sourceRow.receivedDate ?? templateRow["วันที่ได้รับ"] ?? "";
-    templateRow["งาน"] = sourceRow.responsibleUnit ?? templateRow["งาน"] ?? "";
+    templateRow["งาน"] = resolveResponsibleWorkFallback(templateRow, sourceRow);
     templateRow["อาคาร"] = sourceRow.location ?? templateRow["อาคาร"] ?? "";
     templateRow["ได้มาโดย"] = sourceRow.acquiredBy ?? templateRow["ได้มาโดย"] ?? "";
     templateRow["ได้มาจาก"] = sourceRow.acquiredFrom ?? templateRow["ได้มาจาก"] ?? "";

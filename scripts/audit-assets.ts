@@ -64,10 +64,20 @@ function classifySheet(
   return "ready";
 }
 
+// --output <path> (or AUDIT_OUTPUT_PATH env var) writes the report somewhere
+// other than reports/asset-audit.json, so a baseline can be captured without
+// touching the tracked file. Neither flag changes the default behavior.
+function resolveOutputPath(workspace: string): string {
+  const flagIndex = process.argv.indexOf("--output");
+  const flagValue = flagIndex >= 0 ? process.argv[flagIndex + 1] : undefined;
+  const outputArg = flagValue || process.env.AUDIT_OUTPUT_PATH;
+  return outputArg ? path.resolve(workspace, outputArg) : path.join(workspace, "reports", "asset-audit.json");
+}
+
 async function main(): Promise<void> {
   const workspace = process.cwd();
   const assetRoot = path.join(workspace, "assets", "เทศบาลนครลำปาง");
-  const reportPath = path.join(workspace, "reports", "asset-audit.json");
+  const reportPath = resolveOutputPath(workspace);
   const template = await loadAssetTemplateMetadata();
   const files = findExcelFiles(assetRoot);
   const fileAudits: FileAudit[] = [];
