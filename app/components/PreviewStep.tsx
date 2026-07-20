@@ -46,6 +46,7 @@ interface PreviewStepProps {
   mappedCountForSheet: (sheetName: string) => number;
   issues: ValidationIssue[] | null;
   issueSummary: IssueSummary | null;
+  resultsStale: boolean;
   advancedOpen: boolean;
   setAdvancedOpen: (open: boolean) => void;
   onBack: () => void;
@@ -71,6 +72,7 @@ export function PreviewStep({
   mappedCountForSheet,
   issues,
   issueSummary,
+  resultsStale,
   advancedOpen,
   setAdvancedOpen,
   onBack,
@@ -188,6 +190,12 @@ export function PreviewStep({
       )}
 
       {!isPreservedSheet && <h3>ผลการตรวจสอบข้อมูล</h3>}
+      {!isPreservedSheet && resultsStale && (
+        <div className="stale-banner">
+          มีการแก้ไขหลังการตรวจสอบล่าสุด {issues === null ? "" : "ผลด้านล่างเป็นของก่อนแก้ไข "}
+          กด &quot;ตรวจสอบชีตที่เลือกและไป Export&quot; เพื่ออัปเดตผลล่าสุด
+        </div>
+      )}
       {!isPreservedSheet && issueSummary && (
         <div className="summary-grid small">
           <div className="summary-card">
@@ -204,7 +212,7 @@ export function PreviewStep({
           </div>
         </div>
       )}
-      {!isPreservedSheet && (
+      {!isPreservedSheet && issues !== null && (
         <IssueList
           issues={sheetIssues}
           emptyText="ชีตนี้ไม่พบปัญหา พร้อม export ได้"

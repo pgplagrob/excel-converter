@@ -66,6 +66,9 @@ export default function Page() {
 
   const [issues, setIssues] = useState<ValidationIssue[] | null>(null);
   const [issueSummary, setIssueSummary] = useState<IssueSummary | null>(null);
+  // True once a local edit (mapping/cell/exclude/reparse) makes the last
+  // server-validated issues/issueSummary snapshot out of date.
+  const [resultsStale, setResultsStale] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -137,6 +140,7 @@ export default function Page() {
       warningCount: data.warningCount,
       totalRows: data.totalRows,
     });
+    setResultsStale(false);
   };
 
   const onDrop = (e: React.DragEvent) => {
@@ -242,6 +246,7 @@ export default function Page() {
     setAdvancedOpen(false);
     setIssues(null);
     setIssueSummary(null);
+    setResultsStale(false);
     setError(null);
   };
 
@@ -258,9 +263,9 @@ export default function Page() {
         sourceColumn,
       ),
     }));
-    // Mapping changes invalidate the previous server-side validation result.
-    setIssues(null);
-    setIssueSummary(null);
+    // Mapping changes invalidate the previous server-side validation result,
+    // but keep the last snapshot on screen (marked stale) instead of wiping it.
+    setResultsStale(true);
   };
 
   const mappedCountForSheet = (sheetName: string) => {
@@ -288,8 +293,7 @@ export default function Page() {
         },
       },
     }));
-    setIssues(null);
-    setIssueSummary(null);
+    setResultsStale(true);
   };
 
   const toggleExcludedRow = (sheetName: string, rowIndex: number) => {
@@ -300,8 +304,7 @@ export default function Page() {
         : [...current, rowIndex].sort((a, b) => a - b);
       return { ...prev, [sheetName]: next };
     });
-    setIssues(null);
-    setIssueSummary(null);
+    setResultsStale(true);
   };
 
   const resetSheetFixes = (sheetName: string) => {
@@ -315,8 +318,7 @@ export default function Page() {
       delete next[sheetName];
       return next;
     });
-    setIssues(null);
-    setIssueSummary(null);
+    setResultsStale(true);
   };
 
   const reparseSheet = async (
@@ -381,8 +383,11 @@ export default function Page() {
         delete next[sheetName];
         return next;
       });
+      // Reparsing shifts row indices, so the old issues no longer line up
+      // with the new rows - unlike other edits, this snapshot can't be kept.
       setIssues(null);
       setIssueSummary(null);
+      setResultsStale(true);
       setAdvancedOpen(false);
     } catch (e: any) {
       const message = e.message || "วิเคราะห์ชีตใหม่ไม่สำเร็จ";
@@ -461,6 +466,7 @@ export default function Page() {
             mappedCountForSheet={mappedCountForSheet}
             issues={issues}
             issueSummary={issueSummary}
+            resultsStale={resultsStale}
             advancedOpen={advancedOpen}
             setAdvancedOpen={setAdvancedOpen}
             onNext={runValidation}
