@@ -4,7 +4,14 @@ import { useState, useRef, useCallback, useMemo } from "react";
 import { DownloadStep } from "./components/DownloadStep";
 import { PreviewStep } from "./components/PreviewStep";
 import { UploadStep } from "./components/UploadStep";
-import type { IssueSummary, ParseResponse, ValidationIssue } from "@/lib/client-types";
+import type {
+  CellOverridesBySheet,
+  ExcludedRowsBySheet,
+  IssueSummary,
+  ParseResponse,
+  SheetData,
+  ValidationIssue,
+} from "@/lib/client-types";
 import { setManualMappingOverride, type ManualMapping } from "@/lib/manual-mapping";
 import {
   createDefaultSheetSelection,
@@ -21,6 +28,12 @@ const STEP_LABELS = [
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
 const WORKBOOK_FILE_PATTERN = /\.xlsx?$/i;
 
+function hasManualHeaderPin(sheet: SheetData): boolean {
+  const debug = sheet.profileDebug;
+  if (!debug || typeof debug !== "object" || !("manuallyPinned" in debug)) return false;
+  return (debug as { manuallyPinned?: unknown }).manuallyPinned === true;
+}
+
 export default function Page() {
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -33,16 +46,23 @@ export default function Page() {
 
   // Every sheet that qualifies under the default export policy is
   // included automatically; there is no user-facing sheet toggle.
-  const sheetSelection: SheetSelection = useMemo(
-    () => (parsed ? createDefaultSheetSelection(parsed.sheetOverview || []) : {}),
-    [parsed],
-  );
+  const sheetSelection: SheetSelection = useMemo(() => {
+    if (!parsed) return {};
+    const selection = createDefaultSheetSelection(parsed.sheetOverview || []);
+    for (const sheet of parsed.sheets) {
+      // A manually reparsed sheet must remain selectable so the user can rerun validation.
+      if (sheet.rowCount > 0 && hasManualHeaderPin(sheet)) selection[sheet.sheetName] = true;
+    }
+    return selection;
+  }, [parsed]);
 
   // mappingState[sheetName][templateColumn] = sourceColumn | ""
   const [mappingState, setMappingState] = useState<
     Record<string, ManualMapping>
   >({});
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [cellOverrides, setCellOverrides] = useState<CellOverridesBySheet>({});
+  const [excludedRows, setExcludedRows] = useState<ExcludedRowsBySheet>({});
 
   const [issues, setIssues] = useState<ValidationIssue[] | null>(null);
   const [issueSummary, setIssueSummary] = useState<IssueSummary | null>(null);
@@ -72,6 +92,8 @@ export default function Page() {
   const buildExportPayload = (
     parsedData: ParseResponse,
     manualMappingState: Record<string, ManualMapping>,
+    cellOverrideState: CellOverridesBySheet,
+    excludedRowState: ExcludedRowsBySheet,
     mode: "validate" | "download",
     selection: SheetSelection,
   ) => ({
@@ -83,18 +105,29 @@ export default function Page() {
       headerRow: s.headerRowIndex + 1,
       autoMapping: s.mapping,
       manualMapping: manualMappingState[s.sheetName] || {},
+      cellOverrides: cellOverrideState[s.sheetName] || {},
+      excludedRows: excludedRowState[s.sheetName] || [],
     })),
   });
 
   const validateWorkbook = async (
     parsedData: ParseResponse,
     manualMappingState: Record<string, ManualMapping>,
+    cellOverrideState: CellOverridesBySheet,
+    excludedRowState: ExcludedRowsBySheet,
     selection: SheetSelection,
   ) => {
     const res = await fetch("/api/v1/export", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(buildExportPayload(parsedData, manualMappingState, "validate", selection)),
+      body: JSON.stringify(buildExportPayload(
+        parsedData,
+        manualMappingState,
+        cellOverrideState,
+        excludedRowState,
+        "validate",
+        selection,
+      )),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "ตรวจสอบข้อมูลไม่สำเร็จ");
@@ -136,7 +169,9 @@ export default function Page() {
       }
       const initSelection = createDefaultSheetSelection(data.sheetOverview || []);
       setMappingState(initMapping);
-      await validateWorkbook(data, initMapping, initSelection);
+      setCellOverrides({});
+      setExcludedRows({});
+      await validateWorkbook(data, initMapping, {}, {}, initSelection);
       setStep(1);
     } catch (e: any) {
       setError("เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ: " + e.message);
@@ -150,7 +185,7 @@ export default function Page() {
     setLoading(true);
     setError(null);
     try {
-      await validateWorkbook(parsed, mappingState, sheetSelection);
+      await validateWorkbook(parsed, mappingState, cellOverrides, excludedRows, sheetSelection);
       setStep(2);
     } catch (e: any) {
       setError(e.message || "เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ");
@@ -167,7 +202,14 @@ export default function Page() {
       const res = await fetch("/api/v1/export", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildExportPayload(parsed, mappingState, "download", sheetSelection)),
+        body: JSON.stringify(buildExportPayload(
+          parsed,
+          mappingState,
+          cellOverrides,
+          excludedRows,
+          "download",
+          sheetSelection,
+        )),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -195,6 +237,8 @@ export default function Page() {
     setFile(null);
     setParsed(null);
     setMappingState({});
+    setCellOverrides({});
+    setExcludedRows({});
     setAdvancedOpen(false);
     setIssues(null);
     setIssueSummary(null);
@@ -226,6 +270,127 @@ export default function Page() {
       (sheet?.mapping || []).map((item) => [item.templateColumn, item.sourceColumn || ""]),
     );
     return Object.values({ ...autoMap, ...m }).filter(Boolean).length;
+  };
+
+  const updateCellOverride = (
+    sheetName: string,
+    rowIndex: number,
+    templateColumn: string,
+    value: string,
+  ) => {
+    setCellOverrides((prev) => ({
+      ...prev,
+      [sheetName]: {
+        ...(prev[sheetName] || {}),
+        [rowIndex]: {
+          ...(prev[sheetName]?.[rowIndex] || {}),
+          [templateColumn]: value,
+        },
+      },
+    }));
+    setIssues(null);
+    setIssueSummary(null);
+  };
+
+  const toggleExcludedRow = (sheetName: string, rowIndex: number) => {
+    setExcludedRows((prev) => {
+      const current = prev[sheetName] || [];
+      const next = current.includes(rowIndex)
+        ? current.filter((index) => index !== rowIndex)
+        : [...current, rowIndex].sort((a, b) => a - b);
+      return { ...prev, [sheetName]: next };
+    });
+    setIssues(null);
+    setIssueSummary(null);
+  };
+
+  const resetSheetFixes = (sheetName: string) => {
+    setCellOverrides((prev) => {
+      const next = { ...prev };
+      delete next[sheetName];
+      return next;
+    });
+    setExcludedRows((prev) => {
+      const next = { ...prev };
+      delete next[sheetName];
+      return next;
+    });
+    setIssues(null);
+    setIssueSummary(null);
+  };
+
+  const reparseSheet = async (
+    sheetName: string,
+    headerRow: number,
+    dataStartRow?: number,
+    dataEndRow?: number,
+  ) => {
+    if (!parsed?.analysisId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/v1/reparse-sheet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          analysisId: parsed.analysisId,
+          sheetName,
+          headerRow,
+          ...(dataStartRow !== undefined ? { dataStartRow } : {}),
+          ...(dataEndRow !== undefined ? { dataEndRow } : {}),
+        }),
+      });
+      const data: { sheet?: SheetData; error?: string } = await res.json();
+      if (!res.ok || !data.sheet) {
+        throw new Error(data.error || "วิเคราะห์ชีตใหม่ไม่สำเร็จ");
+      }
+
+      const reparsedSheet = data.sheet;
+      setParsed((current) => {
+        if (!current) return current;
+        const sheetIndex = current.sheets.findIndex((sheet) => sheet.sheetName === sheetName);
+        if (sheetIndex < 0) return current;
+        const sheets = [...current.sheets];
+        sheets[sheetIndex] = reparsedSheet;
+        return {
+          ...current,
+          sheets,
+          sheetOverview: current.sheetOverview.map((overview) =>
+            overview.sheetName === sheetName
+              ? {
+                  ...overview,
+                  eligibility: reparsedSheet.eligibility,
+                  reason: reparsedSheet.eligibilityReason,
+                  rowCount: reparsedSheet.rowCount,
+                  errorCount: reparsedSheet.summary.errorCount,
+                  warningCount: reparsedSheet.summary.warningCount,
+                  confidence: reparsedSheet.confidence,
+                }
+              : overview,
+          ),
+        };
+      });
+      setMappingState((current) => ({ ...current, [sheetName]: {} }));
+      setCellOverrides((current) => {
+        const next = { ...current };
+        delete next[sheetName];
+        return next;
+      });
+      setExcludedRows((current) => {
+        const next = { ...current };
+        delete next[sheetName];
+        return next;
+      });
+      setIssues(null);
+      setIssueSummary(null);
+      setAdvancedOpen(false);
+    } catch (e: any) {
+      const message = e.message || "วิเคราะห์ชีตใหม่ไม่สำเร็จ";
+      setError(message);
+      throw new Error(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const selectedCount = selectedSheetCount(sheetSelection);
@@ -285,8 +450,14 @@ export default function Page() {
               setAdvancedOpen(false);
             }}
             mappingState={mappingState}
+            cellOverrides={cellOverrides}
+            excludedRows={excludedRows}
             onBack={() => setStep(0)}
             updateMapping={updateMapping}
+            updateCellOverride={updateCellOverride}
+            toggleExcludedRow={toggleExcludedRow}
+            resetSheetFixes={resetSheetFixes}
+            reparseSheet={reparseSheet}
             mappedCountForSheet={mappedCountForSheet}
             issues={issues}
             issueSummary={issueSummary}

@@ -20,6 +20,7 @@ export interface ValidationIssue {
   column: string;
   message: string;
   severity: "error" | "warning";
+  currentValue?: string;
 }
 
 export type SheetStatus = "success" | "warning" | "error" | "preserved" | "skipped";

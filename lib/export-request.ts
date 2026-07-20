@@ -1,4 +1,10 @@
-import type { ExportMode, ExportRequest, ExportSheetInput, MappingSuggestion } from "./client-types";
+import type {
+  CellOverrides,
+  ExportMode,
+  ExportRequest,
+  ExportSheetInput,
+  MappingSuggestion,
+} from "./client-types";
 import { TEMPLATE_COLUMNS } from "./mapping";
 
 const MAX_SHEETS = 100;
@@ -6,12 +12,17 @@ const MAX_MAPPINGS = TEMPLATE_COLUMNS.length;
 const MAX_NAME_LENGTH = 255;
 const MAX_SOURCE_COLUMN_LENGTH = 500;
 const MAX_HEADER_ROW = 50_000;
+const MAX_ROW_INDEX = MAX_HEADER_ROW - 1;
+const MAX_OVERRIDE_ROWS = 5_000;
+const MAX_CELL_OVERRIDES = 10_000;
+const MAX_EXCLUDED_ROWS = MAX_HEADER_ROW;
+const MAX_CELL_VALUE_LENGTH = 32_767;
 const TEMPLATE_COLUMN_SET = new Set(TEMPLATE_COLUMNS);
 
 const MODES = new Set<ExportMode>(["validate", "download"]);
 const CONFIDENCES = new Set<MappingSuggestion["confidence"]>(["high", "medium", "low", "none"]);
 const STATUSES = new Set<MappingSuggestion["status"]>(["matched", "guessed", "missing", "manual"]);
-const METHODS = new Set<MappingSuggestion["method"]>(["exact", "alias", "fuzzy", "none"]);
+const METHODS = new Set<MappingSuggestion["method"]>(["exact", "alias", "fuzzy", "profile", "none"]);
 
 export class ExportRequestValidationError extends Error {
   constructor(message: string) {
@@ -102,6 +113,92 @@ function parseSuggestion(value: unknown, field: string): MappingSuggestion {
   };
 }
 
+function parseRowIndex(value: unknown, field: string): number {
+  if (!Number.isInteger(value) || (value as number) < 0 || (value as number) > MAX_ROW_INDEX) {
+    throw new ExportRequestValidationError(
+      `${field} must be an integer between 0 and ${MAX_ROW_INDEX}.`,
+    );
+  }
+  return value as number;
+}
+
+export function validateRowFixRanges(sheet: ExportSheetInput, rowCount: number): void {
+  for (const rowIndexKey of Object.keys(sheet.cellOverrides || {})) {
+    if (Number(rowIndexKey) >= rowCount) {
+      throw new ExportRequestValidationError(
+        `cellOverrides row index ${rowIndexKey} is outside sheet ${sheet.sheetName}.`,
+      );
+    }
+  }
+  for (const rowIndex of sheet.excludedRows || []) {
+    if (rowIndex >= rowCount) {
+      throw new ExportRequestValidationError(
+        `excludedRows row index ${rowIndex} is outside sheet ${sheet.sheetName}.`,
+      );
+    }
+  }
+}
+
+function parseCellOverrides(value: unknown, field: string): CellOverrides | undefined {
+  if (value === undefined) return undefined;
+  if (!isRecord(value)) {
+    throw new ExportRequestValidationError(`${field} must be an object.`);
+  }
+
+  const rowEntries = Object.entries(value);
+  if (rowEntries.length > MAX_OVERRIDE_ROWS) {
+    throw new ExportRequestValidationError(`${field} has too many overridden rows.`);
+  }
+
+  let overrideCount = 0;
+  const parsed: CellOverrides = {};
+  for (const [rowIndexKey, rowValue] of rowEntries) {
+    if (!/^(0|[1-9]\d*)$/.test(rowIndexKey)) {
+      throw new ExportRequestValidationError(`${field} contains an invalid row index.`);
+    }
+    const rowIndex = parseRowIndex(Number(rowIndexKey), `${field}.${rowIndexKey}`);
+    if (!isRecord(rowValue)) {
+      throw new ExportRequestValidationError(`${field}.${rowIndexKey} must be an object.`);
+    }
+
+    const cellEntries = Object.entries(rowValue);
+    if (cellEntries.length > MAX_MAPPINGS) {
+      throw new ExportRequestValidationError(`${field}.${rowIndexKey} has too many columns.`);
+    }
+    overrideCount += cellEntries.length;
+    if (overrideCount > MAX_CELL_OVERRIDES) {
+      throw new ExportRequestValidationError(`${field} has too many cell overrides.`);
+    }
+
+    parsed[rowIndex] = Object.fromEntries(cellEntries.map(([column, cellValue]) => {
+      if (!TEMPLATE_COLUMN_SET.has(column)) {
+        throw new ExportRequestValidationError(`${field}.${rowIndexKey} contains an unknown template column.`);
+      }
+      if (typeof cellValue !== "string") {
+        throw new ExportRequestValidationError(`${field}.${rowIndexKey}.${column} must be a string.`);
+      }
+      if (cellValue.length > MAX_CELL_VALUE_LENGTH) {
+        throw new ExportRequestValidationError(`${field}.${rowIndexKey}.${column} is too long.`);
+      }
+      return [column, cellValue];
+    }));
+  }
+  return parsed;
+}
+
+function parseExcludedRows(value: unknown, field: string): number[] | undefined {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value) || value.length > MAX_EXCLUDED_ROWS) {
+    throw new ExportRequestValidationError(`${field} must be an array with at most ${MAX_EXCLUDED_ROWS} entries.`);
+  }
+
+  const rows = value.map((rowIndex, index) => parseRowIndex(rowIndex, `${field}[${index}]`));
+  if (new Set(rows).size !== rows.length) {
+    throw new ExportRequestValidationError(`${field} contains duplicate row indices.`);
+  }
+  return rows;
+}
+
 function parseSheet(value: unknown, index: number): ExportSheetInput {
   const field = `sheets[${index}]`;
   if (!isRecord(value)) {
@@ -135,6 +232,12 @@ function parseSheet(value: unknown, index: number): ExportSheetInput {
       ? { manualMapping: parseMapping(value.manualMapping, `${field}.manualMapping`) }
       : {}),
     ...(value.mapping !== undefined ? { mapping: parseMapping(value.mapping, `${field}.mapping`) } : {}),
+    ...(value.cellOverrides !== undefined
+      ? { cellOverrides: parseCellOverrides(value.cellOverrides, `${field}.cellOverrides`) }
+      : {}),
+    ...(value.excludedRows !== undefined
+      ? { excludedRows: parseExcludedRows(value.excludedRows, `${field}.excludedRows`) }
+      : {}),
   };
 }
 

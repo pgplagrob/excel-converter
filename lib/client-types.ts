@@ -7,6 +7,9 @@ export type { MappingSuggestion, SheetStatus, SheetSummary, ValidationIssue };
 
 export type MappingMethod = MappingSuggestion["method"];
 export type ExportMode = "validate" | "download";
+export type CellOverrides = Record<number, Record<string, string>>;
+export type CellOverridesBySheet = Record<string, CellOverrides>;
+export type ExcludedRowsBySheet = Record<string, number[]>;
 
 export interface SheetData {
   sheetName: string;
@@ -21,6 +24,7 @@ export interface SheetData {
   confidence: number;
   groupedAssets?: unknown[];
   warnings?: string[];
+  rawPreviewRows: any[][];
   sampleRows: Record<string, any>[];
   rows: Record<string, any>[];
   templateSampleRows?: Record<string, any>[];
@@ -61,6 +65,8 @@ export interface ExportSheetInput {
   autoMapping?: MappingSuggestion[];
   manualMapping?: ManualMapping;
   mapping?: Record<string, string | null>;
+  cellOverrides?: CellOverrides;
+  excludedRows?: number[];
 }
 
 export interface ExportRequest {

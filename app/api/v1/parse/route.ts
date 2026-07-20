@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { ParseResponse, ValidationIssue } from "@/lib/client-types";
+import type { ParseResponse } from "@/lib/client-types";
 import { saveAnalysis } from "@/lib/analysis-store";
-import type { SheetEligibility } from "@/lib/datasource";
+import { buildSheetData } from "@/lib/build-sheet-data";
 import { createDataSourceWorkbook } from "@/lib/datasource";
-import { readWorkbookBuffer, WorkbookLimitError } from "@/lib/excel";
-import { mappingSuggestionsToRecord, suggestMapping } from "@/lib/mapping";
-import { transformRowsToTemplateDataset } from "@/lib/transform";
+import { readWorkbookBuffer, type WorkbookSheetMatrix, WorkbookLimitError } from "@/lib/excel";
+import { computeHeaderSignature, loadMappingProfile } from "@/lib/mapping-profiles";
 import { loadAssetTemplateMetadata } from "@/lib/template";
-import { createSheetSummary, validateMappedRows, validateSheetLevel } from "@/lib/validate";
+import { createSheetSummary } from "@/lib/validate";
 
 export const runtime = "nodejs";
 
@@ -48,86 +47,22 @@ export async function POST(req: NextRequest) {
 
     const rawWorkbook = await readWorkbookBuffer(buffer, file.name);
     const dataSource = createDataSourceWorkbook(rawWorkbook.fileName, rawWorkbook.sheets);
-    const analysisId = saveAnalysis(dataSource);
+    // Workbook and analysis caps bound the raw matrices retained for manual reparsing.
+    const analysisId = saveAnalysis(dataSource, undefined, rawWorkbook.sheets);
     const template = await loadAssetTemplateMetadata();
+    const rawSheetsByName = new Map<string, WorkbookSheetMatrix>(
+      rawWorkbook.sheets.map((sheet) => [sheet.sheetName, sheet]),
+    );
 
     const sheets = dataSource.sheets.map((sheet) => {
-      const mapping = suggestMapping(sheet.headers);
-      const parseWarnings: ValidationIssue[] = sheet.warnings.map((message) => ({
-        sheetName: sheet.sheetName,
-        rowIndex: -1,
-        column: "sheet",
-        message,
-        severity: "warning",
-      }));
-      const mappingRecord = mappingSuggestionsToRecord(mapping);
-      const validationContext = {
-        sourceProfile: sheet.sourceProfile,
-        eligibility: sheet.eligibility,
-      };
-      const sheetLevelIssues = validateSheetLevel(
-        sheet.sheetName,
-        sheet.rows.length,
-        sheet.headerRowIndex + 1,
-        mappingRecord,
-        sheet.rows,
-        validationContext,
+      const signature = computeHeaderSignature(sheet.headers);
+      const profile = loadMappingProfile(signature);
+      return buildSheetData(
+        sheet,
+        template,
+        rawSheetsByName.get(sheet.sheetName)?.matrix,
+        profile?.mapping,
       );
-      const mappedRows = sheet.eligibility === "preserved"
-        ? []
-        : transformRowsToTemplateDataset(sheet.rows, mappingRecord);
-      const rowIssues = validateMappedRows(
-        sheet.sheetName,
-        mappedRows,
-        sheet.rows,
-        template.references,
-        validationContext,
-      );
-      const validationIssues = [...parseWarnings, ...sheetLevelIssues, ...rowIssues];
-      const errorCount = validationIssues.filter((issue) => issue.severity === "error").length;
-      const finalEligibility: SheetEligibility =
-        sheet.eligibility === "preserved" ||
-        sheet.eligibility === "skipped" ||
-        sheet.eligibility === "unsupported"
-          ? sheet.eligibility
-          : errorCount > 0 || sheet.eligibility === "needsReview"
-            ? "needsReview"
-            : "exportable";
-      const eligibilityReason =
-        finalEligibility === "exportable"
-          ? "profile matched and validation has no errors"
-          : errorCount > 0
-            ? "validation found errors that must be reviewed"
-            : sheet.eligibilityReason;
-      sheet.eligibility = finalEligibility;
-      sheet.eligibilityReason = eligibilityReason;
-      if (sheet.profileDebug) {
-        sheet.profileDebug.eligibility = finalEligibility;
-        sheet.profileDebug.decisionReason = eligibilityReason;
-      }
-      return {
-        sheetName: sheet.sheetName,
-        sourceProfile: sheet.sourceProfile,
-        profileDebug: sheet.profileDebug,
-        headerRowIndex: sheet.headerRowIndex,
-        summary: createSheetSummary(
-          sheet.sheetName,
-          sheet.rowCount,
-          sheet.headerRowIndex + 1,
-          validationIssues,
-        ),
-        headers: sheet.headers,
-        rowCount: sheet.rowCount,
-        eligibility: finalEligibility,
-        eligibilityReason,
-        confidence: sheet.confidence,
-        groupedAssets: sheet.groupedAssets,
-        warnings: sheet.warnings,
-        sampleRows: sheet.rows.slice(0, 10),
-        rows: sheet.rows.slice(0, 30),
-        templateSampleRows: mappedRows.slice(0, 10),
-        mapping,
-      };
     });
     const skippedSheetSummaries = dataSource.skippedSheets.map((sheetName) => {
       const debug = dataSource.profileDebug.find((item) => item.sheetName === sheetName);

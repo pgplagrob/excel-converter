@@ -3,4 +3,5 @@ node_modules
 .env*.local
 .tmp-tests
 .tmp-audit
+data/
 *.tsbuildinfo

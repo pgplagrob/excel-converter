@@ -222,9 +222,11 @@ export function parseFlexibleAssetSheet(
         cellText(value),
       ),
     );
-    const dataStartIndex = layout.headerRowIndex + (hasSecondaryHeader ? 2 : 1);
+    const dataStartIndex =
+      layout.dataStartRowIndex ?? layout.headerRowIndex + (hasSecondaryHeader ? 2 : 1);
+    const dataEndIndex = layout.dataEndRowIndex ?? matrix.length;
 
-    for (let index = dataStartIndex; index < matrix.length; index += 1) {
+    for (let index = dataStartIndex; index < dataEndIndex; index += 1) {
       const sourceRow = matrix[index] || [];
       if (isRowEmpty(sourceRow) || isTotalOrSummaryRow(sourceRow)) continue;
       const assetCode = cellText(valueAt(sourceRow, assetCodeIndex));

@@ -147,7 +147,7 @@ export const COLUMN_ALIASES: Record<string, string[]> = {
   "ลองจิจูด": ["longitude", "lng", "lon"],
 };
 
-function normalizeText(s: string): string {
+export function normalizeText(s: string): string {
   return (s || "")
     .toString()
     .toLowerCase()
@@ -176,7 +176,7 @@ export interface MappingSuggestion {
   confidence: MappingConfidence;
   confidenceScore: number;
   status: MappingStatus;
-  method: "exact" | "alias" | "fuzzy" | "none";
+  method: "exact" | "alias" | "fuzzy" | "profile" | "none";
 }
 
 export type MappingConfidence = "high" | "medium" | "low" | "none";
@@ -192,7 +192,7 @@ function confidenceFromScore(score: number): MappingConfidence {
 
 function statusFromMethod(method: MappingSuggestion["method"]): MappingStatus {
   if (method === "exact") return "matched";
-  if (method === "alias" || method === "fuzzy") return "guessed";
+  if (method === "alias" || method === "fuzzy" || method === "profile") return "guessed";
   return "missing";
 }
 
@@ -212,7 +212,7 @@ function buildSuggestion(
   };
 }
 
-const AUTHORITATIVE_TEMPLATE_COLUMNS = new Set([
+export const AUTHORITATIVE_TEMPLATE_COLUMNS = new Set<string>([
   "ชื่อสินทรัพย์",
   "รายละเอียด",
   "ชนิดสินทรัพย์",
@@ -278,6 +278,46 @@ export function suggestMapping(sourceHeaders: string[]): MappingSuggestion[] {
   }
 
   return results;
+}
+
+export function applyMappingProfile(
+  suggestions: MappingSuggestion[],
+  sourceHeaders: string[],
+  profileMapping: Record<string, string> | undefined,
+): MappingSuggestion[] {
+  if (!profileMapping || Object.keys(profileMapping).length === 0) return suggestions;
+
+  const rawHeaderByNormalized = new Map<string, string>();
+  for (const rawHeader of sourceHeaders) {
+    const normalizedHeader = normalizeText(rawHeader);
+    if (normalizedHeader && !rawHeaderByNormalized.has(normalizedHeader)) {
+      rawHeaderByNormalized.set(normalizedHeader, rawHeader);
+    }
+  }
+
+  const usedSources = new Set(
+    suggestions.flatMap((suggestion) =>
+      suggestion.sourceColumn === null ? [] : [suggestion.sourceColumn],
+    ),
+  );
+
+  return suggestions.map((suggestion) => {
+    if (
+      suggestion.sourceColumn !== null ||
+      AUTHORITATIVE_TEMPLATE_COLUMNS.has(suggestion.templateColumn)
+    ) {
+      return suggestion;
+    }
+
+    const rememberedHeader = profileMapping[suggestion.templateColumn];
+    if (!rememberedHeader) return suggestion;
+
+    const rawHeader = rawHeaderByNormalized.get(rememberedHeader);
+    if (!rawHeader || usedSources.has(rawHeader)) return suggestion;
+
+    usedSources.add(rawHeader);
+    return buildSuggestion(suggestion.templateColumn, rawHeader, 90, "profile");
+  });
 }
 
 export function mergeMapping(

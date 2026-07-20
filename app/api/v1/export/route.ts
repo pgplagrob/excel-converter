@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { ExportMode, ExportRequest, ExportSheetInput } from "@/lib/client-types";
 import { getAnalysis } from "@/lib/analysis-store";
-import { ExportRequestValidationError, parseExportRequest } from "@/lib/export-request";
+import {
+  ExportRequestValidationError,
+  parseExportRequest,
+  validateRowFixRanges,
+} from "@/lib/export-request";
 import { mappingSuggestionsToRecord, mergeMapping } from "@/lib/mapping";
+import { persistConfirmedMappingProfile } from "@/lib/mapping-profiles";
 import { buildAssetTemplateWorkbookBySheet, loadAssetTemplateMetadata } from "@/lib/template";
 import { transformRowsToTemplateDataset } from "@/lib/transform";
+import { applyRowFixes, enrichFixedRowIssues } from "@/lib/row-fixes";
 import { createSheetSummary, validateMappedRows, validateSheetLevel } from "@/lib/validate";
 
 export const runtime = "nodejs";
@@ -54,6 +60,7 @@ export async function POST(req: NextRequest) {
     for (const sourceSheet of analysis.dataSource.sheets) {
       const sheet = findSheetInput(sheetsInput, sourceSheet.sheetName);
       if (!sheet) continue;
+      validateRowFixRanges(sheet, sourceSheet.rows.length);
       if (
         sourceSheet.eligibility === "preserved" ||
         sourceSheet.eligibility === "skipped" ||
@@ -74,31 +81,41 @@ export async function POST(req: NextRequest) {
         sourceProfile: sourceSheet.sourceProfile,
         eligibility: sourceSheet.eligibility,
       };
+      const initialMappedRows = transformRowsToTemplateDataset(sourceSheet.rows, finalMapping, manualMapping);
+      const fixedRows = applyRowFixes(
+        initialMappedRows,
+        sourceSheet.rows,
+        sheet.cellOverrides,
+        sheet.excludedRows,
+      );
       const sheetLevelIssues = validateSheetLevel(
         sourceSheet.sheetName,
-        sourceSheet.rows.length,
+        fixedRows.mappedRows.length,
         sheet.headerRow || sourceSheet.headerRowIndex + 1,
         finalMapping,
-        sourceSheet.rows,
+        fixedRows.sourceRows,
         validationContext,
       );
-      const mappedRows = transformRowsToTemplateDataset(sourceSheet.rows, finalMapping, manualMapping);
       transformedSheets.push({
         sheetName: sourceSheet.sheetName,
-        rowCount: mappedRows.length,
-        sampleRows: mappedRows.slice(0, 5),
+        rowCount: fixedRows.mappedRows.length,
+        sampleRows: fixedRows.mappedRows.slice(0, 5),
         eligibility: sourceSheet.eligibility,
       });
 
-      const issues = [
-        ...sheetLevelIssues,
-        ...validateMappedRows(
+      const rowIssues = enrichFixedRowIssues(
+        validateMappedRows(
           sourceSheet.sheetName,
-          mappedRows,
-          sourceSheet.rows,
+          fixedRows.mappedRows,
+          fixedRows.sourceRows,
           template.references,
           validationContext,
         ),
+        fixedRows,
+      );
+      const issues = [
+        ...sheetLevelIssues,
+        ...rowIssues,
       ];
       if (sourceSheet.sourceProfile === "UNKNOWN" && !Object.keys(manualMapping).length) {
         issues.push({
@@ -112,15 +129,23 @@ export async function POST(req: NextRequest) {
       allIssues.push(...issues);
       const errorCount = issues.filter((issue) => issue.severity === "error").length;
       sheetSummaries.push(
-        createSheetSummary(sourceSheet.sheetName, mappedRows.length, sheet.headerRow || sourceSheet.headerRowIndex + 1, issues),
+        createSheetSummary(sourceSheet.sheetName, fixedRows.mappedRows.length, sheet.headerRow || sourceSheet.headerRowIndex + 1, issues),
       );
       if (errorCount === 0) {
         sourceSheet.eligibility = "exportable";
         sourceSheet.eligibilityReason = "validated with no errors";
         exportableSheets.push({
           sheetName: sourceSheet.sheetName,
-          rows: mappedRows,
+          rows: fixedRows.mappedRows,
         });
+        if (mode === "download") {
+          persistConfirmedMappingProfile(
+            mode,
+            errorCount,
+            sourceSheet.headers,
+            finalMapping,
+          );
+        }
       } else {
         sourceSheet.eligibility = "needsReview";
         sourceSheet.eligibilityReason = "validation found errors";

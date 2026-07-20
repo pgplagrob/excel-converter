@@ -1,6 +1,8 @@
 "use client";
 
 import type {
+  CellOverridesBySheet,
+  ExcludedRowsBySheet,
   IssueSummary,
   MappingSuggestion,
   ParseResponse,
@@ -20,11 +22,27 @@ interface PreviewStepProps {
   activeSheetIdx: number;
   setActiveSheetIdx: (index: number) => void;
   mappingState: Record<string, ManualMapping>;
+  cellOverrides: CellOverridesBySheet;
+  excludedRows: ExcludedRowsBySheet;
   updateMapping: (
     sheetName: string,
     templateColumn: string,
     sourceColumn: string | null | undefined,
   ) => void;
+  updateCellOverride: (
+    sheetName: string,
+    rowIndex: number,
+    templateColumn: string,
+    value: string,
+  ) => void;
+  toggleExcludedRow: (sheetName: string, rowIndex: number) => void;
+  resetSheetFixes: (sheetName: string) => void;
+  reparseSheet: (
+    sheetName: string,
+    headerRow: number,
+    dataStartRow?: number,
+    dataEndRow?: number,
+  ) => Promise<void>;
   mappedCountForSheet: (sheetName: string) => number;
   issues: ValidationIssue[] | null;
   issueSummary: IssueSummary | null;
@@ -43,7 +61,13 @@ export function PreviewStep({
   activeSheetIdx,
   setActiveSheetIdx,
   mappingState,
+  cellOverrides,
+  excludedRows,
   updateMapping,
+  updateCellOverride,
+  toggleExcludedRow,
+  resetSheetFixes,
+  reparseSheet,
   mappedCountForSheet,
   issues,
   issueSummary,
@@ -74,6 +98,11 @@ export function PreviewStep({
     );
   }
   const sheetMap = mappingState[sheet.sheetName] || {};
+  const sheetCellOverrides = cellOverrides[sheet.sheetName] || {};
+  const sheetExcludedRows = excludedRows[sheet.sheetName] || [];
+  const editedCellCount = Object.values(sheetCellOverrides)
+    .reduce((sum, row) => sum + Object.keys(row).length, 0);
+  const hasSheetFixes = editedCellCount > 0 || sheetExcludedRows.length > 0;
   const isPreservedSheet = sheet.eligibility === "preserved";
   const sheetIssues = (issues || []).filter((issue) => issue.sheetName === sheet.sheetName);
   const currentSummary = createRuntimeSheetSummary(sheet, sheetIssues);
@@ -121,7 +150,27 @@ export function PreviewStep({
         eligibilityReason={sheet.eligibilityReason}
       />
 
-      <SourcePreviewTable sheet={sheet} issues={sheetIssues} />
+
+      {!isPreservedSheet && hasSheetFixes && (
+        <div className="fix-toolbar">
+          <span>
+            แก้ไขแล้ว {editedCellCount} ช่อง · ตัดออก {sheetExcludedRows.length} แถว
+          </span>
+          <button type="button" className="map-reset" onClick={() => resetSheetFixes(sheet.sheetName)}>
+            ล้างการแก้ไขทั้งหมด
+          </button>
+        </div>
+      )}
+
+      <SourcePreviewTable
+        sheet={sheet}
+        issues={sheetIssues}
+        cellOverrides={sheetCellOverrides}
+        excludedRows={sheetExcludedRows}
+        onToggleExcludedRow={isPreservedSheet
+          ? undefined
+          : (rowIndex) => toggleExcludedRow(sheet.sheetName, rowIndex)}
+      />
 
       {isPreservedSheet ? (
         <div className="empty-export-message">
@@ -156,7 +205,15 @@ export function PreviewStep({
         </div>
       )}
       {!isPreservedSheet && (
-        <IssueList issues={sheetIssues} emptyText="ชีตนี้ไม่พบปัญหา พร้อม export ได้" />
+        <IssueList
+          issues={sheetIssues}
+          emptyText="ชีตนี้ไม่พบปัญหา พร้อม export ได้"
+          cellOverrides={sheetCellOverrides}
+          excludedRows={sheetExcludedRows}
+          onCellOverride={(rowIndex, templateColumn, value) =>
+            updateCellOverride(sheet.sheetName, rowIndex, templateColumn, value)}
+          onToggleExcludedRow={(rowIndex) => toggleExcludedRow(sheet.sheetName, rowIndex)}
+        />
       )}
 
       <div className="actions">

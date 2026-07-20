@@ -27,6 +27,7 @@ export type SheetProfileDebug = SheetProfileDetection & {
   eligibility: SheetEligibility;
   decisionReason: string;
   skipReason?: string;
+  manuallyPinned?: boolean;
 };
 
 export interface GroupedAssetDebug {
@@ -159,7 +160,13 @@ export const REGISTER_HEADERS = [
 ];
 
 export type FlexibleAssetLayout =
-  | { kind: "standard-table"; confidence: number; headerRowIndex: number }
+  | {
+      kind: "standard-table";
+      confidence: number;
+      headerRowIndex: number;
+      dataStartRowIndex?: number;
+      dataEndRowIndex?: number;
+    }
   | { kind: "department-positional"; confidence: number; headerRowIndex: number }
   | { kind: "split-code-positional"; confidence: number; headerRowIndex: number }
   | { kind: "consolidated-positional"; confidence: number; headerRowIndex: number }

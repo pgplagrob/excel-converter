@@ -1,4 +1,4 @@
-import type { SheetData, ValidationIssue } from "@/lib/client-types";
+import type { CellOverrides, SheetData, ValidationIssue } from "@/lib/client-types";
 import {
   displayIssueMessage,
   displaySourceColumnLabel,
@@ -9,11 +9,20 @@ import {
 interface SourcePreviewTableProps {
   sheet: SheetData;
   issues?: ValidationIssue[];
+  cellOverrides?: CellOverrides;
+  excludedRows?: number[];
+  onToggleExcludedRow?: (rowIndex: number) => void;
 }
 
 const PREVIEW_LIMIT = 30;
 
-export function SourcePreviewTable({ sheet, issues = [] }: SourcePreviewTableProps) {
+export function SourcePreviewTable({
+  sheet,
+  issues = [],
+  cellOverrides = {},
+  excludedRows = [],
+  onToggleExcludedRow,
+}: SourcePreviewTableProps) {
   const previewRows = previewRowsWithVisibleAssetType(sheet.rows).slice(0, PREVIEW_LIMIT);
   const visibleColumns = sheet.headers.filter((column) => !column.startsWith("__"));
 
@@ -41,6 +50,7 @@ export function SourcePreviewTable({ sheet, issues = [] }: SourcePreviewTablePro
                   <div>{displaySourceColumnLabel(column)}</div>
                 </th>
               ))}
+              {onToggleExcludedRow && <th className="row-actions-col">จัดการแถว</th>}
             </tr>
           </thead>
           <tbody>
@@ -48,7 +58,15 @@ export function SourcePreviewTable({ sheet, issues = [] }: SourcePreviewTablePro
               const rowIssues = issuesByRow.get(index) ?? [];
               const hasError = rowIssues.some((issue) => issue.severity === "error");
               const hasWarning = rowIssues.some((issue) => issue.severity === "warning");
-              const rowClass = hasError ? "row-error" : hasWarning ? "row-warning" : "";
+              const isExcluded = excludedRows.includes(index);
+              const overrideCount = Object.keys(cellOverrides[index] || {}).length;
+              const rowClass = isExcluded
+                ? "row-excluded"
+                : hasError
+                  ? "row-error"
+                  : hasWarning
+                    ? "row-warning"
+                    : "";
               // ช่องต้นทางที่เป็นต้นตอของ issue ในแถวนี้
               const flaggedColumns = new Set(
                 rowIssues
@@ -60,7 +78,7 @@ export function SourcePreviewTable({ sheet, issues = [] }: SourcePreviewTablePro
               return (
                 <tr key={row.__rowKey || `${sheet.sheetName}:${index}`} className={rowClass}>
                   <td className="issue-marker" title={tooltip || undefined}>
-                    {hasError ? "✕" : hasWarning ? "⚠" : ""}
+                    {isExcluded ? "−" : hasError ? "✕" : hasWarning ? "⚠" : overrideCount > 0 ? "✎" : ""}
                   </td>
                   {visibleColumns.map((column) => {
                     const value = row[column];
@@ -75,6 +93,19 @@ export function SourcePreviewTable({ sheet, issues = [] }: SourcePreviewTablePro
                       </td>
                     );
                   })}
+                  {onToggleExcludedRow && (
+                    <td className="row-actions">
+                      {overrideCount > 0 && <span className="edited-badge">แก้ไข {overrideCount} ช่อง</span>}
+                      <button
+                        type="button"
+                        className="row-exclude-toggle"
+                        aria-pressed={isExcluded}
+                        onClick={() => onToggleExcludedRow(index)}
+                      >
+                        {isExcluded ? "คืนแถว" : "ตัดแถวนี้ออก"}
+                      </button>
+                    </td>
+                  )}
                 </tr>
               );
             })}
