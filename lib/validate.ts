@@ -284,8 +284,6 @@ export function validateMappedRows(
   if (!shouldValidateSheet(context)) return [];
   const issues: ValidationIssue[] = [];
   const seenExactRows = new Map<string, number>();
-  let previousSourceAssetItem = "";
-  let previousAssetItem = "";
   const validStatuses = allowedValuesFromReference(references, "statuses", VALID_STATUSES);
   const validGetByMethods = allowedValuesFromReference(references, "getByMethods", new Set([""]));
   const validBooleans = allowedValuesFromReference(references, "booleans", new Set(["", "True", "False"]));
@@ -396,17 +394,6 @@ export function validateMappedRows(
         idx,
         "รายการสินทรัพย์",
         "รายการสินทรัพย์ว่าง ทั้งที่ข้อมูลต้นทางมีกลุ่มรายการที่ถูก carry-forward",
-        "warning",
-      );
-    }
-
-    if (assetItem && sourceAssetItem && sourceAssetItem === previousSourceAssetItem && assetItem === previousAssetItem) {
-      addIssue(
-        issues,
-        sheetName,
-        idx,
-        "รายการสินทรัพย์",
-        "รายการสินทรัพย์ซ้ำต่อเนื่องในกลุ่มเดียวกัน ควรแสดงเฉพาะแถวแรกของกลุ่มแล้วเว้นว่างในแถวถัดไป",
         "warning",
       );
     }
@@ -585,9 +572,6 @@ export function validateMappedRows(
         );
       }
     }
-
-    previousSourceAssetItem = sourceAssetItem;
-    previousAssetItem = assetItem;
   });
 
   return issues;

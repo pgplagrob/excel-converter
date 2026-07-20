@@ -119,7 +119,6 @@ export function PreviewStep({
         mappedCount={mappedCountForSheet(sheet.sheetName)}
         eligibility={sheet.eligibility}
         eligibilityReason={sheet.eligibilityReason}
-        confidence={sheet.confidence}
       />
 
       <SourcePreviewTable sheet={sheet} issues={sheetIssues} />

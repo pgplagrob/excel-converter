@@ -8,7 +8,6 @@ interface SheetSummaryPanelProps {
   mappedCount: number;
   eligibility?: SheetEligibility;
   eligibilityReason?: string;
-  confidence?: number;
 }
 
 function eligibilityLabel(eligibility?: SheetEligibility): string {
@@ -25,7 +24,6 @@ export function SheetSummaryPanel({
   mappedCount,
   eligibility,
   eligibilityReason,
-  confidence,
 }: SheetSummaryPanelProps) {
   return (
     <div className={`sheet-summary-panel ${summary.status}`}>
@@ -58,10 +56,6 @@ export function SheetSummaryPanel({
         <div className="sheet-summary-item">
           <span>สถานะแปลง</span>
           <strong>{eligibilityLabel(eligibility)}</strong>
-        </div>
-        <div className="sheet-summary-item">
-          <span>ความมั่นใจ</span>
-          <strong>{typeof confidence === "number" ? `${Math.round(confidence * 100)}%` : "-"}</strong>
         </div>
       </div>
       {eligibilityReason && <p className="sheet-decision">{eligibilityReason}</p>}

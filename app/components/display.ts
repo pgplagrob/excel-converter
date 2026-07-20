@@ -52,7 +52,6 @@ const SOURCE_PROFILE_COLUMN = "__sourceProfile";
 const SOURCE_ASSET_TYPE_COLUMN = "sourceAssetType";
 const SOURCE_ASSET_TYPE_EMIT_ONCE_COLUMN = "__sourceAssetTypeEmitOnce";
 const SOURCE_ASSET_ITEM_COLUMN = "sourceAssetItem";
-const SOURCE_ASSET_ITEM_EMIT_ONCE_COLUMN = "__sourceAssetItemEmitOnce";
 
 // จับคู่ชื่อคอลัมน์เทมเพลต (ที่ issue อ้างถึง) -> คอลัมน์ต้นทางในตาราง Source Preview
 // ใช้ไฮไลต์ช่องที่เป็นต้นตอของคำเตือน/ข้อผิดพลาด
@@ -106,9 +105,11 @@ export function previewRowsWithVisibleAssetType(
     }
 
     if (sourceAssetItem) {
-      const itemEmitFlag = row[SOURCE_ASSET_ITEM_EMIT_ONCE_COLUMN];
-      const shouldShowItem =
-        itemEmitFlag === true || (itemEmitFlag !== false && sourceAssetItem !== previousAssetItem);
+      // Export intentionally stamps this value onto every row of the group
+      // (see lib/transform.ts), so the emit-once flag no longer distinguishes
+      // "first row" from the rest. Preview grouping instead dedupes purely by
+      // comparing consecutive values, independent of what export does.
+      const shouldShowItem = sourceAssetItem !== previousAssetItem;
       previousAssetItem = sourceAssetItem;
 
       if (!shouldShowItem) {

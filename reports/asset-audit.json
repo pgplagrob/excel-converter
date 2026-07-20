@@ -12,13 +12,9 @@
     "skippedSheets": 20,
     "totalRows": 79767,
     "totalErrors": 0,
-    "totalWarnings": 82021
+    "totalWarnings": 89147
   },
   "topIssueTypes": [
-    {
-      "type": "warning:งานที่รับผิดชอบ:ค่าในคอลัมน์ \"งานที่รับผิดชอบ\" ไม่อยู่ใน Reference: ส่วนการโยธา/งานไฟฟ้าสาธารณะ",
-      "count": 8139
-    },
     {
       "type": "warning:สำนัก:ค่าในคอลัมน์ \"สำนัก\" ไม่อยู่ใน Reference: สำนักช่าง",
       "count": 7014
@@ -28,12 +24,20 @@
       "count": 7014
     },
     {
-      "type": "warning:งานที่รับผิดชอบ:ค่าในคอลัมน์ \"งานที่รับผิดชอบ\" ไม่อยู่ใน Reference: ส่วนการโยธา / งานบำรุงรักษาอาคารและสถานที่",
-      "count": 5708
+      "type": "warning:งานที่รับผิดชอบ:ค่าในคอลัมน์ \"งานที่รับผิดชอบ\" ไม่อยู่ใน Reference: ส่วนการโยธา/งานไฟฟ้าสาธารณะ",
+      "count": 4668
     },
     {
-      "type": "warning:งานที่รับผิดชอบ:ค่าในคอลัมน์ \"งานที่รับผิดชอบ\" ไม่อยู่ใน Reference: งานธุรการ+สารบรรณ",
-      "count": 2311
+      "type": "warning:งาน:ค่าในคอลัมน์ \"งาน\" ไม่อยู่ใน Reference: ส่วนการโยธา/งานไฟฟ้าสาธารณะ",
+      "count": 3471
+    },
+    {
+      "type": "warning:งานที่รับผิดชอบ:ค่าในคอลัมน์ \"งานที่รับผิดชอบ\" ไม่อยู่ใน Reference: ส่วนการโยธา / งานบำรุงรักษาอาคารและสถานที่",
+      "count": 3029
+    },
+    {
+      "type": "warning:งาน:ค่าในคอลัมน์ \"งาน\" ไม่อยู่ใน Reference: ส่วนการโยธา / งานบำรุงรักษาอาคารและสถานที่",
+      "count": 2679
     },
     {
       "type": "warning:อาคาร:ค่าในคอลัมน์ \"อาคาร\" ไม่อยู่ใน Reference: สำนักปลัดเทศบาล",
@@ -44,16 +48,8 @@
       "count": 2182
     },
     {
-      "type": "warning:งานที่รับผิดชอบ:ค่าในคอลัมน์ \"งานที่รับผิดชอบ\" ไม่อยู่ใน Reference: ส่วนการโยธา / งานไฟฟ้าสาธารณะ",
-      "count": 2028
-    },
-    {
       "type": "warning:อาคาร:ค่าในคอลัมน์ \"อาคาร\" ไม่อยู่ใน Reference: ขอจำหน่าย",
       "count": 1943
-    },
-    {
-      "type": "warning:งานที่รับผิดชอบ:ค่าในคอลัมน์ \"งานที่รับผิดชอบ\" ไม่อยู่ใน Reference: งานธุรการ",
-      "count": 1934
     },
     {
       "type": "warning:สำนัก:ค่าในคอลัมน์ \"สำนัก\" ไม่อยู่ใน Reference: สำนักการศึกษา",
@@ -64,8 +60,8 @@
       "count": 1810
     },
     {
-      "type": "warning:งานที่รับผิดชอบ:ค่าในคอลัมน์ \"งานที่รับผิดชอบ\" ไม่อยู่ใน Reference: ตลาดอัศวิน",
-      "count": 1775
+      "type": "warning:รายการสินทรัพย์:ค่าในคอลัมน์ \"รายการสินทรัพย์\" ไม่อยู่ใน Reference: เก้าอี้ (401)",
+      "count": 1687
     },
     {
       "type": "warning:สำนัก:ค่าในคอลัมน์ \"สำนัก\" ไม่อยู่ใน Reference: กองสาธารณสุขและสิ่งแวดล้อม",
@@ -74,6 +70,18 @@
     {
       "type": "warning:อาคาร:ค่าในคอลัมน์ \"อาคาร\" ไม่อยู่ใน Reference: กองสาธารณสุขและสิ่งแวดล้อม",
       "count": 1686
+    },
+    {
+      "type": "warning:งาน:ค่าในคอลัมน์ \"งาน\" ไม่อยู่ใน Reference: งานธุรการ+สารบรรณ",
+      "count": 1542
+    },
+    {
+      "type": "warning:งาน:ค่าในคอลัมน์ \"งาน\" ไม่อยู่ใน Reference: ตลาดอัศวิน",
+      "count": 1420
+    },
+    {
+      "type": "warning:งานที่รับผิดชอบ:ค่าในคอลัมน์ \"งานที่รับผิดชอบ\" ไม่อยู่ใน Reference: ส่วนการโยธา / งานไฟฟ้าสาธารณะ",
+      "count": 1352
     },
     {
       "type": "warning:สำนัก:ค่าในคอลัมน์ \"สำนัก\" ไม่อยู่ใน Reference: กองยุทธศาสตร์และงบประมาณ",
@@ -86,14 +94,6 @@
     {
       "type": "warning:อาคาร:ค่าในคอลัมน์ \"อาคาร\" ไม่อยู่ใน Reference: กองคลัง",
       "count": 1025
-    },
-    {
-      "type": "warning:งานที่รับผิดชอบ:ค่าในคอลัมน์ \"งานที่รับผิดชอบ\" ไม่อยู่ใน Reference: งานป้องกันฯ",
-      "count": 892
-    },
-    {
-      "type": "warning:งานที่รับผิดชอบ:ค่าในคอลัมน์ \"งานที่รับผิดชอบ\" ไม่อยู่ใน Reference: งานรักษาฯ",
-      "count": 770
     }
   ],
   "files": [
@@ -113,7 +113,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 59,
           "errorCount": 0,
-          "warningCount": 66
+          "warningCount": 118
         },
         {
           "sheetName": "คอมพิวเตอร์",
@@ -124,7 +124,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 65,
           "errorCount": 0,
-          "warningCount": 67
+          "warningCount": 131
         },
         {
           "sheetName": "วิทยาศาสตร์และการแพทย์",
@@ -146,7 +146,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 8,
           "errorCount": 0,
-          "warningCount": 10
+          "warningCount": 16
         }
       ]
     },
@@ -199,7 +199,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 865,
           "errorCount": 0,
-          "warningCount": 739
+          "warningCount": 866
         },
         {
           "sheetName": "คอมพิวเตอร์",
@@ -210,7 +210,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 290,
           "errorCount": 0,
-          "warningCount": 251
+          "warningCount": 293
         },
         {
           "sheetName": "ไฟฟ้าและวิทยุ",
@@ -221,7 +221,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 175,
           "errorCount": 0,
-          "warningCount": 150
+          "warningCount": 175
         },
         {
           "sheetName": "การศึกษา",
@@ -254,7 +254,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 45,
           "errorCount": 0,
-          "warningCount": 40
+          "warningCount": 45
         },
         {
           "sheetName": "โฆษณา",
@@ -276,7 +276,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 3,
           "errorCount": 0,
-          "warningCount": 2
+          "warningCount": 3
         },
         {
           "sheetName": "วิทยาศาสตร์",
@@ -309,7 +309,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 277,
           "errorCount": 0,
-          "warningCount": 3
+          "warningCount": 277
         },
         {
           "sheetName": "โรงงาน",
@@ -351,7 +351,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 25,
           "errorCount": 0,
-          "warningCount": 39
+          "warningCount": 77
         },
         {
           "sheetName": "ตัดจำหน่าย2567",
@@ -362,7 +362,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 137,
           "errorCount": 0,
-          "warningCount": 69
+          "warningCount": 250
         },
         {
           "sheetName": "โอน2567",
@@ -373,7 +373,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 115,
           "errorCount": 0,
-          "warningCount": 134
+          "warningCount": 136
         },
         {
           "sheetName": "ครุภัณฑ์ใหม่2567 ต่ำกว่าเกณฑ์",
@@ -384,7 +384,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 136,
           "errorCount": 0,
-          "warningCount": 143
+          "warningCount": 408
         },
         {
           "sheetName": "โอนอาคาร2567",
@@ -428,7 +428,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 125,
           "errorCount": 0,
-          "warningCount": 127
+          "warningCount": 124
         },
         {
           "sheetName": "สำนักงาน",
@@ -439,7 +439,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 1212,
           "errorCount": 0,
-          "warningCount": 1228
+          "warningCount": 2411
         },
         {
           "sheetName": "ยานพาหนะฯ",
@@ -450,7 +450,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 58,
           "errorCount": 0,
-          "warningCount": 61
+          "warningCount": 116
         },
         {
           "sheetName": "การเกษตร",
@@ -461,7 +461,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 25,
           "errorCount": 0,
-          "warningCount": 27
+          "warningCount": 50
         },
         {
           "sheetName": "ไฟฟ้าและวิทยุ",
@@ -472,7 +472,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 155,
           "errorCount": 0,
-          "warningCount": 163
+          "warningCount": 310
         },
         {
           "sheetName": "โฆษณา",
@@ -483,7 +483,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 46,
           "errorCount": 0,
-          "warningCount": 54
+          "warningCount": 90
         },
         {
           "sheetName": "วิทยาศาสตร์",
@@ -494,7 +494,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 20,
           "errorCount": 0,
-          "warningCount": 23
+          "warningCount": 41
         },
         {
           "sheetName": "งานบ้านงานครัว",
@@ -505,7 +505,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 71,
           "errorCount": 0,
-          "warningCount": 77
+          "warningCount": 142
         },
         {
           "sheetName": "โรงงาน",
@@ -516,7 +516,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 12,
           "errorCount": 0,
-          "warningCount": 15
+          "warningCount": 23
         },
         {
           "sheetName": "อื่นๆ",
@@ -527,7 +527,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 20,
           "errorCount": 0,
-          "warningCount": 22
+          "warningCount": 41
         },
         {
           "sheetName": "กีฬา",
@@ -538,7 +538,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 5,
           "errorCount": 0,
-          "warningCount": 6
+          "warningCount": 10
         },
         {
           "sheetName": "ศึกษา",
@@ -549,7 +549,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 6,
           "errorCount": 0,
-          "warningCount": 7
+          "warningCount": 12
         },
         {
           "sheetName": "คอมพิวเตอร์",
@@ -560,7 +560,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 210,
           "errorCount": 0,
-          "warningCount": 189
+          "warningCount": 406
         },
         {
           "sheetName": "ส่งคลัง (ต)",
@@ -571,7 +571,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 217,
           "errorCount": 0,
-          "warningCount": 193
+          "warningCount": 331
         }
       ]
     },
@@ -664,7 +664,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 59,
           "errorCount": 0,
-          "warningCount": 66
+          "warningCount": 118
         },
         {
           "sheetName": "คอมพิวเตอร์",
@@ -675,7 +675,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 65,
           "errorCount": 0,
-          "warningCount": 67
+          "warningCount": 131
         },
         {
           "sheetName": "วิทยาศาสตร์และการแพทย์",
@@ -697,7 +697,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 8,
           "errorCount": 0,
-          "warningCount": 10
+          "warningCount": 16
         }
       ]
     },
@@ -761,7 +761,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 502,
           "errorCount": 0,
-          "warningCount": 521
+          "warningCount": 944
         },
         {
           "sheetName": " ยานพาหนะและขนส่ง (2)",
@@ -772,7 +772,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 7,
           "errorCount": 0,
-          "warningCount": 8
+          "warningCount": 14
         },
         {
           "sheetName": "โฆษณาและเผยแพร่ (2)",
@@ -783,7 +783,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 11,
           "errorCount": 0,
-          "warningCount": 15
+          "warningCount": 22
         },
         {
           "sheetName": "สำรวจ (2)",
@@ -794,7 +794,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 2,
           "errorCount": 0,
-          "warningCount": 3
+          "warningCount": 4
         },
         {
           "sheetName": "งานบ้านงานครัว (2)",
@@ -805,7 +805,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 6,
           "errorCount": 0,
-          "warningCount": 8
+          "warningCount": 12
         },
         {
           "sheetName": "คอมพิวเตอร์ (2)",
@@ -816,7 +816,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 301,
           "errorCount": 0,
-          "warningCount": 303
+          "warningCount": 578
         },
         {
           "sheetName": "จำหน่าย (2)",
@@ -827,7 +827,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 36,
           "errorCount": 0,
-          "warningCount": 46
+          "warningCount": 68
         },
         {
           "sheetName": "กองคลัง (รวม) (ต) (2)",
@@ -838,7 +838,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 191,
           "errorCount": 0,
-          "warningCount": 203
+          "warningCount": 342
         },
         {
           "sheetName": "จำหน่าย (ต) (2)",
@@ -849,7 +849,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 8,
           "errorCount": 0,
-          "warningCount": 13
+          "warningCount": 16
         }
       ]
     },
@@ -869,7 +869,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 120,
           "errorCount": 0,
-          "warningCount": 128
+          "warningCount": 240
         },
         {
           "sheetName": "คอมพิวเตอร์",
@@ -922,7 +922,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 12,
           "errorCount": 0,
-          "warningCount": 15
+          "warningCount": 24
         },
         {
           "sheetName": "5.คอมพิวเตอร์",
@@ -944,7 +944,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 4,
           "errorCount": 0,
-          "warningCount": 6
+          "warningCount": 8
         },
         {
           "sheetName": "Sheet1",
@@ -986,7 +986,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 16,
           "errorCount": 0,
-          "warningCount": 19
+          "warningCount": 32
         },
         {
           "sheetName": "คอมพิวเตอร์",
@@ -1028,7 +1028,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 18,
           "errorCount": 0,
-          "warningCount": 21
+          "warningCount": 36
         },
         {
           "sheetName": "Sheet1",
@@ -1059,7 +1059,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 15,
           "errorCount": 0,
-          "warningCount": 16
+          "warningCount": 23
         },
         {
           "sheetName": "คอมพิวเตอร์",
@@ -1070,7 +1070,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 49,
           "errorCount": 0,
-          "warningCount": 50
+          "warningCount": 98
         },
         {
           "sheetName": "ต่ำกว่าเกณฑ์",
@@ -1112,7 +1112,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 80,
           "errorCount": 0,
-          "warningCount": 92
+          "warningCount": 160
         },
         {
           "sheetName": "2.ไฟฟ้า",
@@ -1123,7 +1123,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 565,
           "errorCount": 0,
-          "warningCount": 570
+          "warningCount": 1130
         },
         {
           "sheetName": "3.โฆษณา",
@@ -1134,7 +1134,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 44,
           "errorCount": 0,
-          "warningCount": 52
+          "warningCount": 87
         },
         {
           "sheetName": "5.คอมพิวเตอร์",
@@ -1167,7 +1167,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 63,
           "errorCount": 0,
-          "warningCount": 65
+          "warningCount": 126
         },
         {
           "sheetName": "Sheet1",
@@ -1200,7 +1200,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 8,
           "errorCount": 0,
-          "warningCount": 1
+          "warningCount": 8
         }
       ]
     },
@@ -1231,7 +1231,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 1544,
           "errorCount": 0,
-          "warningCount": 1413
+          "warningCount": 1302
         },
         {
           "sheetName": "ปกติ(ชำรุด)",
@@ -1242,7 +1242,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 95,
           "errorCount": 0,
-          "warningCount": 94
+          "warningCount": 90
         },
         {
           "sheetName": "3.ตำกว่าเกณฑ์",
@@ -1253,7 +1253,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 204,
           "errorCount": 0,
-          "warningCount": 205
+          "warningCount": 104
         },
         {
           "sheetName": "ต่ำกว่าเกณฑ์(ชำรุด)",
@@ -1264,7 +1264,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 10,
           "errorCount": 0,
-          "warningCount": 11
+          "warningCount": 9
         },
         {
           "sheetName": "สรุป",
@@ -1286,7 +1286,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 1200,
           "errorCount": 0,
-          "warningCount": 1082
+          "warningCount": 987
         },
         {
           "sheetName": "3.ยานพาหนะ",
@@ -1297,7 +1297,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 39,
           "errorCount": 0,
-          "warningCount": 38
+          "warningCount": 41
         },
         {
           "sheetName": "4.เกษตร",
@@ -1319,7 +1319,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 49,
           "errorCount": 0,
-          "warningCount": 42
+          "warningCount": 50
         },
         {
           "sheetName": "6.ไฟฟ้า",
@@ -1330,7 +1330,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 26,
           "errorCount": 0,
-          "warningCount": 23
+          "warningCount": 26
         },
         {
           "sheetName": "7.โมษณา",
@@ -1341,7 +1341,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 9,
           "errorCount": 0,
-          "warningCount": 10
+          "warningCount": 5
         },
         {
           "sheetName": "8.วิทยาศาสตร์",
@@ -1352,7 +1352,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 134,
           "errorCount": 0,
-          "warningCount": 135
+          "warningCount": 132
         },
         {
           "sheetName": "9.งานบ้าน",
@@ -1363,7 +1363,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 85,
           "errorCount": 0,
-          "warningCount": 85
+          "warningCount": 83
         },
         {
           "sheetName": "10.โรงงาน",
@@ -1396,7 +1396,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 77,
           "errorCount": 0,
-          "warningCount": 78
+          "warningCount": 55
         },
         {
           "sheetName": "หน้าคั่น",
@@ -1471,7 +1471,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 865,
           "errorCount": 0,
-          "warningCount": 739
+          "warningCount": 866
         },
         {
           "sheetName": "คอมพิวเตอร์",
@@ -1482,7 +1482,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 290,
           "errorCount": 0,
-          "warningCount": 251
+          "warningCount": 293
         },
         {
           "sheetName": "ไฟฟ้าและวิทยุ",
@@ -1493,7 +1493,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 175,
           "errorCount": 0,
-          "warningCount": 150
+          "warningCount": 175
         },
         {
           "sheetName": "การศึกษา",
@@ -1526,7 +1526,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 45,
           "errorCount": 0,
-          "warningCount": 40
+          "warningCount": 45
         },
         {
           "sheetName": "โฆษณา",
@@ -1548,7 +1548,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 3,
           "errorCount": 0,
-          "warningCount": 2
+          "warningCount": 3
         },
         {
           "sheetName": "วิทยาศาสตร์",
@@ -1581,7 +1581,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 277,
           "errorCount": 0,
-          "warningCount": 3
+          "warningCount": 277
         },
         {
           "sheetName": "โรงงาน",
@@ -1709,7 +1709,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 57,
           "errorCount": 0,
-          "warningCount": 58
+          "warningCount": 47
         },
         {
           "sheetName": "ครุภัณฑ์ต่ำกว่าเกณฑ์ ตามรหัส",
@@ -1720,7 +1720,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 30,
           "errorCount": 0,
-          "warningCount": 31
+          "warningCount": 19
         },
         {
           "sheetName": "จำหน่าย",
@@ -1731,7 +1731,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 2,
           "errorCount": 0,
-          "warningCount": 2
+          "warningCount": 1
         },
         {
           "sheetName": "งบทรัพย์สิน",
@@ -1894,7 +1894,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 99,
           "errorCount": 0,
-          "warningCount": 101
+          "warningCount": 104
         },
         {
           "sheetName": "13.ครุภัณฑ์อื่น",
@@ -1991,7 +1991,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 25,
           "errorCount": 0,
-          "warningCount": 39
+          "warningCount": 77
         },
         {
           "sheetName": "ตัดจำหน่าย2567",
@@ -2002,7 +2002,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 137,
           "errorCount": 0,
-          "warningCount": 69
+          "warningCount": 250
         },
         {
           "sheetName": "โอน2567",
@@ -2013,7 +2013,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 115,
           "errorCount": 0,
-          "warningCount": 134
+          "warningCount": 136
         },
         {
           "sheetName": "ครุภัณฑ์ใหม่2567 ต่ำกว่าเกณฑ์",
@@ -2024,7 +2024,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 136,
           "errorCount": 0,
-          "warningCount": 143
+          "warningCount": 408
         },
         {
           "sheetName": "โอนอาคาร2567",
@@ -2068,7 +2068,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 125,
           "errorCount": 0,
-          "warningCount": 127
+          "warningCount": 124
         },
         {
           "sheetName": "สำนักงาน",
@@ -2079,7 +2079,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 1212,
           "errorCount": 0,
-          "warningCount": 1228
+          "warningCount": 2411
         },
         {
           "sheetName": "ยานพาหนะฯ",
@@ -2090,7 +2090,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 58,
           "errorCount": 0,
-          "warningCount": 61
+          "warningCount": 116
         },
         {
           "sheetName": "การเกษตร",
@@ -2101,7 +2101,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 25,
           "errorCount": 0,
-          "warningCount": 27
+          "warningCount": 50
         },
         {
           "sheetName": "ไฟฟ้าและวิทยุ",
@@ -2112,7 +2112,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 155,
           "errorCount": 0,
-          "warningCount": 163
+          "warningCount": 310
         },
         {
           "sheetName": "โฆษณา",
@@ -2123,7 +2123,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 46,
           "errorCount": 0,
-          "warningCount": 54
+          "warningCount": 90
         },
         {
           "sheetName": "วิทยาศาสตร์",
@@ -2134,7 +2134,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 20,
           "errorCount": 0,
-          "warningCount": 23
+          "warningCount": 41
         },
         {
           "sheetName": "งานบ้านงานครัว",
@@ -2145,7 +2145,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 71,
           "errorCount": 0,
-          "warningCount": 77
+          "warningCount": 142
         },
         {
           "sheetName": "โรงงาน",
@@ -2156,7 +2156,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 12,
           "errorCount": 0,
-          "warningCount": 15
+          "warningCount": 23
         },
         {
           "sheetName": "อื่นๆ",
@@ -2167,7 +2167,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 20,
           "errorCount": 0,
-          "warningCount": 22
+          "warningCount": 41
         },
         {
           "sheetName": "กีฬา",
@@ -2178,7 +2178,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 5,
           "errorCount": 0,
-          "warningCount": 6
+          "warningCount": 10
         },
         {
           "sheetName": "ศึกษา",
@@ -2189,7 +2189,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 6,
           "errorCount": 0,
-          "warningCount": 7
+          "warningCount": 12
         },
         {
           "sheetName": "คอมพิวเตอร์",
@@ -2200,7 +2200,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 210,
           "errorCount": 0,
-          "warningCount": 189
+          "warningCount": 406
         },
         {
           "sheetName": "ส่งคลัง (ต)",
@@ -2211,7 +2211,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 217,
           "errorCount": 0,
-          "warningCount": 193
+          "warningCount": 331
         }
       ]
     },
@@ -2273,7 +2273,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 1544,
           "errorCount": 0,
-          "warningCount": 1413
+          "warningCount": 1302
         },
         {
           "sheetName": "ปกติ(ชำรุด)",
@@ -2284,7 +2284,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 95,
           "errorCount": 0,
-          "warningCount": 94
+          "warningCount": 90
         },
         {
           "sheetName": "3.ตำกว่าเกณฑ์",
@@ -2295,7 +2295,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 204,
           "errorCount": 0,
-          "warningCount": 205
+          "warningCount": 104
         },
         {
           "sheetName": "ต่ำกว่าเกณฑ์(ชำรุด)",
@@ -2306,7 +2306,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 10,
           "errorCount": 0,
-          "warningCount": 11
+          "warningCount": 9
         },
         {
           "sheetName": "สรุป",
@@ -2328,7 +2328,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 1200,
           "errorCount": 0,
-          "warningCount": 1082
+          "warningCount": 987
         },
         {
           "sheetName": "3.ยานพาหนะ",
@@ -2339,7 +2339,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 39,
           "errorCount": 0,
-          "warningCount": 38
+          "warningCount": 41
         },
         {
           "sheetName": "4.เกษตร",
@@ -2361,7 +2361,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 49,
           "errorCount": 0,
-          "warningCount": 42
+          "warningCount": 50
         },
         {
           "sheetName": "6.ไฟฟ้า",
@@ -2372,7 +2372,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 26,
           "errorCount": 0,
-          "warningCount": 23
+          "warningCount": 26
         },
         {
           "sheetName": "7.โมษณา",
@@ -2383,7 +2383,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 9,
           "errorCount": 0,
-          "warningCount": 10
+          "warningCount": 5
         },
         {
           "sheetName": "8.วิทยาศาสตร์",
@@ -2394,7 +2394,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 134,
           "errorCount": 0,
-          "warningCount": 135
+          "warningCount": 132
         },
         {
           "sheetName": "9.งานบ้าน",
@@ -2405,7 +2405,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 85,
           "errorCount": 0,
-          "warningCount": 85
+          "warningCount": 83
         },
         {
           "sheetName": "10.โรงงาน",
@@ -2438,7 +2438,7 @@
           "reason": "validated with no blocking errors",
           "rowCount": 77,
           "errorCount": 0,
-          "warningCount": 78
+          "warningCount": 55
         },
         {
           "sheetName": "หน้าคั่น",

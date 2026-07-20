@@ -132,7 +132,6 @@ export function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSour
   let currentAssetType = "";
   let currentAssetTypeWasEmitted = false;
   let currentAssetItem = "";
-  let currentAssetItemWasEmitted = false;
   let previousDataRow: Record<string, any> | null = null;
   let skippedIncompleteRows = 0;
   const dataStartIndex = findRegisterDataStartIndex(matrix, headerRowIndex);
@@ -158,7 +157,6 @@ export function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSour
         currentAssetType = itemName;
         currentAssetTypeWasEmitted = false;
         currentAssetItem = "";
-        currentAssetItemWasEmitted = false;
         previousDataRow = null;
         groupedAssets.push({
           sourceRowIndex: index,
@@ -171,7 +169,6 @@ export function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSour
       }
       if (looksLikeAssetItemGroup(itemName)) {
         currentAssetItem = itemName;
-        currentAssetItemWasEmitted = false;
         previousDataRow = null;
         groupedAssets.push({
           sourceRowIndex: index,
@@ -210,8 +207,7 @@ export function parseRegisterSheet(sheetName: string, matrix: any[][]): DataSour
     if (!isDataRow) continue;
     const sourceAssetTypeEmitOnce = Boolean(currentAssetType && !currentAssetTypeWasEmitted);
     if (sourceAssetTypeEmitOnce) currentAssetTypeWasEmitted = true;
-    const sourceAssetItemEmitOnce = Boolean(currentAssetItem && !currentAssetItemWasEmitted);
-    if (sourceAssetItemEmitOnce) currentAssetItemWasEmitted = true;
+    const sourceAssetItemEmitOnce = Boolean(currentAssetItem);
 
     const row = withCommonMeta(
       buildRawRow(headers, sourceRow),

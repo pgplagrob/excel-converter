@@ -387,9 +387,18 @@ test("parses supported headerless positional asset layouts", () => {
         ["กองการเจ้าหน้าที่", "ครุภัณฑ์สำนักงาน", "MONO", "A2", "โต๊ะทำงาน", "โต๊ะทำงาน MONO", "400-65-9823", "24/12/2021", 3900, "กองการเจ้าหน้าที่", "", "", "ปกติ"],
       ],
     },
+    {
+      sheetName: "SimpleList",
+      matrix: [
+        ["", "ครุภัณฑ์สำนักงาน", "", ""],
+        ["", "โต๊ะ (400)", "", ""],
+        [1, "โต๊ะทำงาน", "400-67-0001", "งานพัสดุ"],
+        [2, "โต๊ะประชุม", "400-67-0002", "งานพัสดุ"],
+      ],
+    },
   ]);
 
-  assert.equal(workbook.sheets.length, 3);
+  assert.equal(workbook.sheets.length, 4);
   for (const sheet of workbook.sheets) {
     assert.equal(sheet.sourceProfile, "FLEXIBLE_ASSET_TABLE");
     assert.equal(sheet.eligibility, "exportable");
@@ -398,6 +407,7 @@ test("parses supported headerless positional asset layouts", () => {
   const departmentRows = transformRowsToTemplateDataset(workbook.sheets[0].rows, {});
   const splitCodeRows = transformRowsToTemplateDataset(workbook.sheets[1].rows, {});
   const consolidatedRows = transformRowsToTemplateDataset(workbook.sheets[2].rows, {});
+  const simpleListRows = transformRowsToTemplateDataset(workbook.sheets[3].rows, {});
   assert.equal(departmentRows[0]["รหัสสินทรัพย์"], "400-67-0001");
   assert.equal(departmentRows[0]["ชื่อสินทรัพย์"], "โต๊ะทำงาน");
   assert.equal(departmentRows[0]["วันที่ได้รับ"], "01/05/2024");
@@ -414,6 +424,8 @@ test("parses supported headerless positional asset layouts", () => {
   assert.equal(consolidatedRows[0]["งาน"], "กองการเจ้าหน้าที่");
   assert.equal(consolidatedRows[0]["ประเภทสินทรัพย์"], "");
   assert.equal(consolidatedRows[0]["ชนิดสินทรัพย์"], "ครุภัณฑ์สำนักงาน");
+  assert.equal(simpleListRows[0]["รายการสินทรัพย์"], "โต๊ะ (400)");
+  assert.equal(simpleListRows[1]["รายการสินทรัพย์"], "โต๊ะ (400)");
 });
 
 test("parses two-row standard asset tables and maps funding columns", () => {
@@ -482,7 +494,7 @@ test("reads legacy xls workbooks", async () => {
   assert.equal(raw.sheets[0].matrix[1][0], "A-001");
 });
 
-test("registry group and item labels emit once and do not become asset names", () => {
+test("registry asset-item labels emit on every row in the group and do not become asset names", () => {
   const workbook = createDataSourceWorkbook("registry.xlsx", [
     {
       sheetName: "ทะเบียน",
@@ -507,7 +519,7 @@ test("registry group and item labels emit once and do not become asset names", (
   assert.equal(rows[0]["ประเภทสินทรัพย์"], "");
   assert.equal(rows[1]["ชื่อสินทรัพย์"], "โต๊ะประชุม");
   assert.equal(rows[1]["ชนิดสินทรัพย์"], "");
-  assert.equal(rows[1]["รายการสินทรัพย์"], "");
+  assert.equal(rows[1]["รายการสินทรัพย์"], "โต๊ะ(400)");
   assert.equal(rows.length, 2);
   assert.equal(sheet.warnings.some((warning) => warning.includes("ไม่มีรหัสสินทรัพย์")), true);
 });

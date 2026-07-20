@@ -14,9 +14,8 @@ import {
 
 const STEP_LABELS = [
   "1. อัปโหลดไฟล์",
-  "2. Sheet overview",
-  "3. Preview + validate",
-  "4. Export",
+  "2. Preview + Mapping + Validate",
+  "3. Export",
 ];
 
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
@@ -152,7 +151,7 @@ export default function Page() {
     setError(null);
     try {
       await validateWorkbook(parsed, mappingState, sheetSelection);
-      setStep(3);
+      setStep(2);
     } catch (e: any) {
       setError(e.message || "เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ");
     } finally {
@@ -299,7 +298,7 @@ export default function Page() {
           />
         )}
 
-        {step === 3 && parsed && (
+        {step === 2 && parsed && (
           <DownloadStep
             parsed={parsed}
             issues={issues}

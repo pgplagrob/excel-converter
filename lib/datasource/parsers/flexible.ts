@@ -378,7 +378,7 @@ export function parseFlexibleAssetSheet(
       });
       if (currentAssetItem) {
         previousRow[SOURCE_ASSET_ITEM_COLUMN] = currentAssetItem;
-        previousRow[SOURCE_ASSET_ITEM_EMIT_ONCE_COLUMN] = rows.length === 1;
+        previousRow[SOURCE_ASSET_ITEM_EMIT_ONCE_COLUMN] = true;
       }
     }
   }
