@@ -5,3 +5,7 @@ node_modules
 .tmp-audit
 data/
 *.tsbuildinfo
+
+# Production only needs the workbook template. Keep local/source datasets out of Git.
+assets/*
+!assets/asset-template.xlsx
