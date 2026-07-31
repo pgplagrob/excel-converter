@@ -93,6 +93,25 @@ Upload Excel
 
 รับ `analysisId`, `sheetName` และ `headerRow` (พร้อม `dataStartRow`/`dataEndRow` ถ้าต้องระบุ) เพื่อวิเคราะห์ชีตเดิมใหม่โดยใช้แถวหัวตารางที่กำหนดเอง แล้วส่ง `sheet` ที่ parse ใหม่กลับมา
 
+### `GET/POST /api/v1/admin/template`
+
+`GET` ส่งสถานะ template ปัจจุบัน (ค่าเริ่มต้นหรือไฟล์ที่อัปโหลด, รายชื่อคอลัมน์, ความต่างจาก `TEMPLATE_COLUMNS`) พร้อมประวัติเวอร์ชัน
+
+`POST` รับ `multipart/form-data` field `file` เพื่ออัปโหลด template ใหม่ ระบบตรวจว่าไฟล์เปิดได้, มีชีต `Sheet1`/`Reference` และแถวหัวตารางไม่ว่าง ก่อนสลับไปใช้ไฟล์นี้ทันที — คอลัมน์ที่ไม่ตรงกับ `TEMPLATE_COLUMNS` จะขึ้นเป็นคำเตือนแต่ไม่บล็อกการสลับ
+
+### `POST /api/v1/admin/template/rollback`
+
+รับ `{ versionId }` เพื่อย้อนกลับไปใช้ template เวอร์ชันก่อนหน้าที่ยังเก็บไว้ (สูงสุด 5 เวอร์ชันล่าสุด)
+
+## ตั้งค่า Template (`/settings`)
+
+บริษัทเปลี่ยนไฟล์ template บ่อย หน้า `/settings` (ลิงก์ "⚙ ตั้งค่า Template" มุมขวาบนของทุกหน้า) ให้สลับไฟล์ template ที่ระบบใช้สร้างผลลัพธ์ export ได้เองโดยไม่ต้องแก้โค้ดหรือ deploy ใหม่
+
+- ไฟล์ที่อัปโหลดเก็บไว้ที่ `data/templates/` (อยู่นอก git, ไม่ถูกลบเวลา restart server ต่างจาก `analysis-store` ที่เก็บในหน่วยความจำ) เก็บย้อนหลังสูงสุด 5 เวอร์ชัน กดย้อนกลับได้จากหน้า settings
+- ตรวจสอบก่อนสลับเฉพาะสิ่งที่ทำให้แอปพังจริง: ไฟล์เปิดได้, มีชีต `Sheet1`/`Reference`, แถวหัวตารางไม่ว่าง — ไฟล์ที่มี data validation แบบเต็มคอลัมน์ (เช่น dropdown ที่ลากยาวทั้งคอลัมน์ใน Excel) จะถูก sanitize อัตโนมัติเหมือนไฟล์ที่ผู้ใช้อัปโหลดในหน้าแปลงไฟล์ปกติ ป้องกันปัญหาเซิร์ฟเวอร์ค้างที่เคยเกิดขึ้น
+- ถ้าคอลัมน์ในไฟล์ใหม่ไม่ตรงกับ `TEMPLATE_COLUMNS` ใน `lib/mapping.ts` (รายชื่อคอลัมน์ที่ระบบใช้แนะนำ mapping อัตโนมัติ) หน้า settings จะเตือนคอลัมน์ที่ขาด/เพิ่มมาให้เห็น แต่ยังให้สลับไฟล์ได้ตามปกติ — คอลัมน์ที่ต่างไปจะต้องจับคู่ mapping มือในหน้าแปลงไฟล์
+- ไม่มีระบบ authentication/สิทธิ์การเข้าถึงหน้านี้ เช่นเดียวกับส่วนอื่นของแอป (เครื่องมือใช้ภายในทีมที่ไว้ใจเครือข่ายที่เข้าถึงได้)
+
 ## โครงสร้างโปรเจกต์
 
 ```text
@@ -102,7 +121,12 @@ app/components/                UI components ของแต่ละขั้�
 app/api/v1/parse/route.ts      อ่านไฟล์ Excel และสร้าง data source/mapping
 app/api/v1/export/route.ts     validate หรือสร้างไฟล์ Excel ปลายทาง
 app/api/v1/reparse-sheet/route.ts  วิเคราะห์ชีตเดิมใหม่ด้วยแถวหัวตารางที่กำหนดเอง
+app/api/v1/admin/template/route.ts          สถานะ template ปัจจุบัน (GET) และอัปโหลด template ใหม่ (POST)
+app/api/v1/admin/template/rollback/route.ts ย้อนกลับไปใช้ template เวอร์ชันก่อนหน้า
+app/settings/page.tsx          หน้าตั้งค่า template (อัปโหลด/ดูความต่างของคอลัมน์/ย้อนกลับ)
 lib/excel.ts                   อ่าน workbook และเก็บ metadata ของแถว
+lib/xlsx-sanitize.ts           ตัด/ลดขอบเขต data validation แบบเต็มคอลัมน์ก่อนส่งให้ ExcelJS กันเซิร์ฟเวอร์ค้าง
+lib/template-store.ts          เก็บ/ตรวจสอบ/ย้อนกลับไฟล์ template ที่อัปโหลดผ่านหน้า settings (data/templates/)
 lib/sheet-profile.ts           ตรวจจับรูปแบบของชีต
 lib/datasource.ts              public facade และ orchestration ของ datasource
 lib/datasource/                types, helpers, profile detection และ parser แยกตามรูปแบบชีต

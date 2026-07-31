@@ -9,7 +9,12 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="th">
-      <body>{children}</body>
+      <body>
+        <a href="/settings" className="settings-link">
+          ⚙ ตั้งค่า Template
+        </a>
+        {children}
+      </body>
     </html>
   );
 }

@@ -1,6 +1,8 @@
 import { readFile } from "fs/promises";
 import path from "path";
 import ExcelJS from "exceljs";
+import { sanitizeWorkbookDataValidations } from "./xlsx-sanitize";
+import { resolveActiveTemplateFilePath } from "./template-store";
 
 export interface TemplateReferenceValues {
   categories: Set<string>;
@@ -69,9 +71,19 @@ function cellText(value: unknown): string {
 
 async function readTemplateWorkbook(): Promise<ExcelJS.Workbook> {
   const workbook = new ExcelJS.Workbook();
+  // Prefer a template uploaded via the settings page (lib/template-store.ts);
+  // fall back to the committed factory-default file so a missing/corrupted
+  // override can never brick the app.
+  const activePath = resolveActiveTemplateFilePath();
+  const raw = await readFile(activePath ?? TEMPLATE_PATH);
+  // Template columns carry dropdown validations whose sqref spans the full
+  // column (e.g. H2:H1048576); clamp them so ExcelJS doesn't expand millions
+  // of cell addresses while still keeping validation on row 2 (dataRow),
+  // which is all captureTemplateLayout reads.
+  const sanitized = await sanitizeWorkbookDataValidations(raw, { clampMaxRow: 5 });
   // readFile returns a Node Buffer which may differ from ExcelJS.Buffer type
   // cast through unknown to satisfy the ExcelJS type signature
-  await workbook.xlsx.load((await readFile(TEMPLATE_PATH)) as unknown as ExcelJS.Buffer);
+  await workbook.xlsx.load(sanitized as unknown as ExcelJS.Buffer);
   return workbook;
 }
 

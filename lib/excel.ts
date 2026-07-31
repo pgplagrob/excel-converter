@@ -1,5 +1,6 @@
 import ExcelJS from "exceljs";
 import * as XLSX from "xlsx";
+import { sanitizeWorkbookDataValidations } from "./xlsx-sanitize";
 
 export interface WorkbookRowMeta {
   fillColors: string[];
@@ -163,9 +164,10 @@ function readLegacyWorkbookBuffer(buffer: Buffer, fileName: string): RawWorkbook
 export async function readWorkbookBuffer(buffer: Buffer, fileName: string): Promise<RawWorkbook> {
   if (/\.xls$/i.test(fileName)) return readLegacyWorkbookBuffer(buffer, fileName);
 
+  const sanitized = await sanitizeWorkbookDataValidations(buffer, "strip");
   const workbook = new ExcelJS.Workbook();
   // exceljs defines its own Buffer type in typings; cast to satisfy TypeScript
-  await workbook.xlsx.load(buffer as unknown as ExcelJS.Buffer);
+  await workbook.xlsx.load(sanitized as unknown as ExcelJS.Buffer);
   validateWorkbookDimensions(workbook);
 
   const sheets: WorkbookSheetMatrix[] = workbook.worksheets.map((worksheet) => {
