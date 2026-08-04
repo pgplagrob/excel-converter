@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useMemo } from "react";
+import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { DownloadStep } from "./components/DownloadStep";
 import { PreviewStep } from "./components/PreviewStep";
 import { UploadStep } from "./components/UploadStep";
@@ -10,6 +10,7 @@ import type {
   IssueSummary,
   ParseResponse,
   SheetData,
+  TransformedSheetPreview,
   ValidationIssue,
 } from "@/lib/client-types";
 import { setManualMappingOverride, type ManualMapping } from "@/lib/manual-mapping";
@@ -28,6 +29,11 @@ const STEP_LABELS = [
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
 const WORKBOOK_FILE_PATTERN = /\.xlsx?$/i;
 
+interface CurrentTemplateStatus {
+  isOverride: boolean;
+  active: { originalFileName: string } | null;
+}
+
 function hasManualHeaderPin(sheet: SheetData): boolean {
   const debug = sheet.profileDebug;
   if (!debug || typeof debug !== "object" || !("manuallyPinned" in debug)) return false;
@@ -39,6 +45,7 @@ export default function Page() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [templateStatus, setTemplateStatus] = useState<CurrentTemplateStatus | null>(null);
 
   const [file, setFile] = useState<File | null>(null);
   const [parsed, setParsed] = useState<ParseResponse | null>(null);
@@ -66,11 +73,19 @@ export default function Page() {
 
   const [issues, setIssues] = useState<ValidationIssue[] | null>(null);
   const [issueSummary, setIssueSummary] = useState<IssueSummary | null>(null);
+  const [transformedSheets, setTransformedSheets] = useState<TransformedSheetPreview[]>([]);
   // True once a local edit (mapping/cell/exclude/reparse) makes the last
   // server-validated issues/issueSummary snapshot out of date.
   const [resultsStale, setResultsStale] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    fetch("/api/v1/admin/template", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: CurrentTemplateStatus | null) => setTemplateStatus(data))
+      .catch(() => setTemplateStatus(null));
+  }, []);
 
   const handleFile = useCallback((f: File) => {
     setError(null);
@@ -140,6 +155,7 @@ export default function Page() {
       warningCount: data.warningCount,
       totalRows: data.totalRows,
     });
+    setTransformedSheets(data.transformedSheets || []);
     setResultsStale(false);
   };
 
@@ -198,8 +214,11 @@ export default function Page() {
     }
   };
 
-  const downloadFile = async () => {
-    if (!parsed || selectedSheetCount(sheetSelection) === 0) return;
+  const downloadFile = async (singleSheetName?: string) => {
+    const exportSelection = singleSheetName
+      ? { [singleSheetName]: true }
+      : sheetSelection;
+    if (!parsed || selectedSheetCount(exportSelection) === 0) return;
     setLoading(true);
     setError(null);
     try {
@@ -212,7 +231,7 @@ export default function Page() {
           cellOverrides,
           excludedRows,
           "download",
-          sheetSelection,
+          exportSelection,
         )),
       });
       if (!res.ok) {
@@ -226,7 +245,10 @@ export default function Page() {
       const a = document.createElement("a");
       a.href = url;
       const baseName = parsed.fileName.replace(/\.[^/.]+$/, "");
-      a.download = `converted_template_${baseName}.xlsx`;
+      const sheetSuffix = singleSheetName
+        ? `_${singleSheetName.replace(/[\\/:*?"<>|]/g, "_")}`
+        : "";
+      a.download = `converted_template_${baseName}${sheetSuffix}.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (e: any) {
@@ -246,6 +268,7 @@ export default function Page() {
     setAdvancedOpen(false);
     setIssues(null);
     setIssueSummary(null);
+    setTransformedSheets([]);
     setResultsStale(false);
     setError(null);
   };
@@ -408,6 +431,13 @@ export default function Page() {
           <div>
             <h1>ตัวกลางแปลงไฟล์สินทรัพย์</h1>
             <p>แปลงข้อมูล Excel หลายชีตให้ตรงเทมเพลตบริษัท</p>
+            <p className="template-indicator">
+              Template ที่ใช้อยู่: {templateStatus
+                ? templateStatus.isOverride && templateStatus.active
+                  ? templateStatus.active.originalFileName
+                  : "Template มาตรฐาน (ค่าเริ่มต้น)"
+                : "กำลังตรวจสอบ..."}
+            </p>
           </div>
         </div>
         <div className="steps">
@@ -480,8 +510,10 @@ export default function Page() {
             parsed={parsed}
             issues={issues}
             issueSummary={issueSummary}
+            transformedSheets={transformedSheets}
             onBack={() => setStep(1)}
             onDownload={downloadFile}
+            onDownloadSheet={(sheetName) => downloadFile(sheetName)}
             onReset={reset}
             loading={loading}
             selectedSheetCount={selectedCount}

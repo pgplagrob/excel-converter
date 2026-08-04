@@ -189,9 +189,9 @@ function sourceAssetItemShouldEmit(sourceRow: Record<string, any>): boolean {
 }
 
 function sourceAssetTypeShouldEmit(sourceRow: Record<string, any>): boolean {
-  const emitOnce = sourceRow[SOURCE_ASSET_TYPE_EMIT_ONCE_COLUMN];
-  if (emitOnce === false) return false;
-  if (emitOnce === true) return true;
+  // Keep the type visible on every asset row when the parser carried a
+  // non-empty group/type value forward. This is also how NEW_ASSET_2567
+  // behaves and keeps the exported sheets consistent with one another.
   return Boolean(cellText(sourceRow[SOURCE_ASSET_TYPE_COLUMN]));
 }
 

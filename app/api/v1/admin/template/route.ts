@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTemplateStoreStatus, saveTemplateUpload, validateTemplateUpload } from "@/lib/template-store";
+import {
+  deleteTemplate,
+  getTemplateStoreStatus,
+  saveTemplateUpload,
+  validateTemplateUpload,
+} from "@/lib/template-store";
 
 export const runtime = "nodejs";
 
@@ -11,7 +16,24 @@ function uploadError(message: string) {
 }
 
 export async function GET() {
-  return NextResponse.json(getTemplateStoreStatus());
+  return NextResponse.json(getTemplateStoreStatus(), {
+    headers: { "Cache-Control": "no-store" },
+  });
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const body = await req.json().catch(() => null);
+    if (!body || typeof body.versionId !== "string" || !body.versionId) {
+      return NextResponse.json({ error: "ไม่ได้ระบุ versionId" }, { status: 400 });
+    }
+
+    deleteTemplate(body.versionId);
+    return NextResponse.json(getTemplateStoreStatus());
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "ลบ template ไม่สำเร็จ";
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
 }
 
 export async function POST(req: NextRequest) {

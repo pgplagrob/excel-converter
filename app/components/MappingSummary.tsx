@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { MappingSuggestion, SheetData } from "@/lib/client-types";
+import { normalizeText } from "@/lib/mapping";
 import {
   applyManualMappingPreview,
   effectiveSourceColumn,
@@ -13,7 +14,7 @@ import { displaySourceColumnLabel, displaySourceColumnWithOriginal } from "./dis
 interface MappingSummaryProps {
   sheet: SheetData;
   sheetMap: ManualMapping;
-  visibleMappings: MappingSuggestion[];
+  visibleMappings: VisibleMapping[];
   advancedOpen: boolean;
   setAdvancedOpen: (open: boolean) => void;
   updateMapping: (
@@ -22,6 +23,11 @@ interface MappingSummaryProps {
     sourceColumn: string | null | undefined,
   ) => void;
 }
+
+type VisibleMapping = MappingSuggestion & {
+  originalIndex: number;
+  autoSourceColumn: string | null;
+};
 
 const AUTO_VALUE = "__MANUAL_MAPPING_AUTO__";
 const BLANK_VALUE = "__MANUAL_MAPPING_BLANK__";
@@ -45,6 +51,44 @@ function mappedValuePreview(sheet: SheetData, sourceColumn: string): string {
   return text.length > 80 ? `${text.slice(0, 77)}...` : text;
 }
 
+function parserAutoDescription(sheet: SheetData, templateColumn: string): string | null {
+  if (![
+    "ชื่อสินทรัพย์",
+    "รายละเอียด",
+    "ชนิดสินทรัพย์",
+    "รายการสินทรัพย์",
+  ].includes(templateColumn)) {
+    return null;
+  }
+
+  if (sheet.sourceProfile === "NEW_ASSET_2567") {
+    const sourceHeader = sheet.headers.find((header) => {
+      const normalized = normalizeText(header);
+      if (templateColumn === "รายละเอียด") return normalized === normalizeText("รายละเอียดสินทรัพย์");
+      if (templateColumn === "ชนิดสินทรัพย์") return normalized === normalizeText("ชนิดสินทรัพย์");
+      return false;
+    });
+    if (sourceHeader) return `Auto โดย Parser: ${displaySourceColumnWithOriginal(sourceHeader)}`;
+  }
+
+  const parserLabels: Record<string, string> = {
+    "ชื่อสินทรัพย์": "ข้อมูลชื่อที่ Parser อ่านได้",
+    "รายละเอียด": "ข้อมูลรายละเอียดที่ Parser อ่านได้",
+    "ชนิดสินทรัพย์": "ชนิดสินทรัพย์ที่ Parser อ่านได้",
+    "รายการสินทรัพย์": "กลุ่มรายการที่ Parser อ่านได้",
+  };
+  return `Auto โดย Parser: ${parserLabels[templateColumn]}`;
+}
+
+function parserAutoValuePreview(sheet: SheetData, templateColumn: string): string {
+  const value = (sheet.templateSampleRows || [])
+    .map((row) => row[templateColumn])
+    .find((item) => item !== "" && item !== undefined && item !== null);
+  if (value === undefined) return "ไม่พบค่าตัวอย่างจาก Parser ใน 10 แถวแรก";
+  const text = String(value);
+  return text.length > 80 ? `${text.slice(0, 77)}...` : text;
+}
+
 export function MappingSummary({
   sheet,
   sheetMap,
@@ -53,11 +97,17 @@ export function MappingSummary({
   setAdvancedOpen,
   updateMapping,
 }: MappingSummaryProps) {
+  const [tableOpen, setTableOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
   const normalizedSearch = searchText.trim().toLocaleLowerCase();
   const filteredMappings = visibleMappings.filter((mapping) => {
     if (!normalizedSearch) return true;
-    return [mapping.templateColumn, mapping.sourceColumn || "", displaySourceColumnLabel(mapping.sourceColumn)]
+    return [
+      mapping.templateColumn,
+      mapping.sourceColumn || "",
+      displaySourceColumnLabel(mapping.sourceColumn),
+      parserAutoDescription(sheet, mapping.templateColumn) || "",
+    ]
       .some((value) => value.toLocaleLowerCase().includes(normalizedSearch));
   });
   const sourceBoundary = sheet.headers.indexOf("__sourceProfile");
@@ -79,43 +129,66 @@ export function MappingSummary({
     ...Object.keys(sheetMap).filter((column) => !CORE_PREVIEW_COLUMNS.includes(column)),
   ];
 
+  const mappedCount = visibleMappings.filter(
+    (mapping) => mapping.sourceColumn || parserAutoDescription(sheet, mapping.templateColumn),
+  ).length;
+
   return (
     <>
       <h3>Mapping Summary</h3>
-      <div className="table-wrap compact">
-        <table>
-          <thead>
-            <tr>
-              <th>Template Column</th>
-              <th>Source Column</th>
-              <th>Confidence</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {visibleMappings.map((mapping) => (
-              <tr key={mapping.templateColumn}>
-                <td>{mapping.templateColumn}</td>
-                <td>
-                  {mapping.sourceColumn ? (
-                    <span title={mapping.sourceColumn}>
-                      {displaySourceColumnLabel(mapping.sourceColumn)}
-                    </span>
-                  ) : (
-                    <span className="muted-text">ไม่พบคอลัมน์</span>
-                  )}
-                </td>
-                <td>
-                  <span className={`badge ${mapping.confidence}`}>{mapping.confidence}</span>
-                </td>
-                <td>
-                  <span className={`badge ${mapping.status}`}>{mapping.status}</span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="mapping-summary-toggle">
+        <span>
+          จับคู่คอลัมน์อัตโนมัติแล้ว <strong>{mappedCount}/{visibleMappings.length}</strong>
+        </span>
+        <button type="button" className="btn secondary" onClick={() => setTableOpen(!tableOpen)}>
+          {tableOpen ? "ซ่อนรายละเอียด mapping" : "ดู mapping ทั้งหมด"}
+        </button>
       </div>
+      {tableOpen && (
+        <div className="table-wrap compact">
+          <table>
+            <thead>
+              <tr>
+                <th>Template Column</th>
+                <th>Source Column</th>
+                <th>Confidence</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {visibleMappings.map((mapping) => {
+                const parserAuto = parserAutoDescription(sheet, mapping.templateColumn);
+                return (
+                  <tr key={mapping.templateColumn}>
+                    <td>{mapping.templateColumn}</td>
+                    <td>
+                      {mapping.sourceColumn ? (
+                        <span title={mapping.sourceColumn}>
+                          {displaySourceColumnLabel(mapping.sourceColumn)}
+                        </span>
+                      ) : parserAuto ? (
+                        <span title={parserAuto}>{parserAuto}</span>
+                      ) : (
+                        <span className="muted-text">ไม่พบคอลัมน์</span>
+                      )}
+                    </td>
+                    <td>
+                      <span className={`badge ${parserAuto ? "parser" : mapping.confidence}`}>
+                        {parserAuto ? "parser" : mapping.confidence}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`badge ${parserAuto ? "parser" : mapping.status}`}>
+                        {parserAuto ? "auto" : mapping.status}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <div className="advanced-box mt-6 rounded-lg border p-4">
         <button className="btn secondary " onClick={() => setAdvancedOpen(!advancedOpen)}>
@@ -150,7 +223,18 @@ export function MappingSummary({
                   sheetMap,
                   mapping.templateColumn,
                 );
-                const preview = mappedValuePreview(sheet, effectiveSource || "");
+                const parserAuto = parserAutoDescription(sheet, mapping.templateColumn);
+                const hasResolvedMapping = isManual
+                  ? manualSource !== null
+                  : Boolean(mapping.sourceColumn || parserAuto);
+                const preview = effectiveSource
+                  ? mappedValuePreview(sheet, effectiveSource)
+                  : parserAuto
+                    ? parserAutoValuePreview(sheet, mapping.templateColumn)
+                    : "";
+                const autoOptionLabel = mapping.autoSourceColumn
+                  ? `Auto จับคู่กับ: ${displaySourceColumnLabel(mapping.autoSourceColumn)}`
+                  : parserAuto;
                 return (
                   <div className="map-row" key={mapping.templateColumn}>
                     <div className="tmpl-col">{mapping.templateColumn}</div>
@@ -167,7 +251,11 @@ export function MappingSummary({
                           );
                         }}
                       >
-                        <option value={AUTO_VALUE}>ใช้ค่าระบบอัตโนมัติ</option>
+                        <option value={AUTO_VALUE}>
+                          ใช้ค่าระบบอัตโนมัติ {autoOptionLabel
+                            ? `(${autoOptionLabel})`
+                            : "(Auto ยังจับคู่ไม่ได้)"}
+                        </option>
                         <option value={BLANK_VALUE}>บังคับให้ช่องนี้ว่าง</option>
                         <optgroup label="คอลัมน์ต้นฉบับ">
                           {originalSourceColumns.map((header) => (
@@ -193,13 +281,16 @@ export function MappingSummary({
                             : `Manual: คัดลอกจาก ${displaySourceColumnLabel(manualSource)}`
                           : mapping.sourceColumn
                             ? `Auto: ${displaySourceColumnLabel(mapping.sourceColumn)}`
-                            : "Auto: ใช้ค่าที่ parser อ่านได้ หรือเว้นว่าง"}
-                        {effectiveSource && ` · ตัวอย่าง: ${preview}`}
+                            : parserAuto || "Auto: ใช้ค่าที่ parser อ่านได้ หรือเว้นว่าง"}
+                        {(effectiveSource || parserAuto) && ` · ตัวอย่าง: ${preview}`}
                       </div>
                     </div>
                     <div className="mapping-actions">
-                      <span className={`badge ${isManual ? "manual" : mapping.method}`}>
-                        {isManual ? "manual" : mapping.method}
+                      <span
+                        className={`mapping-status-dot ${hasResolvedMapping ? "ok" : "missing"}`}
+                        title={hasResolvedMapping ? "จับคู่แล้ว" : "ยังไม่มีค่าที่จับคู่"}
+                        aria-label={hasResolvedMapping ? "จับคู่แล้ว" : "ยังไม่มีค่าที่จับคู่"}
+                      >
                       </span>
                       {isManual && (
                         <button

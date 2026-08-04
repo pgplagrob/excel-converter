@@ -213,6 +213,24 @@ export function rollbackTemplate(versionId: string | null): TemplateVersion | nu
   return version;
 }
 
+/** Permanently removes an uploaded template version from the store. */
+export function deleteTemplate(versionId: string): void {
+  const index = readIndex();
+  const versionIndex = index.versions.findIndex((entry) => entry.id === versionId);
+  if (versionIndex < 0) throw new Error("ไม่พบเวอร์ชันของ template ที่ระบุ");
+
+  const [version] = index.versions.splice(versionIndex, 1);
+  if (index.activeId === versionId) index.activeId = null;
+
+  try {
+    unlinkSync(join(storeDir(), version.fileName));
+  } catch {
+    // Keep the index consistent even if the file was already missing.
+  }
+
+  writeIndex(index);
+}
+
 export function getTemplateStoreStatus(): TemplateStoreStatus {
   const index = readIndex();
   const active = index.activeId ? index.versions.find((v) => v.id === index.activeId) ?? null : null;

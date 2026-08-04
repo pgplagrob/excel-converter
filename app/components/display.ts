@@ -48,9 +48,6 @@ const SOURCE_COLUMN_LABELS: Record<string, string> = {
   __importantFlag: "ของสำคัญที่ระบบอ่านได้",
 };
 
-const SOURCE_PROFILE_COLUMN = "__sourceProfile";
-const SOURCE_ASSET_TYPE_COLUMN = "sourceAssetType";
-const SOURCE_ASSET_TYPE_EMIT_ONCE_COLUMN = "__sourceAssetTypeEmitOnce";
 const SOURCE_ASSET_ITEM_COLUMN = "sourceAssetItem";
 
 // จับคู่ชื่อคอลัมน์เทมเพลต (ที่ issue อ้างถึง) -> คอลัมน์ต้นทางในตาราง Source Preview
@@ -80,29 +77,12 @@ export function displaySourceColumnWithOriginal(column: string): string {
 export function previewRowsWithVisibleAssetType(
   rows: Record<string, any>[],
 ): Record<string, any>[] {
-  let previousAssetType = "";
   let previousAssetItem = "";
 
   return rows.map((row) => {
-    const profile = String(row[SOURCE_PROFILE_COLUMN] || "").trim();
-    const sourceAssetType = String(row[SOURCE_ASSET_TYPE_COLUMN] || "").trim();
     const sourceAssetItem = String(row[SOURCE_ASSET_ITEM_COLUMN] || "").trim();
 
     let nextRow = row;
-
-    if (profile === "REGISTER_3_ROW_HEADER" && sourceAssetType) {
-      const emitFlag = row[SOURCE_ASSET_TYPE_EMIT_ONCE_COLUMN];
-      const shouldShow =
-        emitFlag === true || (emitFlag !== false && sourceAssetType !== previousAssetType);
-      previousAssetType = sourceAssetType;
-
-      if (!shouldShow) {
-        nextRow = {
-          ...nextRow,
-          [SOURCE_ASSET_TYPE_COLUMN]: "",
-        };
-      }
-    }
 
     if (sourceAssetItem) {
       // Export intentionally stamps this value onto every row of the group
@@ -150,6 +130,43 @@ export function summaryText(summary: SheetSummary): string {
 
 export function issueSeverityLabel(severity: ValidationIssue["severity"]): string {
   return severity === "error" ? "ผิดพลาด" : "เตือน";
+}
+
+// Columns validated against the template's Reference sheet (lib/validate.ts
+// REFERENCE_COLUMNS). Mismatches here usually mean the Reference sheet is
+// missing a real value the municipality actually uses (e.g. a department
+// name not yet added as a dropdown option) - not a conversion defect - so
+// the UI groups/counts them separately from structural issues instead of
+// listing every row.
+const REFERENCE_MISMATCH_COLUMNS = new Set([
+  "ประเภทสินทรัพย์",
+  "ชนิดสินทรัพย์",
+  "รายการสินทรัพย์",
+  "หน่วยนับ",
+  "อาคาร",
+  "ห้อง",
+  "ผู้ถือครอง",
+  "สำนัก",
+  "ฝ่าย",
+  "งาน",
+  "งานที่รับผิดชอบ",
+]);
+
+export function isReferenceMismatchIssue(issue: ValidationIssue): boolean {
+  return REFERENCE_MISMATCH_COLUMNS.has(issue.column) && issue.message.includes("ไม่อยู่ใน Reference");
+}
+
+export function splitIssuesByReferenceMismatch(issues: ValidationIssue[]): {
+  referenceIssues: ValidationIssue[];
+  otherIssues: ValidationIssue[];
+} {
+  const referenceIssues: ValidationIssue[] = [];
+  const otherIssues: ValidationIssue[] = [];
+  for (const issue of issues) {
+    if (isReferenceMismatchIssue(issue)) referenceIssues.push(issue);
+    else otherIssues.push(issue);
+  }
+  return { referenceIssues, otherIssues };
 }
 
 export function displayIssueColumn(column: string): string {

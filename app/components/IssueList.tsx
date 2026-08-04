@@ -1,7 +1,12 @@
 import { useState } from "react";
 import type { CellOverrides, ValidationIssue } from "@/lib/client-types";
 import { TEMPLATE_COLUMNS } from "@/lib/mapping";
-import { displayIssueColumn, displayIssueMessage, issueSeverityLabel } from "./display";
+import {
+  displayIssueColumn,
+  displayIssueMessage,
+  isReferenceMismatchIssue,
+  issueSeverityLabel,
+} from "./display";
 
 interface IssueListProps {
   issues: ValidationIssue[];
@@ -70,7 +75,25 @@ export function IssueList({
     );
   }
 
-  const visibleIssues = issues.slice(0, 200);
+  // Reference-mismatch warnings (a value not yet in the template's Reference
+  // dropdown, e.g. a department/building name) can number in the thousands
+  // for a single sheet - listing them per row is unreadable and not
+  // actionable per row anyway (the fix is to update the Reference list, not
+  // edit each row). Collapse them into one summarized count per column+value
+  // and keep the row-by-row list for issues that are actually fixable per row.
+  const referenceIssues = issues.filter((issue) => issue.rowIndex >= 0 && isReferenceMismatchIssue(issue));
+  const otherIssues = issues.filter((issue) => issue.rowIndex < 0 || !isReferenceMismatchIssue(issue));
+
+  const referenceGroups = new Map<string, { column: string; message: string; count: number }>();
+  for (const issue of referenceIssues) {
+    const key = `${issue.column}:${issue.message}`;
+    const existing = referenceGroups.get(key);
+    if (existing) existing.count += 1;
+    else referenceGroups.set(key, { column: issue.column, message: issue.message, count: 1 });
+  }
+  const sortedReferenceGroups = [...referenceGroups.values()].sort((a, b) => b.count - a.count);
+
+  const visibleIssues = otherIssues.slice(0, 200);
   const sheetIssues = visibleIssues.filter((issue) => issue.rowIndex < 0);
   const issuesByRow = new Map<number, ValidationIssue[]>();
   for (const issue of visibleIssues) {
@@ -82,6 +105,30 @@ export function IssueList({
 
   return (
     <div className="issue-list">
+      {sortedReferenceGroups.length > 0 && (
+        <details className="reference-issue-group">
+          <summary>
+            ค่าที่ยังไม่อยู่ใน Reference list ({referenceIssues.length.toLocaleString("th-TH")} แถว ·{" "}
+            {sortedReferenceGroups.length.toLocaleString("th-TH")} รายการ) — ไม่ใช่ข้อผิดพลาดของการแปลง
+            เพียงแต่ Reference list ของ template ยังไม่มีค่านี้
+          </summary>
+          <ul className="reference-issue-list">
+            {sortedReferenceGroups.map((group) => (
+              <li key={`${group.column}:${group.message}`}>
+                <strong>{displayIssueColumn(group.column)}</strong>: {displayIssueMessage(group.message)}
+                {" — พบ "}
+                {group.count.toLocaleString("th-TH")} แถว
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+      {otherIssues.length === 0 && sortedReferenceGroups.length > 0 && (
+        <div className="success-block inline">
+          <div className="icon">✓</div>
+          <p>ไม่มีปัญหาเชิงโครงสร้างในชีตนี้ เหลือแค่ค่าที่ยังไม่อยู่ใน Reference list ด้านบน</p>
+        </div>
+      )}
       {sheetIssues.map((issue, index) => (
         <div className={`issue-row ${issue.severity}`} key={`sheet:${index}`}>
           <span className="tag">{issueSeverityLabel(issue.severity)}</span>

@@ -518,7 +518,7 @@ test("registry asset-item labels emit on every row in the group and do not becom
   assert.equal(rows[0]["รายการสินทรัพย์"], "โต๊ะ(400)");
   assert.equal(rows[0]["ประเภทสินทรัพย์"], "");
   assert.equal(rows[1]["ชื่อสินทรัพย์"], "โต๊ะประชุม");
-  assert.equal(rows[1]["ชนิดสินทรัพย์"], "");
+  assert.equal(rows[1]["ชนิดสินทรัพย์"], "ครุภัณฑ์สำนักงาน");
   assert.equal(rows[1]["รายการสินทรัพย์"], "โต๊ะ(400)");
   assert.equal(rows.length, 2);
   assert.equal(sheet.warnings.some((warning) => warning.includes("ไม่มีรหัสสินทรัพย์")), true);

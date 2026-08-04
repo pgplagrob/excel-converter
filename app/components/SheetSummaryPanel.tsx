@@ -8,6 +8,7 @@ interface SheetSummaryPanelProps {
   mappedCount: number;
   eligibility?: SheetEligibility;
   eligibilityReason?: string;
+  referenceWarningCount?: number;
 }
 
 function eligibilityLabel(eligibility?: SheetEligibility): string {
@@ -24,7 +25,9 @@ export function SheetSummaryPanel({
   mappedCount,
   eligibility,
   eligibilityReason,
+  referenceWarningCount = 0,
 }: SheetSummaryPanelProps) {
+  const structuralWarningCount = Math.max(0, summary.warningCount - referenceWarningCount);
   return (
     <div className={`sheet-summary-panel ${summary.status}`}>
       <div className="sheet-summary-heading">
@@ -43,10 +46,16 @@ export function SheetSummaryPanel({
           <span>ข้อผิดพลาด</span>
           <strong>{summary.errorCount.toLocaleString("th-TH")}</strong>
         </div>
-        <div className="sheet-summary-item">
+        {/* <div className="sheet-summary-item">
           <span>คำเตือน</span>
-          <strong>{summary.warningCount.toLocaleString("th-TH")}</strong>
-        </div>
+          <strong>{structuralWarningCount.toLocaleString("th-TH")}</strong>
+        </div> */}
+        {/* {referenceWarningCount > 0 && (
+          <div className="sheet-summary-item muted">
+            <span>ไม่อยู่ใน Reference list</span>
+            <strong>{referenceWarningCount.toLocaleString("th-TH")}</strong>
+          </div>
+        )} */}
         {eligibility !== "preserved" && (
           <div className="sheet-summary-item">
             <span>จับคู่คอลัมน์แล้ว</span>

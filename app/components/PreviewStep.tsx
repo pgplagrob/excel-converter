@@ -10,7 +10,7 @@ import type {
 } from "@/lib/client-types";
 import { hasManualOverride, type ManualMapping } from "@/lib/manual-mapping";
 import { TEMPLATE_COLUMNS } from "@/lib/mapping";
-import { createRuntimeSheetSummary } from "./display";
+import { createRuntimeSheetSummary, splitIssuesByReferenceMismatch } from "./display";
 import { IssueList } from "./IssueList";
 import { MappingSummary } from "./MappingSummary";
 import { SheetSummaryPanel } from "./SheetSummaryPanel";
@@ -55,7 +55,17 @@ interface PreviewStepProps {
   loading: boolean;
 }
 
-type VisibleMapping = MappingSuggestion & { originalIndex: number };
+type VisibleMapping = MappingSuggestion & {
+  originalIndex: number;
+  autoSourceColumn: string | null;
+};
+
+const PARSER_MANAGED_TEMPLATE_COLUMNS = new Set([
+  "ชื่อสินทรัพย์",
+  "รายละเอียด",
+  "ชนิดสินทรัพย์",
+  "รายการสินทรัพย์",
+]);
 
 export function PreviewStep({
   parsed,
@@ -108,12 +118,15 @@ export function PreviewStep({
   const isPreservedSheet = sheet.eligibility === "preserved";
   const sheetIssues = (issues || []).filter((issue) => issue.sheetName === sheet.sheetName);
   const currentSummary = createRuntimeSheetSummary(sheet, sheetIssues);
+  const { referenceIssues: currentReferenceIssues } = splitIssuesByReferenceMismatch(sheetIssues);
   const visibleMappings: VisibleMapping[] = sheet.mapping
     .map((mapping, index) => {
+      const autoSourceColumn = mapping.sourceColumn;
       const manualSource = sheetMap[mapping.templateColumn];
       const isManual = hasManualOverride(sheetMap, mapping.templateColumn);
       return {
         ...mapping,
+        autoSourceColumn,
         sourceColumn: isManual ? manualSource : mapping.sourceColumn,
         status: isManual ? ("manual" as const) : mapping.status,
         confidence: isManual ? ("high" as const) : mapping.confidence,
@@ -121,8 +134,10 @@ export function PreviewStep({
       };
     })
     .sort((a, b) => {
-      const aIsMapped = Boolean(a.sourceColumn);
-      const bIsMapped = Boolean(b.sourceColumn);
+      // Keep both regular Auto mappings and parser-managed authoritative
+      // fields (e.g. รายละเอียด/ชนิดสินทรัพย์) at the top of the editor.
+      const aIsMapped = Boolean(a.sourceColumn) || PARSER_MANAGED_TEMPLATE_COLUMNS.has(a.templateColumn);
+      const bIsMapped = Boolean(b.sourceColumn) || PARSER_MANAGED_TEMPLATE_COLUMNS.has(b.templateColumn);
       if (aIsMapped === bIsMapped) return a.originalIndex - b.originalIndex;
       return aIsMapped ? -1 : 1;
     });
@@ -135,6 +150,15 @@ export function PreviewStep({
         พบทั้งหมด {parsed.sheetOverview.length} ชีต และอ่านเป็น datasource ได้ {parsed.sheets.length} ชีต
         ระบบจะตรวจสอบและส่งออกทุกชีตที่มีข้อมูลโดยอัตโนมัติ สามารถแก้ mapping เฉพาะกรณีที่จำเป็นได้จาก Advanced Mapping
       </p>
+
+      {/* <FileOverviewPanel
+        sheets={parsed.sheets}
+        preservedSheetSummaries={parsed.preservedSheetSummaries}
+        skippedSheetSummaries={parsed.skippedSheetSummaries}
+        issues={issues}
+        activeSheetIdx={activeSheetIdx}
+        onSelectSheet={setActiveSheetIdx}
+      /> */}
 
       <SheetTabs
         sheets={parsed.sheets}
@@ -150,6 +174,7 @@ export function PreviewStep({
         mappedCount={mappedCountForSheet(sheet.sheetName)}
         eligibility={sheet.eligibility}
         eligibilityReason={sheet.eligibilityReason}
+        referenceWarningCount={currentReferenceIssues.length}
       />
 
 

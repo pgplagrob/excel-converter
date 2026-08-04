@@ -4,7 +4,6 @@ import {
   SOURCE_ASSET_ITEM_COLUMN,
   SOURCE_ASSET_NAME_COLUMN,
   SOURCE_ASSET_TYPE_COLUMN,
-  SOURCE_ASSET_TYPE_EMIT_ONCE_COLUMN,
   SOURCE_PROFILE_COLUMN,
   type SheetEligibility,
   type SourceProfile,
@@ -262,9 +261,8 @@ function sourceAssetItemShouldEmit(sourceRow: Record<string, any>): boolean {
 }
 
 function sourceAssetTypeShouldEmit(sourceRow: Record<string, any>): boolean {
-  const emitOnce = sourceRow[SOURCE_ASSET_TYPE_EMIT_ONCE_COLUMN];
-  if (emitOnce === false) return false;
-  if (emitOnce === true) return true;
+  // A carried-forward type is exported on every row, so validate the same
+  // value on every row instead of treating later group rows as blank.
   return Boolean(text(sourceRow[SOURCE_ASSET_TYPE_COLUMN]));
 }
 

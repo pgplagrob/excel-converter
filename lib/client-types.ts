@@ -82,13 +82,16 @@ export interface IssueSummary {
   totalRows: number;
 }
 
+export interface TransformedSheetPreview {
+  sheetName: string;
+  rowCount: number;
+  sampleRows: Record<string, any>[];
+  eligibility?: string;
+}
+
 export interface ExportValidationResponse extends IssueSummary {
   issues: ValidationIssue[];
   sheetSummaries: SheetSummary[];
-  transformedSheets: {
-    sheetName: string;
-    rowCount: number;
-    sampleRows: Record<string, any>[];
-  }[];
+  transformedSheets: TransformedSheetPreview[];
   error?: string;
 }
