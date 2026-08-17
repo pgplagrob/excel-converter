@@ -1,4 +1,4 @@
-import type { SheetOverview } from "./client-types";
+import type { SheetData, SheetOverview } from "./client-types";
 
 export type SheetSelection = Record<string, boolean>;
 
@@ -14,6 +14,16 @@ export function isSheetSelectedByDefault(sheet: SheetOverview): boolean {
 export function createDefaultSheetSelection(sheets: SheetOverview[]): SheetSelection {
   return Object.fromEntries(
     sheets.map((sheet) => [sheet.sheetName, isSheetSelectedByDefault(sheet)]),
+  );
+}
+
+export function createParsedSheetSelection(
+  sheets: SheetData[],
+  overview: SheetOverview[],
+): SheetSelection {
+  const defaults = createDefaultSheetSelection(overview);
+  return Object.fromEntries(
+    sheets.map((sheet) => [sheet.sheetName, defaults[sheet.sheetName] === true]),
   );
 }
 

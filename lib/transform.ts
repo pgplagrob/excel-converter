@@ -255,7 +255,12 @@ function mapProfileRow(sourceRow: Record<string, any>, profile: SourceProfile): 
   row[ASSET_ITEM_COLUMN] = sourceAssetItemShouldEmit(sourceRow) ? sourceAssetItem : "";
   row["มูลค่า"] = cleanMoneyValue(sourceValue(sourceRow, "value", INTERNAL.value));
   row["วันที่ได้รับ"] = sourceValue(sourceRow, "receivedDate", INTERNAL.receivedDate) ?? "";
-  row["งาน"] = sourceValue(sourceRow, "responsibleUnit", INTERNAL.responsibleUnit) ?? "";
+  const responsibleUnit = sourceValue(sourceRow, "responsibleUnit", INTERNAL.responsibleUnit) ?? "";
+  if (profile === "NEW_ASSET_2567") {
+    row["งานที่รับผิดชอบ"] = responsibleUnit;
+  } else {
+    row["งาน"] = responsibleUnit;
+  }
   row["สถานะ"] = sourceRow[INTERNAL.status] ?? "";
   row["ต้องตรวจนับ"] = sourceRow[INTERNAL.needCount] ?? "";
   row["คิดค่าเสื่อม"] = sourceRow[INTERNAL.depreciationFlag] ?? "";

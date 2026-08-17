@@ -15,7 +15,7 @@ import type {
 } from "@/lib/client-types";
 import { setManualMappingOverride, type ManualMapping } from "@/lib/manual-mapping";
 import {
-  createDefaultSheetSelection,
+  createParsedSheetSelection,
   selectedSheetCount,
   type SheetSelection,
 } from "@/lib/sheet-selection";
@@ -51,11 +51,11 @@ export default function Page() {
   const [parsed, setParsed] = useState<ParseResponse | null>(null);
   const [activeSheetIdx, setActiveSheetIdx] = useState(0);
 
-  // Every sheet that qualifies under the default export policy is
-  // included automatically; there is no user-facing sheet toggle.
+  // Keep validation limited to parsed sheets. Sheet overview also contains
+  // preserved/skipped entries, which must never become an empty export payload.
   const sheetSelection: SheetSelection = useMemo(() => {
     if (!parsed) return {};
-    const selection = createDefaultSheetSelection(parsed.sheetOverview || []);
+    const selection = createParsedSheetSelection(parsed.sheets, parsed.sheetOverview || []);
     for (const sheet of parsed.sheets) {
       // A manually reparsed sheet must remain selectable so the user can rerun validation.
       if (sheet.rowCount > 0 && hasManualHeaderPin(sheet)) selection[sheet.sheetName] = true;
@@ -187,11 +187,17 @@ export default function Page() {
       for (const sheet of data.sheets) {
         initMapping[sheet.sheetName] = {};
       }
-      const initSelection = createDefaultSheetSelection(data.sheetOverview || []);
+      const initSelection = createParsedSheetSelection(data.sheets, data.sheetOverview || []);
       setMappingState(initMapping);
       setCellOverrides({});
       setExcludedRows({});
-      await validateWorkbook(data, initMapping, {}, {}, initSelection);
+      if (selectedSheetCount(initSelection) > 0) {
+        await validateWorkbook(data, initMapping, {}, {}, initSelection);
+      } else {
+        setIssues([]);
+        setIssueSummary({ errorCount: 0, warningCount: 0, totalRows: 0 });
+        setTransformedSheets([]);
+      }
       setStep(1);
     } catch (e: any) {
       setError("เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ: " + e.message);
@@ -214,11 +220,14 @@ export default function Page() {
     }
   };
 
-  const downloadFile = async (singleSheetName?: string) => {
-    const exportSelection = singleSheetName
-      ? { [singleSheetName]: true }
-      : sheetSelection;
-    if (!parsed || selectedSheetCount(exportSelection) === 0) return;
+  const downloadFile = async (sheetNames: string[]) => {
+    const exportSelection: SheetSelection = Object.fromEntries(
+      sheetNames.map((sheetName) => [sheetName, true]),
+    );
+    if (!parsed || selectedSheetCount(exportSelection) === 0) {
+      setError("กรุณาเลือกอย่างน้อย 1 ชีตก่อนสร้างไฟล์");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -245,8 +254,8 @@ export default function Page() {
       const a = document.createElement("a");
       a.href = url;
       const baseName = parsed.fileName.replace(/\.[^/.]+$/, "");
-      const sheetSuffix = singleSheetName
-        ? `_${singleSheetName.replace(/[\\/:*?"<>|]/g, "_")}`
+      const sheetSuffix = sheetNames.length === 1
+        ? `_${sheetNames[0].replace(/[\\/:*?"<>|]/g, "_")}`
         : "";
       a.download = `converted_template_${baseName}${sheetSuffix}.xlsx`;
       a.click();
@@ -513,10 +522,8 @@ export default function Page() {
             transformedSheets={transformedSheets}
             onBack={() => setStep(1)}
             onDownload={downloadFile}
-            onDownloadSheet={(sheetName) => downloadFile(sheetName)}
             onReset={reset}
             loading={loading}
-            selectedSheetCount={selectedCount}
           />
         )}
       </div>

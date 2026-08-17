@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { TEMPLATE_COLUMNS } from "@/lib/mapping";
 import type { IssueSummary, ParseResponse, TransformedSheetPreview, ValidationIssue } from "@/lib/client-types";
 import { displayIssueMessage, issueSeverityLabel } from "./display";
@@ -11,11 +11,9 @@ interface DownloadStepProps {
   issueSummary: IssueSummary | null;
   transformedSheets: TransformedSheetPreview[];
   onBack: () => void;
-  onDownload: () => void;
-  onDownloadSheet: (sheetName: string) => void;
+  onDownload: (sheetNames: string[]) => void;
   onReset: () => void;
   loading: boolean;
-  selectedSheetCount: number;
 }
 
 export function DownloadStep({
@@ -25,18 +23,58 @@ export function DownloadStep({
   transformedSheets,
   onBack,
   onDownload,
-  onDownloadSheet,
   onReset,
   loading,
-  selectedSheetCount,
 }: DownloadStepProps) {
   const [previewSheetName, setPreviewSheetName] = useState("");
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [exportSelection, setExportSelection] = useState<Record<string, boolean>>({});
+
+  const availableSheets = useMemo(() => {
+    const sheetsWithErrors = new Set(
+      (issues || [])
+        .filter((issue) => issue.severity === "error")
+        .map((issue) => issue.sheetName),
+    );
+    return transformedSheets.filter(
+      (sheet) => sheet.rowCount > 0 && !sheetsWithErrors.has(sheet.sheetName),
+    );
+  }, [issues, transformedSheets]);
+
+  const selectedExportCount = availableSheets.filter(
+    (sheet) => exportSelection[sheet.sheetName],
+  ).length;
+
+  const openExportDialog = () => {
+    setExportSelection(Object.fromEntries(
+      availableSheets.map((sheet) => [sheet.sheetName, true]),
+    ));
+    setExportDialogOpen(true);
+  };
+
+  const confirmExport = () => {
+    const selectedNames = availableSheets
+      .filter((sheet) => exportSelection[sheet.sheetName])
+      .map((sheet) => sheet.sheetName);
+    if (selectedNames.length === 0) return;
+    setExportDialogOpen(false);
+    onDownload(selectedNames);
+  };
 
   useEffect(() => {
     if (!transformedSheets.some((sheet) => sheet.sheetName === previewSheetName)) {
       setPreviewSheetName(transformedSheets[0]?.sheetName || "");
     }
   }, [previewSheetName, transformedSheets]);
+
+  useEffect(() => {
+    if (!exportDialogOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setExportDialogOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [exportDialogOpen]);
 
   const previewSheet = transformedSheets.find((sheet) => sheet.sheetName === previewSheetName)
     || transformedSheets[0];
@@ -48,7 +86,7 @@ export function DownloadStep({
       <p className="eyebrow">Step 4</p>
       <h2>ผลการตรวจสอบ และดาวน์โหลดเทมเพลต</h2>
       <p className="lead">
-        ตรวจสอบรายการที่ต้องแก้ไขก่อนดาวน์โหลด ขณะนี้เลือกส่งออก {selectedSheetCount} ชีต
+        ตรวจสอบรายการที่ต้องแก้ไขก่อนดาวน์โหลด มีชีตที่พร้อมส่งออก {availableSheets.length} ชีต
       </p>
 
       {issueSummary && (
@@ -88,16 +126,6 @@ export function DownloadStep({
                 ))}
               </select>
             </label>
-          )}
-          {previewSheet && (
-            <button
-              type="button"
-              className="btn secondary download-single-sheet-button"
-              disabled={loading}
-              onClick={() => onDownloadSheet(previewSheet.sheetName)}
-            >
-              แปลงเฉพาะชีตนี้
-            </button>
           )}
         </div>
 
@@ -168,15 +196,110 @@ export function DownloadStep({
           <button className="btn secondary" onClick={onReset}>
             เริ่มไฟล์ใหม่
           </button>
-          <button className="btn amber" disabled={loading || selectedSheetCount === 0} onClick={onDownload}>
+          <button
+            className="btn amber"
+            disabled={loading || availableSheets.length === 0}
+            onClick={openExportDialog}
+          >
             {loading
               ? "กำลังสร้างไฟล์..."
-              : selectedSheetCount > 0
-                ? "⬇ ดาวน์โหลดเทมเพลต .xlsx"
+              : availableSheets.length > 0
+                ? "เลือกชีตและดาวน์โหลด .xlsx"
                 : "ไม่มีชีตที่พร้อม Export"}
           </button>
         </div>
       </div>
+
+      {exportDialogOpen && (
+        <div
+          className="export-dialog-backdrop"
+          role="presentation"
+          onClick={() => setExportDialogOpen(false)}
+        >
+          <section
+            className="export-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="export-dialog-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="export-dialog-heading">
+              <div>
+                <p className="eyebrow">ขั้นตอนสุดท้าย</p>
+                <h3 id="export-dialog-title">เลือกชีตที่ต้องการแปลง</h3>
+                <p>เลือกได้มากกว่า 1 ชีต ระบบจะรวมไว้ในไฟล์เดียวกัน</p>
+              </div>
+              <button
+                type="button"
+                className="export-dialog-close"
+                aria-label="ยกเลิกและปิดหน้าต่าง"
+                onClick={() => setExportDialogOpen(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="export-dialog-toolbar">
+              <strong>เลือกแล้ว {selectedExportCount} จาก {availableSheets.length} ชีต</strong>
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setExportSelection(Object.fromEntries(
+                    availableSheets.map((sheet) => [sheet.sheetName, true]),
+                  ))}
+                >
+                  เลือกทั้งหมด
+                </button>
+                <button type="button" onClick={() => setExportSelection({})}>
+                  ล้างทั้งหมด
+                </button>
+              </div>
+            </div>
+
+            <div className="export-sheet-options">
+              {availableSheets.map((sheet) => (
+                <label className="export-sheet-option" key={sheet.sheetName}>
+                  <input
+                    type="checkbox"
+                    checked={exportSelection[sheet.sheetName] === true}
+                    onChange={(event) => setExportSelection((current) => ({
+                      ...current,
+                      [sheet.sheetName]: event.target.checked,
+                    }))}
+                  />
+                  <span>
+                    <strong>{sheet.sheetName}</strong>
+                    <small>{sheet.rowCount.toLocaleString("th-TH")} แถว</small>
+                  </span>
+                </label>
+              ))}
+            </div>
+
+            {selectedExportCount === 0 && (
+              <p className="export-dialog-warning">กรุณาเลือกอย่างน้อย 1 ชีต</p>
+            )}
+
+            <div className="export-dialog-actions">
+              <button
+                type="button"
+                className="btn secondary"
+                disabled={loading}
+                onClick={() => setExportDialogOpen(false)}
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                className="btn amber"
+                disabled={loading || selectedExportCount === 0}
+                onClick={confirmExport}
+              >
+                แปลงและดาวน์โหลด {selectedExportCount} ชีต
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </>
   );
 }

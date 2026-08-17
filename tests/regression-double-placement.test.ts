@@ -17,10 +17,9 @@ import { transformRowsToTemplateDataset } from "../lib/transform";
 // "งาน" is only backfilled from responsibleUnit when it is still empty AND
 // doing so would not repeat a value already placed in "งานที่รับผิดชอบ".
 //
-// Known positional profiles (NEW_ASSET_2567, REGISTER_3_ROW_HEADER,
-// TRANSFER_2567, ASSET_DATA) are untouched by this fix: mapProfileRow never
-// auto-fills "งานที่รับผิดชอบ" from source headers at all, so there was never
-// a collision to begin with there — see the dedicated test below.
+// NEW_ASSET_2567 is handled separately because its fixed source layout names
+// the field "งานที่รับผิดชอบ" explicitly. Other positional profiles keep the
+// legacy "งาน" fallback — see the dedicated ASSET_DATA test below.
 
 function transformRow(sourceRow: Record<string, unknown>, headers: string[]) {
   const mapping = mappingSuggestionsToRecord(suggestMapping(headers));
