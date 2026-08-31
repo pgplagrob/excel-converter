@@ -517,7 +517,7 @@ export function validateMappedRows(
       }
     }
 
-    for (const col of ["ต้องตรวจนับ", "คิดค่าเสื่อม", "ดึงอายุจากค่ากลาง", "ของสำคัญ"]) {
+    for (const col of ["ต้องตรวจนับ", "คิดค่าเสื่อม", "ดึงอายุจากค่ากลาง", "ของสำคัญ", "พกพาได้"]) {
       const value = text(row[col]);
       if (value && !validBooleans.has(value)) {
         addIssue(

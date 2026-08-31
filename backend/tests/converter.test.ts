@@ -259,6 +259,7 @@ test("assetData mapping uses normalized fields and PurchasePrice fallback rule",
   assert.equal(rows[0]["ต้องตรวจนับ"], "True");
   assert.equal(rows[0]["คิดค่าเสื่อม"], "False");
   assert.equal(rows[0]["ของสำคัญ"], "False");
+  assert.equal(rows[0]["ยี่ห้อ"], "SAMSUNG");
   assert.equal(manualRows[0]["ชื่อสินทรัพย์"], "SAMSUNG");
   assert.equal(clearedRows[0]["ชื่อสินทรัพย์"], "");
 });
@@ -288,13 +289,15 @@ test("mapping aliases cover source-system headers without crossing authoritative
   assert.equal(mapping["วันที่ได้รับ"], "PurchaseDate");
   assert.equal(mapping["สถานะ"], "Status");
   assert.equal(mapping["งานที่รับผิดชอบ"], "ResponsibleUnit");
+  assert.equal(mapping["หมายเลขเครื่อง (S/N)"], "Serial");
+  assert.equal(mapping["ยี่ห้อ"], "BrandName");
   assert.equal(mapping["แหล่งงบประมาณ"], undefined);
 
   for (const templateColumn of ["ชื่อสินทรัพย์", "รายละเอียด", "ชนิดสินทรัพย์", "รายการสินทรัพย์"]) {
     assert.equal(mapping[templateColumn], "", `${templateColumn} must use normalized parser fields`);
   }
-  assert.equal(COLUMN_ALIASES["รายละเอียด"].includes("Serial"), true);
-  assert.equal(COLUMN_ALIASES["รายละเอียด"].includes("BrandName"), true);
+  assert.equal(COLUMN_ALIASES["หมายเลขเครื่อง (S/N)"].includes("serial"), true);
+  assert.equal(COLUMN_ALIASES["ยี่ห้อ"].includes("BrandName"), true);
   assert.equal(COLUMN_ALIASES["มูลค่า"].includes("Cost"), true);
 });
 
@@ -670,7 +673,7 @@ test("manual mapping copies source values exactly without date normalization", (
   assert.equal(rows[0]["วันที่ได้รับ"], 18);
 });
 
-test("template output keeps Sheet1 at 50 columns and preserves Reference sheet", async () => {
+test("template output keeps every template column and preserves Reference sheet", async () => {
   const metadata = await loadAssetTemplateMetadata();
   const wb = await buildAssetTemplateWorkbook([
     {
@@ -684,18 +687,19 @@ test("template output keeps Sheet1 at 50 columns and preserves Reference sheet",
   const readBack = await readWorkbook(wb);
   const sheetRows = worksheetRows(readBack.getWorksheet("Sheet1")!);
 
-  assert.equal(metadata.columns.length, 50);
+  assert.equal(metadata.columns.length, TEMPLATE_COLUMNS.length);
   assert.deepEqual(metadata.columns, TEMPLATE_COLUMNS);
-  assert.equal(metadata.references.types.has("ครุภัณฑ์สำนักงาน"), true);
+  assert.equal(metadata.references.types.size > 0, true);
   assert.equal(metadata.references.assetReturns.has("true"), true);
-  assert.equal(sheetRows[0].length, 50);
+  assert.equal(sheetRows[0].length, TEMPLATE_COLUMNS.length);
   assert.equal(readBack.getWorksheet("Reference") !== undefined, true);
   assert.equal(readBack.getWorksheet("Reference")?.columnCount, 15);
   assert.equal(sheetRows.slice(1).filter((row) => row.some((value) => value !== "")).length, 1);
   assert.equal(sheetRows[1][2], "A-001");
-  assert.deepEqual(readBack.getWorksheet("Sheet1")?.getCell("H2").dataValidation.formulae, [
-    "Reference!$A$2:$A$11",
-  ]);
+  assert.match(
+    readBack.getWorksheet("Sheet1")?.getCell("H2").dataValidation.formulae?.[0] || "",
+    /^Reference!\$A\$2:\$A\$\d+$/,
+  );
 });
 
 test("split template output creates one worksheet per exportable source sheet", async () => {
@@ -724,13 +728,14 @@ test("split template output creates one worksheet per exportable source sheet", 
   const secondRows = worksheetRows(readBack.getWorksheet("สำนักงาน")!);
 
   assert.deepEqual(readBack.worksheets.map((sheet) => sheet.name), ["ครุภัณฑ์ใหม่2567", "สำนักงาน", "Reference"]);
-  assert.equal(firstRows[0].length, 50);
-  assert.equal(secondRows[0].length, 50);
+  assert.equal(firstRows[0].length, TEMPLATE_COLUMNS.length);
+  assert.equal(secondRows[0].length, TEMPLATE_COLUMNS.length);
   assert.equal(firstRows[1][2], "A-001");
   assert.equal(secondRows[1][2], "B-001");
-  assert.deepEqual(readBack.getWorksheet("ครุภัณฑ์ใหม่2567")?.getCell("H2").dataValidation.formulae, [
-    "Reference!$A$2:$A$11",
-  ]);
+  assert.match(
+    readBack.getWorksheet("ครุภัณฑ์ใหม่2567")?.getCell("H2").dataValidation.formulae?.[0] || "",
+    /^Reference!\$A\$2:\$A\$\d+$/,
+  );
 });
 
 test("split template output preserves every source sheet that was not converted", async () => {

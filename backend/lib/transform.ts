@@ -237,7 +237,11 @@ function applyAuthoritativeAssetFields(templateRow: Record<string, any>, sourceR
   templateRow[ASSET_ITEM_COLUMN] = sourceAssetItemShouldEmit(sourceRow) ? normalized.sourceAssetItem || "" : "";
 }
 
-function mapProfileRow(sourceRow: Record<string, any>, profile: SourceProfile): Record<string, any> {
+function mapProfileRow(
+  sourceRow: Record<string, any>,
+  profile: SourceProfile,
+  mapping: TemplateMapping,
+): Record<string, any> {
   const row = emptyTemplateRow();
   const normalized = normalizedAssetFields(sourceRow);
   const sourceAssetType = normalized.sourceAssetType;
@@ -265,6 +269,13 @@ function mapProfileRow(sourceRow: Record<string, any>, profile: SourceProfile): 
   row["ต้องตรวจนับ"] = sourceRow[INTERNAL.needCount] ?? "";
   row["คิดค่าเสื่อม"] = sourceRow[INTERNAL.depreciationFlag] ?? "";
   row["ของสำคัญ"] = sourceRow[INTERNAL.importantFlag] ?? "";
+  row["หมายเลขเครื่อง (S/N)"] = resolveFallbackValue(
+    sourceRow,
+    "หมายเลขเครื่อง (S/N)",
+    mapping["หมายเลขเครื่อง (S/N)"],
+  );
+  row["ยี่ห้อ"] = resolveFallbackValue(sourceRow, "ยี่ห้อ", mapping["ยี่ห้อ"]);
+  row["พกพาได้"] = resolveFallbackValue(sourceRow, "พกพาได้", mapping["พกพาได้"]);
 
   if (profile === "NEW_ASSET_2567") {
     row["ได้มาโดย"] = sourceValue(sourceRow, "acquiredBy", INTERNAL.acquiredBy) ?? "";
@@ -432,7 +443,7 @@ export function transformRowsToTemplateDataset(
   return rowsWithEmitFlags.map((sourceRow) => {
     const profile = cellText(sourceRow[SOURCE_PROFILE_COLUMN]);
     const templateRow = isKnownProfile(profile)
-      ? mapProfileRow(sourceRow, profile)
+      ? mapProfileRow(sourceRow, profile, mapping)
       : mapFallbackRow(sourceRow, mapping);
     return forceFlagColumns(
       applyManualMapping(

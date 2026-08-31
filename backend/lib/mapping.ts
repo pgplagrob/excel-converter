@@ -49,6 +49,9 @@ export const TEMPLATE_COLUMNS: string[] = [
   "ส่งคืนสินทรัพย์",
   "ละติจูด",
   "ลองจิจูด",
+  "หมายเลขเครื่อง (S/N)",
+  "ยี่ห้อ",
+  "พกพาได้",
 ];
 
 export const COLUMN_ALIASES: Record<string, string[]> = {
@@ -70,8 +73,6 @@ export const COLUMN_ALIASES: Record<string, string[]> = {
     "รายละเอียดสินทรัพย์",
     "รายละเอียดครุภัณฑ์",
     "รายการครุภัณฑ์",
-    "Serial",
-    "BrandName",
   ],
   "ระบุอื่น ๆ": ["หมายเหตุ", "อื่นๆ", "อื่น ๆ", "รายละเอียดเพิ่มเติม"],
   "ประเภทสินทรัพย์": ["asset type", "ประเภท", "ประเภทครุภัณฑ์"],
@@ -145,6 +146,9 @@ export const COLUMN_ALIASES: Record<string, string[]> = {
   "ทุนดำเนินการ": ["operating capital"],
   "ละติจูด": ["latitude", "lat"],
   "ลองจิจูด": ["longitude", "lng", "lon"],
+  "หมายเลขเครื่อง (S/N)": ["serial", "serial number", "serial no", "s/n", "หมายเลขเครื่อง", "เลขเครื่อง"],
+  "ยี่ห้อ": ["brand", "brand name", "BrandName"],
+  "พกพาได้": ["portable", "พกพา", "เคลื่อนย้ายได้"],
 };
 
 export function normalizeText(s: string): string {
