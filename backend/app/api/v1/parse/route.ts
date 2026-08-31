@@ -6,11 +6,6 @@ import { createDataSourceWorkbook } from "@/lib/datasource";
 import { readWorkbookBuffer, type WorkbookSheetMatrix, WorkbookLimitError } from "@/lib/excel";
 import { computeHeaderSignature, loadMappingProfile } from "@/lib/mapping-profiles";
 import { loadAssetTemplateMetadata } from "@/lib/template";
-import {
-  markUploadError,
-  markUploadProcessing,
-  markUploadSuccess,
-} from "@/lib/upload-status";
 import { createSheetSummary } from "@/lib/validate";
 
 export const runtime = "nodejs";
@@ -19,15 +14,11 @@ const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
 const MAX_REQUEST_BYTES = MAX_UPLOAD_BYTES + 1024 * 1024;
 const WORKBOOK_FILE_PATTERN = /\.xlsx?$/i;
 
-function uploadError(message: string, fileName: string | null = null) {
-  markUploadError(fileName, message);
+function uploadError(message: string) {
   return NextResponse.json({ error: message }, { status: 400 });
 }
 
 export async function POST(req: NextRequest) {
-  let fileName: string | null = null;
-  markUploadProcessing();
-
   try {
     const contentLength = Number(req.headers.get("content-length"));
     if (Number.isFinite(contentLength) && contentLength > MAX_REQUEST_BYTES) {
@@ -41,16 +32,14 @@ export async function POST(req: NextRequest) {
     }
 
     const file = fileEntry;
-    fileName = file.name;
-    markUploadProcessing(fileName);
     if (!WORKBOOK_FILE_PATTERN.test(file.name)) {
-      return uploadError("Only .xlsx and .xls files are supported.", fileName);
+      return uploadError("Only .xlsx and .xls files are supported.");
     }
     if (!file.size) {
-      return uploadError("The uploaded workbook is empty.", fileName);
+      return uploadError("The uploaded workbook is empty.");
     }
     if (file.size > MAX_UPLOAD_BYTES) {
-      return uploadError("The uploaded file must be 20 MB or smaller.", fileName);
+      return uploadError("The uploaded file must be 20 MB or smaller.");
     }
 
     const arrayBuffer = await file.arrayBuffer();
@@ -128,14 +117,9 @@ export async function POST(req: NextRequest) {
       sheetProfileDebug: dataSource.profileDebug,
     };
 
-    markUploadSuccess(file.name);
     return NextResponse.json(response);
   } catch (err: unknown) {
     console.error(err);
-    markUploadError(
-      fileName,
-      err instanceof Error ? err.message : "ไม่สามารถอ่านไฟล์ได้",
-    );
     const message = err instanceof WorkbookLimitError
       ? err.message
       : "ระบบไม่สามารถอ่านไฟล์ได้ กรุณาตรวจสอบว่าไฟล์ Excel ไม่เสียหาย";
