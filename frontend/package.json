@@ -9,9 +9,13 @@
     "start": "next start -p 3000"
   },
   "dependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "@tailwindcss/postcss": "^4.3.3",
     "next": "^16.2.10",
+    "postcss": "^8.5.10",
     "react": "^19.2.7",
-    "react-dom": "^19.2.7"
+    "react-dom": "^19.2.7",
+    "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
     "@types/node": "20.14.10",

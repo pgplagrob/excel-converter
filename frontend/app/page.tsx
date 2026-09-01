@@ -432,6 +432,23 @@ export default function Page() {
 
   const selectedCount = selectedSheetCount(sheetSelection);
 
+  if (step === 0) {
+    return (
+      <UploadStep
+        file={file}
+        dragActive={dragActive}
+        setDragActive={setDragActive}
+        onDrop={onDrop}
+        inputRef={inputRef}
+        handleFile={handleFile}
+        setFile={setFile}
+        onNext={uploadAndParse}
+        loading={loading}
+        error={error}
+      />
+    );
+  }
+
   return (
     <div className="page">
       <div className="header">
@@ -471,20 +488,6 @@ export default function Page() {
       )}
 
       <div className="panel">
-        {step === 0 && (
-          <UploadStep
-            file={file}
-            dragActive={dragActive}
-            setDragActive={setDragActive}
-            onDrop={onDrop}
-            inputRef={inputRef}
-            handleFile={handleFile}
-            setFile={setFile}
-            onNext={uploadAndParse}
-            loading={loading}
-          />
-        )}
-
         {step === 1 && parsed && (
           <PreviewStep
             parsed={parsed}
