@@ -1,11 +1,14 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import type {
   CellOverridesBySheet,
   ExcludedRowsBySheet,
   IssueSummary,
   MappingSuggestion,
   ParseResponse,
+  SheetData,
+  SheetEligibility,
   ValidationIssue,
 } from "@/lib/client-types";
 import { hasManualOverride, type ManualMapping } from "@/lib/manual-mapping";
@@ -18,6 +21,7 @@ import { SheetTabs } from "./SheetTabs";
 import { SourcePreviewTable } from "./SourcePreviewTable";
 
 interface PreviewStepProps {
+  reviewLayout?: boolean;
   parsed: ParseResponse;
   activeSheetIdx: number;
   setActiveSheetIdx: (index: number) => void;
@@ -60,6 +64,30 @@ type VisibleMapping = MappingSuggestion & {
   autoSourceColumn: string | null;
 };
 
+type ReviewStatus = "success" | "warning" | "error" | "preserved" | "skipped" | "unsupported";
+
+interface ReviewSheetRow {
+  key: string;
+  sheetName: string;
+  sheet: SheetData | null;
+  eligibility: SheetEligibility;
+  status: ReviewStatus;
+  rowCount: number;
+  headerRow?: number;
+  reason?: string;
+  errorCount: number;
+  warningCount: number;
+}
+
+const REVIEW_STATUS_META: Record<ReviewStatus, { label: string; priority: number }> = {
+  error: { label: "พบข้อผิดพลาด", priority: 0 },
+  warning: { label: "ต้องตรวจสอบ", priority: 1 },
+  unsupported: { label: "ยังไม่รองรับ", priority: 2 },
+  success: { label: "พร้อมใช้งาน", priority: 3 },
+  preserved: { label: "เก็บต้นฉบับ", priority: 4 },
+  skipped: { label: "ข้าม", priority: 5 },
+};
+
 const PARSER_MANAGED_TEMPLATE_COLUMNS = new Set([
   "ชื่อสินทรัพย์",
   "รายละเอียด",
@@ -68,6 +96,7 @@ const PARSER_MANAGED_TEMPLATE_COLUMNS = new Set([
 ]);
 
 export function PreviewStep({
+  reviewLayout = false,
   parsed,
   activeSheetIdx,
   setActiveSheetIdx,
@@ -90,7 +119,243 @@ export function PreviewStep({
   canContinue,
   loading,
 }: PreviewStepProps) {
+  const [previewSheetKey, setPreviewSheetKey] = useState<string | null>(null);
+  useEffect(() => {
+    if (previewSheetKey === null) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setPreviewSheetKey(null);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [previewSheetKey]);
+
   const sheet = parsed.sheets[activeSheetIdx];
+  if (reviewLayout) {
+    const sheetByName = new Map(parsed.sheets.map((item) => [item.sheetName, item]));
+    const overviewNames = new Set(parsed.sheetOverview.map((item) => item.sheetName));
+    const reviewRows: ReviewSheetRow[] = parsed.sheetOverview.map((overview, overviewIndex) => {
+      const parsedSheet = typeof overview.parsedSheetIndex === "number"
+        ? parsed.sheets[overview.parsedSheetIndex] || null
+        : sheetByName.get(overview.sheetName) || null;
+      const sheetIssues = (issues || []).filter((issue) => issue.sheetName === overview.sheetName);
+      const runtimeSummary = parsedSheet
+        ? createRuntimeSheetSummary(parsedSheet, sheetIssues)
+        : null;
+      const errorCount = Math.max(runtimeSummary?.errorCount || 0, overview.errorCount || 0);
+      const warningCount = Math.max(runtimeSummary?.warningCount || 0, overview.warningCount || 0);
+      let status: ReviewStatus;
+      if (overview.eligibility === "unsupported") status = "unsupported";
+      else if (overview.eligibility === "preserved") status = "preserved";
+      else if (overview.eligibility === "skipped") status = "skipped";
+      else if (errorCount > 0) status = "error";
+      else if (warningCount > 0 || overview.eligibility === "needsReview") status = "warning";
+      else status = "success";
+
+      return {
+        key: `${overview.sheetName}-${overviewIndex}`,
+        sheetName: overview.sheetName,
+        sheet: parsedSheet,
+        eligibility: overview.eligibility,
+        status,
+        rowCount: parsedSheet?.rowCount ?? overview.rowCount,
+        headerRow: parsedSheet ? parsedSheet.headerRowIndex + 1 : undefined,
+        reason: overview.reason || parsedSheet?.eligibilityReason,
+        errorCount,
+        warningCount,
+      };
+    });
+
+    parsed.sheets.forEach((parsedSheet, index) => {
+      if (overviewNames.has(parsedSheet.sheetName)) return;
+      const sheetIssues = (issues || []).filter((issue) => issue.sheetName === parsedSheet.sheetName);
+      const summary = createRuntimeSheetSummary(parsedSheet, sheetIssues);
+      reviewRows.push({
+        key: `${parsedSheet.sheetName}-parsed-${index}`,
+        sheetName: parsedSheet.sheetName,
+        sheet: parsedSheet,
+        eligibility: parsedSheet.eligibility,
+        status: summary.status,
+        rowCount: summary.rowCount,
+        headerRow: summary.headerRow,
+        reason: summary.reason || parsedSheet.eligibilityReason,
+        errorCount: summary.errorCount,
+        warningCount: summary.warningCount,
+      });
+    });
+
+    reviewRows.sort((left, right) => (
+      REVIEW_STATUS_META[left.status].priority - REVIEW_STATUS_META[right.status].priority
+    ));
+
+    const readyCount = reviewRows.filter((row) => row.status === "success").length;
+    const attentionCount = reviewRows.filter((row) => (
+      row.status === "warning" || row.status === "error" || row.status === "unsupported"
+    )).length;
+    const totalRows = reviewRows.reduce((sum, row) => sum + row.rowCount, 0);
+    const previewRow = previewSheetKey === null
+      ? null
+      : reviewRows.find((row) => row.key === previewSheetKey) || null;
+    const allReady = reviewRows.length > 0 && attentionCount === 0;
+    const heading = canContinue ? "ตรวจสอบข้อมูล" : "ตรวจสอบและแก้ไขข้อมูล";
+    const description = allReady
+      ? "ข้อมูลทุกชีตพร้อมสำหรับดำเนินการ กรุณาตรวจสอบสรุปด้านล่างก่อนดำเนินการต่อ"
+      : canContinue
+        ? "มีบางชีตที่ต้องตรวจสอบ คุณยังดำเนินการต่อด้วยชีตที่พร้อมได้"
+        : "ยังไม่มีชีตพร้อมดำเนินการต่อ กรุณาตรวจสอบรายละเอียดของแต่ละชีต";
+
+    return (
+      <section className="review-ready-page">
+        <header className="review-ready-heading">
+          <h1>{heading}</h1>
+          <p>{description}</p>
+        </header>
+
+        <div className="review-ready-summary" aria-label="สรุปผลการตรวจสอบ">
+          <article className="review-ready-card">
+            <span>จำนวนชีตทั้งหมด</span>
+            <strong>{reviewRows.length.toLocaleString("th-TH")}</strong>
+          </article>
+          <article className="review-ready-card success">
+            <span>พร้อมใช้งาน</span>
+            <strong>
+              {readyCount.toLocaleString("th-TH")}
+              {readyCount > 0 && <span className="review-ready-check" aria-hidden="true">✓</span>}
+            </strong>
+          </article>
+          <article className="review-ready-card warning">
+            <span>ต้องตรวจสอบ</span>
+            <strong>{attentionCount.toLocaleString("th-TH")}</strong>
+          </article>
+          <article className="review-ready-card primary">
+            <span>จำนวนรายการทั้งหมด</span>
+            <strong>{totalRows.toLocaleString("th-TH")}</strong>
+          </article>
+        </div>
+
+        <div className="review-ready-table-card">
+          <div className="review-ready-table-wrap">
+            <table className="review-ready-table">
+              <thead>
+                <tr>
+                  <th>ชื่อชีต</th>
+                  <th>สถานะ</th>
+                  <th>จำนวนรายการ</th>
+                  <th>แถวหัวตาราง</th>
+                  <th className="review-ready-action-column">ดูข้อมูล</th>
+                </tr>
+              </thead>
+              <tbody>
+                {reviewRows.map((row) => (
+                  <tr key={row.key}>
+                    <td>
+                      <span className="review-ready-sheet-name">
+                        <span className="review-ready-sheet-icon" aria-hidden="true">▦</span>
+                        <span>
+                          {row.sheetName}
+                          {row.reason && row.status !== "success" && (
+                            <small className="review-ready-sheet-reason">{row.reason}</small>
+                          )}
+                        </span>
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`review-ready-status ${row.status}`}>
+                        <span aria-hidden="true" />
+                        {REVIEW_STATUS_META[row.status].label}
+                      </span>
+                    </td>
+                    <td>{row.rowCount.toLocaleString("th-TH")}</td>
+                    <td>{row.headerRow?.toLocaleString("th-TH") || "–"}</td>
+                    <td className="review-ready-action-column">
+                      <button
+                        type="button"
+                        className="review-ready-preview-button"
+                        aria-label={`ดูรายละเอียดชีต ${row.sheetName}`}
+                        onClick={() => setPreviewSheetKey(row.key)}
+                      >
+                        <svg aria-hidden="true" viewBox="0 0 24 24">
+                          <path d="M2.7 12s3.4-6 9.3-6 9.3 6 9.3 6-3.4 6-9.3 6-9.3-6-9.3-6Z" />
+                          <circle cx="12" cy="12" r="2.7" />
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div className="review-ready-actions">
+          <button type="button" className="review-ready-button secondary" onClick={onBack}>
+            กลับไปเลือกไฟล์
+          </button>
+          <button
+            type="button"
+            className="review-ready-button primary"
+            disabled={loading || !canContinue}
+            onClick={onNext}
+          >
+            {loading ? "กำลังตรวจสอบ..." : "ตรวจสอบอีกครั้งและดำเนินการต่อ"}
+            {!loading && <span aria-hidden="true">→</span>}
+          </button>
+        </div>
+
+        {previewRow && (
+          <div
+            className="review-preview-modal-backdrop"
+            role="presentation"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) setPreviewSheetKey(null);
+            }}
+          >
+            <section
+              className="review-preview-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="review-preview-modal-title"
+            >
+              <header className="review-preview-modal-heading">
+                <div>
+                  <span>ตัวอย่างข้อมูล</span>
+                  <h2 id="review-preview-modal-title">{previewRow.sheetName}</h2>
+                </div>
+                <button
+                  type="button"
+                  aria-label="ปิดตัวอย่างข้อมูล"
+                  onClick={() => setPreviewSheetKey(null)}
+                >
+                  ×
+                </button>
+              </header>
+              <div className="review-preview-modal-body">
+                {previewRow.sheet ? (
+                  <SourcePreviewTable
+                    sheet={previewRow.sheet}
+                    issues={(issues || []).filter((issue) => issue.sheetName === previewRow.sheetName)}
+                    cellOverrides={cellOverrides[previewRow.sheetName] || {}}
+                    excludedRows={excludedRows[previewRow.sheetName] || []}
+                  />
+                ) : (
+                  <div className="review-preview-details">
+                    <span className={`review-ready-status ${previewRow.status}`}>
+                      <span aria-hidden="true" />
+                      {REVIEW_STATUS_META[previewRow.status].label}
+                    </span>
+                    <p>{previewRow.reason || "ไม่มีข้อมูลตัวอย่างสำหรับชีตนี้"}</p>
+                  </div>
+                )}
+              </div>
+              <footer className="review-preview-modal-footer">
+                <button type="button" onClick={() => setPreviewSheetKey(null)}>ปิด</button>
+              </footer>
+            </section>
+          </div>
+        )}
+      </section>
+    );
+  }
+
   if (!sheet) {
     return (
       <>
@@ -109,6 +374,7 @@ export function PreviewStep({
       </>
     );
   }
+
   const sheetMap = mappingState[sheet.sheetName] || {};
   const sheetCellOverrides = cellOverrides[sheet.sheetName] || {};
   const sheetExcludedRows = excludedRows[sheet.sheetName] || [];

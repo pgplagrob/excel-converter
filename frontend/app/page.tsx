@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { DownloadStep } from "./components/DownloadStep";
 import { PreviewStep } from "./components/PreviewStep";
+import { ReviewShell } from "./components/ReviewShell";
 import { UploadStep } from "./components/UploadStep";
 import type {
   CellOverridesBySheet,
@@ -446,6 +447,43 @@ export default function Page() {
         loading={loading}
         error={error}
       />
+    );
+  }
+
+  if (step === 1 && parsed) {
+    return (
+      <ReviewShell>
+        {error && <div className="review-ready-error" role="alert">{error}</div>}
+        {loading && (
+          <div className="review-ready-loading" aria-label="กำลังตรวจสอบข้อมูล">
+            <span />
+          </div>
+        )}
+        <PreviewStep
+          reviewLayout
+          parsed={parsed}
+          activeSheetIdx={activeSheetIdx}
+          setActiveSheetIdx={setActiveSheetIdx}
+          mappingState={mappingState}
+          cellOverrides={cellOverrides}
+          excludedRows={excludedRows}
+          onBack={() => setStep(0)}
+          updateMapping={updateMapping}
+          updateCellOverride={updateCellOverride}
+          toggleExcludedRow={toggleExcludedRow}
+          resetSheetFixes={resetSheetFixes}
+          reparseSheet={reparseSheet}
+          mappedCountForSheet={mappedCountForSheet}
+          issues={issues}
+          issueSummary={issueSummary}
+          resultsStale={resultsStale}
+          advancedOpen={advancedOpen}
+          setAdvancedOpen={setAdvancedOpen}
+          onNext={runValidation}
+          canContinue={selectedCount > 0}
+          loading={loading}
+        />
+      </ReviewShell>
     );
   }
 
