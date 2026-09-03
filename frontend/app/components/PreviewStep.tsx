@@ -120,6 +120,7 @@ export function PreviewStep({
   loading,
 }: PreviewStepProps) {
   const [previewSheetKey, setPreviewSheetKey] = useState<string | null>(null);
+  const [selectedReviewKey, setSelectedReviewKey] = useState<string | null>(null);
   useEffect(() => {
     if (previewSheetKey === null) return;
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -191,6 +192,16 @@ export function PreviewStep({
     const attentionCount = reviewRows.filter((row) => (
       row.status === "warning" || row.status === "error" || row.status === "unsupported"
     )).length;
+    const selectedReviewRow =
+  reviewRows.find((row) => row.key === selectedReviewKey)
+  ?? reviewRows.find(
+    (row) =>
+      row.status === "error"
+      || row.status === "warning"
+      || row.status === "unsupported",
+  )
+  ?? reviewRows[0]
+  ?? null;
     const totalRows = reviewRows.reduce((sum, row) => sum + row.rowCount, 0);
     const previewRow = previewSheetKey === null
       ? null
@@ -231,7 +242,18 @@ export function PreviewStep({
             <strong>{totalRows.toLocaleString("th-TH")}</strong>
           </article>
         </div>
-
+<div className="review-attention-layout">
+  <section
+    className="review-attention-sheet-panel"
+    aria-labelledby="review-sheet-list-title"
+  >
+    <h2
+      id="review-sheet-list-title"
+      className="review-attention-panel-title"
+    >
+      ชีตที่ตรวจพบ
+    </h2>
+    
         <div className="review-ready-table-card">
           <div className="review-ready-table-wrap">
             <table className="review-ready-table">
@@ -271,7 +293,10 @@ export function PreviewStep({
                         type="button"
                         className="review-ready-preview-button"
                         aria-label={`ดูรายละเอียดชีต ${row.sheetName}`}
-                        onClick={() => setPreviewSheetKey(row.key)}
+                        onClick={() => {
+                          setSelectedReviewKey(row.key);
+                          setPreviewSheetKey(row.key);
+                        }}
                       >
                         <svg aria-hidden="true" viewBox="0 0 24 24">
                           <path d="M2.7 12s3.4-6 9.3-6 9.3 6 9.3 6-3.4 6-9.3 6-9.3-6-9.3-6Z" />
@@ -285,6 +310,41 @@ export function PreviewStep({
             </table>
           </div>
         </div>
+
+          </section>
+
+  <section
+    className="review-attention-detail-panel"
+    aria-labelledby="review-problem-title"
+  >
+    <h2
+      id="review-problem-title"
+      className="review-attention-panel-title"
+    >
+      {selectedReviewRow
+        ? `รายละเอียด: ${selectedReviewRow.sheetName}`
+        : "รายละเอียดปัญหา"}
+    </h2>
+
+    {selectedReviewRow ? (
+      <div className="review-attention-placeholder">
+        <span className={`review-ready-status ${selectedReviewRow.status}`}>
+          <span aria-hidden="true" />
+          {REVIEW_STATUS_META[selectedReviewRow.status].label}
+        </span>
+
+        <p>
+          {selectedReviewRow.reason
+            || "รายละเอียดของชีตที่เลือกจะแสดงในพื้นที่นี้"}
+        </p>
+      </div>
+    ) : (
+      <p className="review-attention-placeholder">
+        ไม่พบชีตสำหรับตรวจสอบ
+      </p>
+    )}
+  </section>
+</div>
 
         <div className="review-ready-actions">
           <button type="button" className="review-ready-button secondary" onClick={onBack}>

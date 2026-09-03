@@ -9,3 +9,5 @@ data/
 # Production only needs the workbook template. Keep local/source datasets out of Git.
 backend/assets/*
 !backend/assets/asset-template.xlsx
+
+.README-REVIEW-NEEDS-ATTENTION.md
