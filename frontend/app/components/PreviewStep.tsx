@@ -95,6 +95,59 @@ const PARSER_MANAGED_TEMPLATE_COLUMNS = new Set([
   "รายการสินทรัพย์",
 ]);
 
+function buildVisibleMappings(sheet: SheetData, sheetMap: ManualMapping): VisibleMapping[] {
+  return sheet.mapping
+    .map((mapping, index) => {
+      const autoSourceColumn = mapping.sourceColumn;
+      const manualSource = sheetMap[mapping.templateColumn];
+      const isManual = hasManualOverride(sheetMap, mapping.templateColumn);
+      return {
+        ...mapping,
+        autoSourceColumn,
+        sourceColumn: isManual ? manualSource : mapping.sourceColumn,
+        status: isManual ? ("manual" as const) : mapping.status,
+        confidence: isManual ? ("high" as const) : mapping.confidence,
+        originalIndex: index,
+      };
+    })
+    .sort((a, b) => {
+      const aIsMapped = Boolean(a.sourceColumn) || PARSER_MANAGED_TEMPLATE_COLUMNS.has(a.templateColumn);
+      const bIsMapped = Boolean(b.sourceColumn) || PARSER_MANAGED_TEMPLATE_COLUMNS.has(b.templateColumn);
+      if (aIsMapped === bIsMapped) return a.originalIndex - b.originalIndex;
+      return aIsMapped ? -1 : 1;
+    });
+}
+
+function reviewStatusGuidance(row: ReviewSheetRow): string {
+  if (row.status === "error") {
+    return "แก้ไขข้อผิดพลาดด้านล่าง แล้วตรวจสอบข้อมูลอีกครั้ง ระบบจะไม่ส่งออกชีตนี้จนกว่าข้อผิดพลาดจะถูกแก้ไข";
+  }
+  if (row.status === "warning") {
+    return "ตรวจสอบคำเตือนและการจับคู่คอลัมน์ด้านล่าง หากข้อมูลถูกต้อง คุณยังดำเนินการต่อด้วยชีตที่พร้อมใช้งานได้";
+  }
+  if (row.status === "unsupported") {
+    return "ระบบยังไม่รองรับโครงสร้างของชีตนี้ ชีตนี้จึงไม่รวมอยู่ในการส่งออกครั้งนี้";
+  }
+  if (row.status === "preserved") {
+    return "ชีตนี้ไม่ใช่ข้อมูลสินทรัพย์รายชิ้น ระบบจะเก็บชีตต้นฉบับไว้ในไฟล์ผลลัพธ์โดยไม่ทำ Mapping";
+  }
+  if (row.status === "skipped") {
+    return "ระบบข้ามชีตนี้เพราะไม่มีข้อมูลสินทรัพย์ที่ต้องแปลง ชีตนี้จะไม่รวมอยู่ในไฟล์ผลลัพธ์";
+  }
+  return "ชีตนี้ผ่านการตรวจสอบและพร้อมรวมอยู่ในไฟล์ผลลัพธ์";
+}
+
+function reviewIssueLabel(row: ReviewSheetRow): string {
+  const labels: string[] = [];
+  if (row.errorCount > 0) labels.push(`${row.errorCount.toLocaleString("th-TH")} ข้อผิดพลาด`);
+  if (row.warningCount > 0) labels.push(`${row.warningCount.toLocaleString("th-TH")} คำเตือน`);
+  if (labels.length > 0) return labels.join(" · ");
+  if (row.status === "preserved") return "เก็บชีตต้นฉบับ";
+  if (row.status === "skipped") return "ไม่รวมในการส่งออก";
+  if (row.status === "unsupported") return "รูปแบบยังไม่รองรับ";
+  return "ไม่พบปัญหา";
+}
+
 export function PreviewStep({
   reviewLayout = false,
   parsed,
@@ -193,26 +246,48 @@ export function PreviewStep({
       row.status === "warning" || row.status === "error" || row.status === "unsupported"
     )).length;
     const selectedReviewRow =
-  reviewRows.find((row) => row.key === selectedReviewKey)
-  ?? reviewRows.find(
-    (row) =>
-      row.status === "error"
-      || row.status === "warning"
-      || row.status === "unsupported",
-  )
-  ?? reviewRows[0]
-  ?? null;
+      reviewRows.find((row) => row.key === selectedReviewKey)
+      ?? reviewRows.find(
+        (row) => row.status === "error" || row.status === "warning" || row.status === "unsupported",
+      )
+      ?? reviewRows[0]
+      ?? null;
     const totalRows = reviewRows.reduce((sum, row) => sum + row.rowCount, 0);
     const previewRow = previewSheetKey === null
       ? null
       : reviewRows.find((row) => row.key === previewSheetKey) || null;
-    const allReady = reviewRows.length > 0 && attentionCount === 0;
+    const allReady = reviewRows.length > 0 && attentionCount === 0 && canContinue;
     const heading = canContinue ? "ตรวจสอบข้อมูล" : "ตรวจสอบและแก้ไขข้อมูล";
     const description = allReady
       ? "ข้อมูลทุกชีตพร้อมสำหรับดำเนินการ กรุณาตรวจสอบสรุปด้านล่างก่อนดำเนินการต่อ"
       : canContinue
         ? "มีบางชีตที่ต้องตรวจสอบ คุณยังดำเนินการต่อด้วยชีตที่พร้อมได้"
         : "ยังไม่มีชีตพร้อมดำเนินการต่อ กรุณาตรวจสอบรายละเอียดของแต่ละชีต";
+    const selectedSheet = selectedReviewRow?.sheet || null;
+    const selectedIssues = selectedReviewRow
+      ? (issues || []).filter((issue) => issue.sheetName === selectedReviewRow.sheetName)
+      : [];
+    const selectedSheetMap = selectedSheet ? mappingState[selectedSheet.sheetName] || {} : {};
+    const selectedCellOverrides = selectedSheet ? cellOverrides[selectedSheet.sheetName] || {} : {};
+    const selectedExcludedRows = selectedSheet ? excludedRows[selectedSheet.sheetName] || [] : [];
+    const selectedEditedCellCount = Object.values(selectedCellOverrides)
+      .reduce((sum, row) => sum + Object.keys(row).length, 0);
+    const selectedHasFixes = selectedEditedCellCount > 0 || selectedExcludedRows.length > 0;
+    const selectedCanEdit = Boolean(
+      selectedSheet
+      && (selectedReviewRow?.eligibility === "exportable" || selectedReviewRow?.eligibility === "needsReview"),
+    );
+    const selectedMappings = selectedSheet && selectedCanEdit
+      ? buildVisibleMappings(selectedSheet, selectedSheetMap)
+      : [];
+
+    const selectReviewRow = (row: ReviewSheetRow) => {
+      setSelectedReviewKey(row.key);
+      if (row.sheet) {
+        const parsedIndex = parsed.sheets.indexOf(row.sheet);
+        if (parsedIndex >= 0) setActiveSheetIdx(parsedIndex);
+      }
+    };
 
     return (
       <section className="review-ready-page">
@@ -242,123 +317,193 @@ export function PreviewStep({
             <strong>{totalRows.toLocaleString("th-TH")}</strong>
           </article>
         </div>
-<div className="review-attention-layout">
-  <section
-    className="review-attention-sheet-panel"
-    aria-labelledby="review-sheet-list-title"
-  >
-    <h2
-      id="review-sheet-list-title"
-      className="review-attention-panel-title"
-    >
-      ชีตที่ตรวจพบ
-    </h2>
-    
-        <div className="review-ready-table-card">
-          <div className="review-ready-table-wrap">
-            <table className="review-ready-table">
-              <thead>
-                <tr>
-                  <th>ชื่อชีต</th>
-                  <th>สถานะ</th>
-                  <th>จำนวนรายการ</th>
-                  <th>แถวหัวตาราง</th>
-                  <th className="review-ready-action-column">ดูข้อมูล</th>
-                </tr>
-              </thead>
-              <tbody>
-                {reviewRows.map((row) => (
-                  <tr key={row.key}>
-                    <td>
-                      <span className="review-ready-sheet-name">
-                        <span className="review-ready-sheet-icon" aria-hidden="true">▦</span>
-                        <span>
-                          {row.sheetName}
-                          {row.reason && row.status !== "success" && (
-                            <small className="review-ready-sheet-reason">{row.reason}</small>
-                          )}
-                        </span>
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`review-ready-status ${row.status}`}>
-                        <span aria-hidden="true" />
-                        {REVIEW_STATUS_META[row.status].label}
-                      </span>
-                    </td>
-                    <td>{row.rowCount.toLocaleString("th-TH")}</td>
-                    <td>{row.headerRow?.toLocaleString("th-TH") || "–"}</td>
-                    <td className="review-ready-action-column">
+
+        <div className="review-attention-layout">
+          <section
+            className="review-attention-sheet-panel"
+            aria-labelledby="review-sheet-list-title"
+          >
+            <div className="review-attention-panel-heading">
+              <h2 id="review-sheet-list-title" className="review-attention-panel-title">
+                ชีตที่ตรวจพบ
+              </h2>
+              <span>{reviewRows.length.toLocaleString("th-TH")} ชีต</span>
+            </div>
+
+            {reviewRows.length > 0 ? (
+              <ul className="review-sheet-list">
+                {reviewRows.map((row) => {
+                  const selected = selectedReviewRow?.key === row.key;
+                  return (
+                    <li key={row.key}>
                       <button
                         type="button"
-                        className="review-ready-preview-button"
-                        aria-label={`ดูรายละเอียดชีต ${row.sheetName}`}
-                        onClick={() => {
-                          setSelectedReviewKey(row.key);
-                          setPreviewSheetKey(row.key);
-                        }}
+                        className={`review-sheet-option ${row.status}${selected ? " selected" : ""}`}
+                        aria-pressed={selected}
+                        onClick={() => selectReviewRow(row)}
                       >
-                        <svg aria-hidden="true" viewBox="0 0 24 24">
-                          <path d="M2.7 12s3.4-6 9.3-6 9.3 6 9.3 6-3.4 6-9.3 6-9.3-6-9.3-6Z" />
-                          <circle cx="12" cy="12" r="2.7" />
-                        </svg>
+                        <span className="review-sheet-option-topline">
+                          <span className="review-ready-sheet-name">
+                            <span className="review-ready-sheet-icon" aria-hidden="true">▦</span>
+                            <span>{row.sheetName}</span>
+                          </span>
+                          <span className={`review-ready-status ${row.status}`}>
+                            <span aria-hidden="true" />
+                            {REVIEW_STATUS_META[row.status].label}
+                          </span>
+                        </span>
+                        <span className="review-sheet-option-meta">
+                          <span>{row.rowCount.toLocaleString("th-TH")} รายการ</span>
+                          <span>แถวหัวตาราง {row.headerRow?.toLocaleString("th-TH") || "–"}</span>
+                        </span>
+                        <span className={`review-sheet-option-issues ${row.status}`}>
+                          {reviewIssueLabel(row)}
+                        </span>
                       </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <div className="review-empty-state">
+                <strong>ไม่พบชีตในไฟล์นี้</strong>
+                <p>ย้อนกลับไปเลือกไฟล์ Excel ที่มีข้อมูลอย่างน้อยหนึ่งชีต</p>
+              </div>
+            )}
           </section>
 
-  <section
-    className="review-attention-detail-panel"
-    aria-labelledby="review-problem-title"
-  >
-    <h2
-      id="review-problem-title"
-      className="review-attention-panel-title"
-    >
-      {selectedReviewRow
-        ? `รายละเอียด: ${selectedReviewRow.sheetName}`
-        : "รายละเอียดปัญหา"}
-    </h2>
+          <section
+            className="review-attention-detail-panel"
+            aria-labelledby="review-problem-title"
+          >
+            {selectedReviewRow ? (
+              <>
+                <header className="review-detail-heading">
+                  <div>
+                    <span className="review-detail-eyebrow">รายละเอียดชีต</span>
+                    <h2 id="review-problem-title">{selectedReviewRow.sheetName}</h2>
+                  </div>
+                  <span className={`review-ready-status ${selectedReviewRow.status}`}>
+                    <span aria-hidden="true" />
+                    {REVIEW_STATUS_META[selectedReviewRow.status].label}
+                  </span>
+                </header>
 
-    {selectedReviewRow ? (
-      <div className="review-attention-placeholder">
-        <span className={`review-ready-status ${selectedReviewRow.status}`}>
-          <span aria-hidden="true" />
-          {REVIEW_STATUS_META[selectedReviewRow.status].label}
-        </span>
+                <div className="review-detail-metrics" aria-label="สรุปสถานะชีตที่เลือก">
+                  <div><strong>{selectedReviewRow.rowCount.toLocaleString("th-TH")}</strong><span>รายการ</span></div>
+                  <div><strong>{selectedReviewRow.errorCount.toLocaleString("th-TH")}</strong><span>ข้อผิดพลาด</span></div>
+                  <div><strong>{selectedReviewRow.warningCount.toLocaleString("th-TH")}</strong><span>คำเตือน</span></div>
+                </div>
 
-        <p>
-          {selectedReviewRow.reason
-            || "รายละเอียดของชีตที่เลือกจะแสดงในพื้นที่นี้"}
-        </p>
-      </div>
-    ) : (
-      <p className="review-attention-placeholder">
-        ไม่พบชีตสำหรับตรวจสอบ
-      </p>
-    )}
-  </section>
-</div>
+                <div className={`review-status-guidance ${selectedReviewRow.status}`}>
+                  <strong>{selectedReviewRow.reason || REVIEW_STATUS_META[selectedReviewRow.status].label}</strong>
+                  <p>{reviewStatusGuidance(selectedReviewRow)}</p>
+                </div>
+
+                {selectedSheet ? (
+                  <>
+                    <div className="review-detail-toolbar">
+                      <button
+                        type="button"
+                        className="review-ready-button secondary"
+                        onClick={() => setPreviewSheetKey(selectedReviewRow.key)}
+                      >
+                        ดูตัวอย่างข้อมูล
+                      </button>
+                      {selectedCanEdit && selectedHasFixes && (
+                        <button
+                          type="button"
+                          className="review-text-button"
+                          onClick={() => resetSheetFixes(selectedSheet.sheetName)}
+                        >
+                          ล้างการแก้ไข {selectedEditedCellCount.toLocaleString("th-TH")} ช่อง
+                          {selectedExcludedRows.length > 0
+                            ? ` และคืน ${selectedExcludedRows.length.toLocaleString("th-TH")} แถว`
+                            : ""}
+                        </button>
+                      )}
+                    </div>
+
+                    {selectedCanEdit ? (
+                      <>
+                        <section className="review-detail-section" aria-labelledby="review-issues-title">
+                          <h3 id="review-issues-title">ผลการตรวจสอบและการแก้ไข</h3>
+                          {resultsStale && (
+                            <div className="stale-banner">
+                              มีการแก้ไขหลังการตรวจสอบล่าสุด กดตรวจสอบอีกครั้งเพื่ออัปเดตผล
+                            </div>
+                          )}
+                          {issues === null ? (
+                            <div className="review-inline-info">
+                              ยังไม่มีผล Validation แบบรายแถว ตรวจสอบ Preview และ Mapping ก่อนกดดำเนินการต่อ
+                            </div>
+                          ) : (
+                            <IssueList
+                              issues={selectedIssues}
+                              emptyText="ชีตนี้ไม่พบปัญหา พร้อมส่งออกได้"
+                              cellOverrides={selectedCellOverrides}
+                              excludedRows={selectedExcludedRows}
+                              onCellOverride={(rowIndex, templateColumn, value) =>
+                                updateCellOverride(selectedSheet.sheetName, rowIndex, templateColumn, value)}
+                              onToggleExcludedRow={(rowIndex) =>
+                                toggleExcludedRow(selectedSheet.sheetName, rowIndex)}
+                            />
+                          )}
+                        </section>
+
+                        <section className="review-detail-section review-mapping-section" aria-label="การจับคู่คอลัมน์">
+                          <MappingSummary
+                            key={selectedSheet.sheetName}
+                            sheet={selectedSheet}
+                            sheetMap={selectedSheetMap}
+                            visibleMappings={selectedMappings}
+                            advancedOpen={advancedOpen}
+                            setAdvancedOpen={setAdvancedOpen}
+                            updateMapping={updateMapping}
+                          />
+                        </section>
+                      </>
+                    ) : (
+                      <div className="review-inline-info">
+                        ชีตสถานะ {REVIEW_STATUS_META[selectedReviewRow.status].label} เปิดดูข้อมูลได้ แต่ไม่มีเครื่องมือแก้ไข Mapping
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="review-empty-state compact">
+                    <strong>ไม่มีข้อมูล Preview สำหรับชีตนี้</strong>
+                    <p>{reviewStatusGuidance(selectedReviewRow)}</p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="review-empty-state compact">
+                <h2 id="review-problem-title">ยังไม่มีชีตให้ตรวจสอบ</h2>
+                <p>ย้อนกลับไปเลือกไฟล์ Excel ใหม่เพื่อเริ่มต้นอีกครั้ง</p>
+              </div>
+            )}
+          </section>
+        </div>
 
         <div className="review-ready-actions">
           <button type="button" className="review-ready-button secondary" onClick={onBack}>
             กลับไปเลือกไฟล์
           </button>
-          <button
-            type="button"
-            className="review-ready-button primary"
-            disabled={loading || !canContinue}
-            onClick={onNext}
-          >
-            {loading ? "กำลังตรวจสอบ..." : "ตรวจสอบอีกครั้งและดำเนินการต่อ"}
-            {!loading && <span aria-hidden="true">→</span>}
-          </button>
+          <div className="review-continue-group">
+            {!canContinue && (
+              <p id="review-continue-help">ยังไม่มีชีตที่พร้อมส่งออก กรุณาแก้ไขข้อผิดพลาดหรือเลือกไฟล์ใหม่</p>
+            )}
+            <button
+              type="button"
+              className="review-ready-button primary"
+              disabled={loading || !canContinue}
+              aria-describedby={!canContinue ? "review-continue-help" : undefined}
+              onClick={onNext}
+            >
+              {loading ? "กำลังตรวจสอบ..." : "ตรวจสอบอีกครั้งและไปหน้าดาวน์โหลด"}
+              {!loading && <span aria-hidden="true">→</span>}
+            </button>
+          </div>
         </div>
 
         {previewRow && (
@@ -395,6 +540,9 @@ export function PreviewStep({
                     issues={(issues || []).filter((issue) => issue.sheetName === previewRow.sheetName)}
                     cellOverrides={cellOverrides[previewRow.sheetName] || {}}
                     excludedRows={excludedRows[previewRow.sheetName] || []}
+                    onToggleExcludedRow={previewRow.eligibility === "exportable" || previewRow.eligibility === "needsReview"
+                      ? (rowIndex) => toggleExcludedRow(previewRow.sheetName, rowIndex)
+                      : undefined}
                   />
                 ) : (
                   <div className="review-preview-details">
@@ -445,28 +593,7 @@ export function PreviewStep({
   const sheetIssues = (issues || []).filter((issue) => issue.sheetName === sheet.sheetName);
   const currentSummary = createRuntimeSheetSummary(sheet, sheetIssues);
   const { referenceIssues: currentReferenceIssues } = splitIssuesByReferenceMismatch(sheetIssues);
-  const visibleMappings: VisibleMapping[] = sheet.mapping
-    .map((mapping, index) => {
-      const autoSourceColumn = mapping.sourceColumn;
-      const manualSource = sheetMap[mapping.templateColumn];
-      const isManual = hasManualOverride(sheetMap, mapping.templateColumn);
-      return {
-        ...mapping,
-        autoSourceColumn,
-        sourceColumn: isManual ? manualSource : mapping.sourceColumn,
-        status: isManual ? ("manual" as const) : mapping.status,
-        confidence: isManual ? ("high" as const) : mapping.confidence,
-        originalIndex: index,
-      };
-    })
-    .sort((a, b) => {
-      // Keep both regular Auto mappings and parser-managed authoritative
-      // fields (e.g. รายละเอียด/ชนิดสินทรัพย์) at the top of the editor.
-      const aIsMapped = Boolean(a.sourceColumn) || PARSER_MANAGED_TEMPLATE_COLUMNS.has(a.templateColumn);
-      const bIsMapped = Boolean(b.sourceColumn) || PARSER_MANAGED_TEMPLATE_COLUMNS.has(b.templateColumn);
-      if (aIsMapped === bIsMapped) return a.originalIndex - b.originalIndex;
-      return aIsMapped ? -1 : 1;
-    });
+  const visibleMappings = buildVisibleMappings(sheet, sheetMap);
 
   return (
     <>

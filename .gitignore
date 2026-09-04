@@ -10,4 +10,4 @@ data/
 backend/assets/*
 !backend/assets/asset-template.xlsx
 
-.README-REVIEW-NEEDS-ATTENTION.md
+/README-REVIEW-NEEDS-ATTENTION.md
