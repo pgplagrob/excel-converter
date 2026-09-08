@@ -11,3 +11,8 @@ backend/assets/*
 !backend/assets/asset-template.xlsx
 
 /README-REVIEW-NEEDS-ATTENTION.md
+
+# Temporary browser profiles created by UI tests
+/.tmp-edge-download-profile*/
+/.tmp-chrome-download-profile*/
+/.tmp-download-*.mjs

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import { DownloadStep } from "./components/DownloadStep";
 import { PreviewStep } from "./components/PreviewStep";
 import { ReviewShell } from "./components/ReviewShell";
@@ -24,26 +24,14 @@ import {
   type SheetSelection,
 } from "@/lib/sheet-selection";
 
-const STEP_LABELS = [
-  "1. อัปโหลดไฟล์",
-  "2. Preview + Mapping + Validate",
-  "3. Export",
-];
-
 const MAX_UPLOAD_BYTES = 20 * 1024 * 1024;
 const WORKBOOK_FILE_PATTERN = /\.xlsx?$/i;
-
-interface CurrentTemplateStatus {
-  isOverride: boolean;
-  active: { originalFileName: string } | null;
-}
 
 export default function Page() {
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
-  const [templateStatus, setTemplateStatus] = useState<CurrentTemplateStatus | null>(null);
 
   const [file, setFile] = useState<File | null>(null);
   const [parsed, setParsed] = useState<ParseResponse | null>(null);
@@ -70,13 +58,6 @@ export default function Page() {
   const [resultsStale, setResultsStale] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    fetch("/api/v1/admin/template", { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data: CurrentTemplateStatus | null) => setTemplateStatus(data))
-      .catch(() => setTemplateStatus(null));
-  }, []);
 
   const handleFile = useCallback((f: File) => {
     setError(null);
@@ -493,90 +474,21 @@ export default function Page() {
     );
   }
 
-  return (
-    <div className="page">
-      <div className="header">
-        <div className="brand">
-          <div className="brand-tag" />
-          <div>
-            <h1>ตัวกลางแปลงไฟล์สินทรัพย์</h1>
-            <p>แปลงข้อมูล Excel หลายชีตให้ตรงเทมเพลตบริษัท</p>
-            <p className="template-indicator">
-              Template ที่ใช้อยู่: {templateStatus
-                ? templateStatus.isOverride && templateStatus.active
-                  ? templateStatus.active.originalFileName
-                  : "Template มาตรฐาน (ค่าเริ่มต้น)"
-                : "กำลังตรวจสอบ..."}
-            </p>
-          </div>
-        </div>
-        <div className="steps">
-          {STEP_LABELS.map((label, idx) => (
-            <span
-              key={label}
-              className={`step-chip ${
-                idx === step ? "active" : idx < step ? "done" : ""
-              }`}
-            >
-              {label}
-            </span>
-          ))}
-        </div>
-      </div>
+  if (step === 2 && parsed) {
+    return (
+      <DownloadStep
+        parsed={parsed}
+        issues={issues}
+        issueSummary={issueSummary}
+        transformedSheets={transformedSheets}
+        onBack={() => setStep(1)}
+        onDownload={downloadFile}
+        onReset={reset}
+        loading={loading}
+        error={error}
+      />
+    );
+  }
 
-      {error && <div className="error-banner">{error}</div>}
-      {loading && (
-        <div className="loading-bar">
-          <div className="fill" />
-        </div>
-      )}
-
-      <div className="panel">
-        {step === 1 && parsed && (
-          <PreviewStep
-            parsed={parsed}
-            activeSheetIdx={activeSheetIdx}
-            setActiveSheetIdx={(idx: number) => {
-              setActiveSheetIdx(idx);
-              setAdvancedOpen(false);
-            }}
-            mappingState={mappingState}
-            sheetSelection={sheetSelection}
-            setSheetSelection={setSheetSelection}
-            cellOverrides={cellOverrides}
-            excludedRows={excludedRows}
-            onBack={() => setStep(0)}
-            updateMapping={updateMapping}
-            updateCellOverride={updateCellOverride}
-            toggleExcludedRow={toggleExcludedRow}
-            resetSheetFixes={resetSheetFixes}
-            reparseSheet={reparseSheet}
-            mappedCountForSheet={mappedCountForSheet}
-            issues={issues}
-            validatedSheetSummaries={validatedSheetSummaries}
-            issueSummary={issueSummary}
-            resultsStale={resultsStale}
-            advancedOpen={advancedOpen}
-            setAdvancedOpen={setAdvancedOpen}
-            onNext={runValidation}
-            canContinue={selectedCount > 0}
-            loading={loading}
-          />
-        )}
-
-        {step === 2 && parsed && (
-          <DownloadStep
-            parsed={parsed}
-            issues={issues}
-            issueSummary={issueSummary}
-            transformedSheets={transformedSheets}
-            onBack={() => setStep(1)}
-            onDownload={downloadFile}
-            onReset={reset}
-            loading={loading}
-          />
-        )}
-      </div>
-    </div>
-  );
+  return null;
 }
