@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useMemo, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { DownloadStep } from "./components/DownloadStep";
 import { PreviewStep } from "./components/PreviewStep";
 import { ReviewShell } from "./components/ReviewShell";
@@ -11,12 +11,15 @@ import type {
   IssueSummary,
   ParseResponse,
   SheetData,
+  SheetSummary,
   TransformedSheetPreview,
   ValidationIssue,
 } from "@/lib/client-types";
 import { setManualMappingOverride, type ManualMapping } from "@/lib/manual-mapping";
 import {
   createParsedSheetSelection,
+  isConvertibleSheet,
+  selectedConvertibleSheetCount,
   selectedSheetCount,
   type SheetSelection,
 } from "@/lib/sheet-selection";
@@ -35,12 +38,6 @@ interface CurrentTemplateStatus {
   active: { originalFileName: string } | null;
 }
 
-function hasManualHeaderPin(sheet: SheetData): boolean {
-  const debug = sheet.profileDebug;
-  if (!debug || typeof debug !== "object" || !("manuallyPinned" in debug)) return false;
-  return (debug as { manuallyPinned?: unknown }).manuallyPinned === true;
-}
-
 export default function Page() {
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -52,17 +49,9 @@ export default function Page() {
   const [parsed, setParsed] = useState<ParseResponse | null>(null);
   const [activeSheetIdx, setActiveSheetIdx] = useState(0);
 
-  // Keep validation limited to parsed sheets. Sheet overview also contains
-  // preserved/skipped entries, which must never become an empty export payload.
-  const sheetSelection: SheetSelection = useMemo(() => {
-    if (!parsed) return {};
-    const selection = createParsedSheetSelection(parsed.sheets, parsed.sheetOverview || []);
-    for (const sheet of parsed.sheets) {
-      // A manually reparsed sheet must remain selectable so the user can rerun validation.
-      if (sheet.rowCount > 0 && hasManualHeaderPin(sheet)) selection[sheet.sheetName] = true;
-    }
-    return selection;
-  }, [parsed]);
+  // Selection is an explicit user decision. It is initialized once per upload
+  // and kept separate from the sheet currently open for review.
+  const [sheetSelection, setSheetSelection] = useState<SheetSelection>({});
 
   // mappingState[sheetName][templateColumn] = sourceColumn | ""
   const [mappingState, setMappingState] = useState<
@@ -74,6 +63,7 @@ export default function Page() {
 
   const [issues, setIssues] = useState<ValidationIssue[] | null>(null);
   const [issueSummary, setIssueSummary] = useState<IssueSummary | null>(null);
+  const [validatedSheetSummaries, setValidatedSheetSummaries] = useState<SheetSummary[]>([]);
   const [transformedSheets, setTransformedSheets] = useState<TransformedSheetPreview[]>([]);
   // True once a local edit (mapping/cell/exclude/reparse) makes the last
   // server-validated issues/issueSummary snapshot out of date.
@@ -119,14 +109,16 @@ export default function Page() {
     mode,
     analysisId: parsedData.analysisId,
     sourceFileName: parsedData.fileName,
-    sheets: parsedData.sheets.filter((s) => selection[s.sheetName]).map((s) => ({
-      sheetName: s.sheetName,
-      headerRow: s.headerRowIndex + 1,
-      autoMapping: s.mapping,
-      manualMapping: manualMappingState[s.sheetName] || {},
-      cellOverrides: cellOverrideState[s.sheetName] || {},
-      excludedRows: excludedRowState[s.sheetName] || [],
-    })),
+    sheets: parsedData.sheets
+      .filter((s) => isConvertibleSheet(s) && selection[s.sheetName])
+      .map((s) => ({
+        sheetName: s.sheetName,
+        headerRow: s.headerRowIndex + 1,
+        autoMapping: s.mapping,
+        manualMapping: manualMappingState[s.sheetName] || {},
+        cellOverrides: cellOverrideState[s.sheetName] || {},
+        excludedRows: excludedRowState[s.sheetName] || [],
+      })),
   });
 
   const validateWorkbook = async (
@@ -151,6 +143,7 @@ export default function Page() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "ตรวจสอบข้อมูลไม่สำเร็จ");
     setIssues(data.issues);
+    setValidatedSheetSummaries(data.sheetSummaries || []);
     setIssueSummary({
       errorCount: data.errorCount,
       warningCount: data.warningCount,
@@ -190,15 +183,14 @@ export default function Page() {
       }
       const initSelection = createParsedSheetSelection(data.sheets, data.sheetOverview || []);
       setMappingState(initMapping);
+      setSheetSelection(initSelection);
       setCellOverrides({});
       setExcludedRows({});
-      if (selectedSheetCount(initSelection) > 0) {
-        await validateWorkbook(data, initMapping, {}, {}, initSelection);
-      } else {
-        setIssues([]);
-        setIssueSummary({ errorCount: 0, warningCount: 0, totalRows: 0 });
-        setTransformedSheets([]);
-      }
+      setIssues(null);
+      setIssueSummary(null);
+      setValidatedSheetSummaries([]);
+      setTransformedSheets([]);
+      setResultsStale(false);
       setStep(1);
     } catch (e: any) {
       setError("เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ: " + e.message);
@@ -208,7 +200,7 @@ export default function Page() {
   };
 
   const runValidation = async () => {
-    if (!parsed || selectedSheetCount(sheetSelection) === 0) return;
+    if (!parsed || selectedConvertibleSheetCount(parsed.sheets, sheetSelection) === 0) return;
     setLoading(true);
     setError(null);
     try {
@@ -272,12 +264,14 @@ export default function Page() {
     setStep(0);
     setFile(null);
     setParsed(null);
+    setSheetSelection({});
     setMappingState({});
     setCellOverrides({});
     setExcludedRows({});
     setAdvancedOpen(false);
     setIssues(null);
     setIssueSummary(null);
+    setValidatedSheetSummaries([]);
     setTransformedSheets([]);
     setResultsStale(false);
     setError(null);
@@ -405,6 +399,10 @@ export default function Page() {
           ),
         };
       });
+      setSheetSelection((current) => ({
+        ...current,
+        [sheetName]: isConvertibleSheet(reparsedSheet) && current[sheetName] === true,
+      }));
       setMappingState((current) => ({ ...current, [sheetName]: {} }));
       setCellOverrides((current) => {
         const next = { ...current };
@@ -420,6 +418,9 @@ export default function Page() {
       // with the new rows - unlike other edits, this snapshot can't be kept.
       setIssues(null);
       setIssueSummary(null);
+      setValidatedSheetSummaries((current) =>
+        current.filter((summary) => summary.sheetName !== sheetName)
+      );
       setResultsStale(true);
       setAdvancedOpen(false);
     } catch (e: any) {
@@ -431,7 +432,9 @@ export default function Page() {
     }
   };
 
-  const selectedCount = selectedSheetCount(sheetSelection);
+  const selectedCount = parsed
+    ? selectedConvertibleSheetCount(parsed.sheets, sheetSelection)
+    : 0;
 
   if (step === 0) {
     return (
@@ -465,6 +468,8 @@ export default function Page() {
           activeSheetIdx={activeSheetIdx}
           setActiveSheetIdx={setActiveSheetIdx}
           mappingState={mappingState}
+          sheetSelection={sheetSelection}
+          setSheetSelection={setSheetSelection}
           cellOverrides={cellOverrides}
           excludedRows={excludedRows}
           onBack={() => setStep(0)}
@@ -475,6 +480,7 @@ export default function Page() {
           reparseSheet={reparseSheet}
           mappedCountForSheet={mappedCountForSheet}
           issues={issues}
+          validatedSheetSummaries={validatedSheetSummaries}
           issueSummary={issueSummary}
           resultsStale={resultsStale}
           advancedOpen={advancedOpen}
@@ -535,6 +541,8 @@ export default function Page() {
               setAdvancedOpen(false);
             }}
             mappingState={mappingState}
+            sheetSelection={sheetSelection}
+            setSheetSelection={setSheetSelection}
             cellOverrides={cellOverrides}
             excludedRows={excludedRows}
             onBack={() => setStep(0)}
@@ -545,6 +553,7 @@ export default function Page() {
             reparseSheet={reparseSheet}
             mappedCountForSheet={mappedCountForSheet}
             issues={issues}
+            validatedSheetSummaries={validatedSheetSummaries}
             issueSummary={issueSummary}
             resultsStale={resultsStale}
             advancedOpen={advancedOpen}
