@@ -53,11 +53,11 @@ export default function Page() {
   // and kept separate from the sheet currently open for review.
   const [sheetSelection, setSheetSelection] = useState<SheetSelection>({});
 
-  // Keep the export contract as mappingState[sheetName][templateColumn] = sourceColumn | null.
+  // mappingState[sheetName][templateColumn] = sourceColumn | ""
   const [mappingState, setMappingState] = useState<
     Record<string, ManualMapping>
   >({});
-  const [advancedOpenBySheet, setAdvancedOpenBySheet] = useState<Record<string, boolean>>({});
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const [cellOverrides, setCellOverrides] = useState<CellOverridesBySheet>({});
   const [excludedRows, setExcludedRows] = useState<ExcludedRowsBySheet>({});
 
@@ -183,7 +183,6 @@ export default function Page() {
       }
       const initSelection = createParsedSheetSelection(data.sheets, data.sheetOverview || []);
       setMappingState(initMapping);
-      setAdvancedOpenBySheet({});
       setSheetSelection(initSelection);
       setCellOverrides({});
       setExcludedRows({});
@@ -269,7 +268,7 @@ export default function Page() {
     setMappingState({});
     setCellOverrides({});
     setExcludedRows({});
-    setAdvancedOpenBySheet({});
+    setAdvancedOpen(false);
     setIssues(null);
     setIssueSummary(null);
     setValidatedSheetSummaries([]);
@@ -423,11 +422,7 @@ export default function Page() {
         current.filter((summary) => summary.sheetName !== sheetName)
       );
       setResultsStale(true);
-      setAdvancedOpenBySheet((current) => {
-        const next = { ...current };
-        delete next[sheetName];
-        return next;
-      });
+      setAdvancedOpen(false);
     } catch (e: any) {
       const message = e.message || "วิเคราะห์ชีตใหม่ไม่สำเร็จ";
       setError(message);
@@ -488,11 +483,8 @@ export default function Page() {
           validatedSheetSummaries={validatedSheetSummaries}
           issueSummary={issueSummary}
           resultsStale={resultsStale}
-          advancedOpenBySheet={advancedOpenBySheet}
-          setAdvancedOpen={(sheetName, open) => setAdvancedOpenBySheet((current) => ({
-            ...current,
-            [sheetName]: open,
-          }))}
+          advancedOpen={advancedOpen}
+          setAdvancedOpen={setAdvancedOpen}
           onNext={runValidation}
           canContinue={selectedCount > 0}
           loading={loading}
@@ -546,6 +538,7 @@ export default function Page() {
             activeSheetIdx={activeSheetIdx}
             setActiveSheetIdx={(idx: number) => {
               setActiveSheetIdx(idx);
+              setAdvancedOpen(false);
             }}
             mappingState={mappingState}
             sheetSelection={sheetSelection}
@@ -563,11 +556,8 @@ export default function Page() {
             validatedSheetSummaries={validatedSheetSummaries}
             issueSummary={issueSummary}
             resultsStale={resultsStale}
-            advancedOpenBySheet={advancedOpenBySheet}
-            setAdvancedOpen={(sheetName, open) => setAdvancedOpenBySheet((current) => ({
-              ...current,
-              [sheetName]: open,
-            }))}
+            advancedOpen={advancedOpen}
+            setAdvancedOpen={setAdvancedOpen}
             onNext={runValidation}
             canContinue={selectedCount > 0}
             loading={loading}
