@@ -60,8 +60,8 @@ interface PreviewStepProps {
   validatedSheetSummaries: SheetSummary[];
   issueSummary: IssueSummary | null;
   resultsStale: boolean;
-  advancedOpen: boolean;
-  setAdvancedOpen: (open: boolean) => void;
+  advancedOpenBySheet: Record<string, boolean>;
+  setAdvancedOpen: (sheetName: string, open: boolean) => void;
   onBack: () => void;
   onNext: () => void;
   canContinue: boolean;
@@ -231,7 +231,7 @@ export function PreviewStep({
   validatedSheetSummaries,
   issueSummary,
   resultsStale,
-  advancedOpen,
+  advancedOpenBySheet,
   setAdvancedOpen,
   onBack,
   onNext,
@@ -622,8 +622,8 @@ export function PreviewStep({
                             sheet={selectedSheet}
                             sheetMap={selectedSheetMap}
                             visibleMappings={selectedMappings}
-                            advancedOpen={advancedOpen}
-                            setAdvancedOpen={setAdvancedOpen}
+                            advancedOpen={advancedOpenBySheet[selectedSheet.sheetName]}
+                            setAdvancedOpen={(open) => setAdvancedOpen(selectedSheet.sheetName, open)}
                             updateMapping={updateMapping}
                           />
                         </section>
@@ -826,8 +826,8 @@ export function PreviewStep({
           sheet={sheet}
           sheetMap={sheetMap}
           visibleMappings={visibleMappings}
-          advancedOpen={advancedOpen}
-          setAdvancedOpen={setAdvancedOpen}
+          advancedOpen={advancedOpenBySheet[sheet.sheetName]}
+          setAdvancedOpen={(open) => setAdvancedOpen(sheet.sheetName, open)}
           updateMapping={updateMapping}
         />
       )}
