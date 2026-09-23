@@ -12,13 +12,22 @@ if (!npmCli) {
   process.exit(1);
 }
 
+const packageManager = npmCli.endsWith(".js") ? process.execPath : npmCli;
+const packageManagerArgs = npmCli.endsWith(".js") ? [npmCli] : [];
+const usesBun = /(?:^|[\\/])bun(?:\.exe)?$/i.test(npmCli);
+
 const workspaces = ["backend", "frontend"];
-const children = workspaces.map((workspace) =>
-  spawn(process.execPath, [npmCli, "run", script, "--workspace", workspace], {
+const children = workspaces.map((workspace) => {
+  const args = usesBun
+    ? ["run", script]
+    : [...packageManagerArgs, "run", script, "--workspace", workspace];
+
+  return spawn(packageManager, args, {
+    cwd: usesBun ? workspace : undefined,
     stdio: "inherit",
     windowsHide: true,
-  }),
-);
+  });
+});
 
 let shuttingDown = false;
 function stopAll(exitCode = 0) {
