@@ -12,8 +12,7 @@
 - ไฟล์เทศบาลตัวอย่าง: `backend/assets/ครุภัณฑ์สำนักปลัดเทศบาล67 แบบ กข แก้ไข15-11-67.xlsx`
 - ภาพระบบปลายทาง VizzelTrack ที่ผู้ใช้แนบ: หน้ารายการสินทรัพย์และหน้าแก้ไขสินทรัพย์
 - การตรวจอัตโนมัติ: test, typecheck, production build และ asset audit
-
-## 2. กติกาธุรกิจที่ต้องถือเป็นหลัก
+- 2. กติกาธุรกิจที่ต้องถือเป็นหลัก
 
 1. ข้อมูลจากไฟล์ต้นฉบับต้องไม่หายทั้งระดับแถว คอลัมน์ และค่าในเซลล์
 2. ระบบทำหน้าที่จับคู่/ย้ายข้อมูลเข้า Template ไม่ใช่แก้ข้อเท็จจริงในไฟล์เทศบาล
@@ -505,9 +504,12 @@ README และบาง test ทำให้เข้าใจว่ารอ�
 
 ## 10. ผลการตรวจเครื่องมือปัจจุบัน
 
-- `npm test`: ผ่าน 61 tests
-- `npm run typecheck`: ผ่านทั้ง frontend และ backend
-- `npm run build`: ผ่านทั้งสอง workspace แต่ backend มี Turbopack warning ว่า file tracing อาจครอบคลุมทั้ง project จาก dynamic filesystem path
-- `npm run audit:assets`: ไม่ผ่าน เพราะ directory ที่ hardcode ไว้ไม่มีใน checkout นี้
+`npm test`: ผ่าน 61 tests
+
+`npm run typecheck`: ผ่านทั้ง frontend และ backend
+
+`npm run build`: ผ่านทั้งสอง workspace แต่ backend มี Turbopack warning ว่า file tracing อาจครอบคลุมทั้ง project จาก dynamic filesystem path
+
+`npm run audit:assets`: ไม่ผ่าน เพราะ directory ที่ hardcode ไว้ไม่มีใน checkout นี้
 
 การที่ test/build ผ่านหมายถึงโค้ดทำตาม behavior ที่เขียนไว้ในปัจจุบัน แต่ behavior บางส่วนยังขัดกับกติกาธุรกิจล่าสุด จึงต้องแก้ spec/tests พร้อม implementation ไม่ใช่แก้เฉพาะ UI
