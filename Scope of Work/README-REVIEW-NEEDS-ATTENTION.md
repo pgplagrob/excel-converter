@@ -132,7 +132,7 @@
 ### Step 10 — ตรวจงานก่อนถือว่าเสร็จ
 
 - [X] รัน `npm.cmd run typecheck --workspace frontend`
-- [ ] เปิดหน้าเว็บจริงและตรวจว่าไม่มี console error
+- [X] เปิดหน้าเว็บจริงและตรวจว่าไม่มี console error
 - [X] ทดสอบไฟล์ที่ทุกชีตพร้อมใช้งาน
 - [X] ทดสอบไฟล์ที่มี warning/error
 - [X] ทดสอบชีต unsupported, preserved หรือ skipped ถ้ามี fixture
