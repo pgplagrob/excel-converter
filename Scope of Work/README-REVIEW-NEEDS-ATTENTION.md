@@ -131,11 +131,11 @@
 
 ### Step 10 — ตรวจงานก่อนถือว่าเสร็จ
 
-- [X] รัน `npm.cmd run typecheck --workspace frontend`
-- [X] เปิดหน้าเว็บจริงและตรวจว่าไม่มี console error
-- [X] ทดสอบไฟล์ที่ทุกชีตพร้อมใช้งาน
-- [X] ทดสอบไฟล์ที่มี warning/error
-- [X] ทดสอบชีต unsupported, preserved หรือ skipped ถ้ามี fixture
+- [ ] รัน `npm.cmd run typecheck --workspace frontend`
+- [ ] เปิดหน้าเว็บจริงและตรวจว่าไม่มี console error
+- [ ] ทดสอบไฟล์ที่ทุกชีตพร้อมใช้งาน
+- [ ] ทดสอบไฟล์ที่มี warning/error
+- [ ] ทดสอบชีต unsupported, preserved หรือ skipped ถ้ามี fixture
 - [ ] ทดลองแก้ mapping แล้ว validation ใหม่
 - [ ] ทดลองย้อนกลับไปเปลี่ยนไฟล์
 - [ ] ทดลองไปหน้าดาวน์โหลดและสร้างไฟล์จริง
