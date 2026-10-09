@@ -15,4 +15,5 @@ backend/assets/*
 # Temporary browser profiles created by UI tests
 /.tmp-edge-download-profile*/
 /.tmp-chrome-download-profile*/
-/.tmp-download-*.mjs
+/.tmp-download-*.mjs\
+coding-agent/.env
