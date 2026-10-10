@@ -159,14 +159,7 @@ export function IssueList({
                 <span className="tag">{issueSeverityLabel(severity)}</span>
                 <strong>แถวที่ {rowIndex + 1}</strong>
               </div>
-              <button
-                type="button"
-                className="row-exclude-toggle"
-                aria-pressed={isExcluded}
-                onClick={() => onToggleExcludedRow(rowIndex)}
-              >
-                {isExcluded ? "คืนแถว" : "ตัดแถวนี้ออก"}
-              </button>
+
             </div>
 
             <ul className="row-issue-messages">

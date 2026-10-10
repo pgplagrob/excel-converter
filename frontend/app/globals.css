@@ -2482,6 +2482,15 @@ body:has(.upload-shell) > .settings-link { display: none; }
   min-width: 0;
 }
 
+.review-attention-sheet-panel {
+  overflow: hidden;
+  padding: 16px;
+  border: 1px solid rgba(199, 196, 216, .7);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, .07);
+}
+
 .review-attention-panel-title {
   margin: 0;
   color: var(--upload-ink);
@@ -2507,6 +2516,18 @@ body:has(.upload-shell) > .settings-link { display: none; }
 .review-attention-panel-heading > span {
   color: var(--upload-muted);
   font-size: 12px;
+}
+
+.review-sheet-list-scroll {
+  max-height: min(65vh, 720px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.review-sheet-list-scroll:focus-visible {
+  outline: 2px solid var(--upload-primary);
+  outline-offset: 2px;
 }
 
 .review-sheet-list {

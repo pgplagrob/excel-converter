@@ -477,58 +477,65 @@ export function PreviewStep({
             </div>
 
             {reviewRows.length > 0 ? (
-              <ul className="review-sheet-list">
-                {reviewRows.map((row) => {
+              <div
+                className="review-sheet-list-scroll"
+                role="region"
+                aria-label="รายการชีตที่ตรวจพบ"
+                tabIndex={0}
+              >
+                <ul className="review-sheet-list">
+                  {reviewRows.map((row) => {
                     const active = selectedReviewRow?.key === row.key;
                     const convertible = Boolean(row.sheet && isConvertibleSheet(row.sheet));
                     const checked = convertible && sheetSelection[row.sheetName] === true;
                     return (
-                    <li key={row.key} className={`review-sheet-card ${row.status}${checked ? " chosen" : ""}`}>
-                      <button
-                        type="button"
-                        className={`review-sheet-option${active ? " active" : ""}`}
-                        aria-pressed={active}
-                        onClick={() => selectReviewRow(row)}
-                      >
-                        <span className="review-sheet-option-topline">
-                          <span className="review-ready-sheet-name">
-                            <span className="review-ready-sheet-icon" aria-hidden="true">▦</span>
-                            <span>{row.sheetName}</span>
+                      <li key={row.key} className={`review-sheet-card ${row.status}${checked ? " chosen" : ""}`}>
+                        <button
+                          type="button"
+                          className={`review-sheet-option${active ? " active" : ""}`}
+                          aria-pressed={active}
+                          onClick={() => selectReviewRow(row)}
+                        >
+                          <span className="review-sheet-option-topline">
+                            <span className="review-ready-sheet-name">
+                              <span className="review-ready-sheet-icon" aria-hidden="true">▦</span>
+                              <span>{row.sheetName}</span>
+                            </span>
+                            <span className={`review-ready-status ${row.status}`}>
+                              <span aria-hidden="true" />
+                              {REVIEW_STATUS_META[row.status].label}
+                            </span>
                           </span>
-                          <span className={`review-ready-status ${row.status}`}>
-                            <span aria-hidden="true" />
-                            {REVIEW_STATUS_META[row.status].label}
+                          <span className="review-sheet-option-meta">
+                            <span>{sheetTypeLabel(row)}</span>
+                            <span>{row.rowCount.toLocaleString("th-TH")} รายการ</span>
                           </span>
-                        </span>
-                        <span className="review-sheet-option-meta">
-                          <span>{sheetTypeLabel(row)}</span>
-                          <span>{row.rowCount.toLocaleString("th-TH")} รายการ</span>
-                        </span>
-                        <span className={`review-sheet-option-issues ${row.status}`}>
-                          {reviewIssueLabel(row)}
-                        </span>
-                        <span className="review-sheet-option-reason">{sheetReasonLabel(row)}</span>
-                      </button>
-                      <div className="review-sheet-selection-action">
-                        {convertible ? (
-                          <label>
-                            <input
-                              type="checkbox"
-                              checked={checked}
-                              onChange={(event) => updateSheetSelection(row, event.target.checked)}
-                            />
-                            <span>{checked ? "เลือกไว้สำหรับแปลง" : "เลือกแปลง"}</span>
-                          </label>
-                        ) : row.isSummary ? (
-                          <span>การแนบชีตสรุปจะพร้อมใช้งานภายหลัง</span>
-                        ) : (
-                          <span>ไม่ส่งเป็นชีตแปลง</span>
-                        )}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
+                          <span className={`review-sheet-option-issues ${row.status}`}>
+                            {reviewIssueLabel(row)}
+                          </span>
+                          <span className="review-sheet-option-reason">{sheetReasonLabel(row)}</span>
+                        </button>
+                        <div className="review-sheet-selection-action">
+                          {convertible ? (
+                            <label>
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={(event) => updateSheetSelection(row, event.target.checked)}
+                              />
+                              <span>{checked ? "เลือกไว้สำหรับแปลง" : "เลือกแปลง"}</span>
+                            </label>
+                          ) : row.isSummary ? (
+                            <span>การแนบชีตสรุปจะพร้อมใช้งานภายหลัง</span>
+                          ) : (
+                            <span>ไม่ส่งเป็นชีตแปลง</span>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
             ) : (
               <div className="review-empty-state">
                 <strong>ไม่พบชีตในไฟล์นี้</strong>
