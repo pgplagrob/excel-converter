@@ -4,7 +4,7 @@ import {
   displaySourceColumnLabel,
   previewRowsWithVisibleAssetType,
   TEMPLATE_TO_SOURCE_COLUMN,
-} from "./display";
+} from "../display";
 
 interface SourcePreviewTableProps {
   sheet: SheetData;

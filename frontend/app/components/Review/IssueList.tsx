@@ -6,7 +6,7 @@ import {
   displayIssueMessage,
   isReferenceMismatchIssue,
   issueSeverityLabel,
-} from "./display";
+} from "../display";
 
 interface IssueListProps {
   issues: ValidationIssue[];

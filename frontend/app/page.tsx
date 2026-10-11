@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { DownloadStep } from "./components/DownloadStep";
-import { PreviewStep } from "./components/PreviewStep";
-import { ReviewShell } from "./components/ReviewShell";
-import { UploadStep } from "./components/UploadStep";
+import { DownloadStep } from "./components/Download/DownloadStep";
+import { PreviewStep } from "./components/Review/PreviewStep";
+import { ReviewShell } from "./components/Review/ReviewShell";
+import { UploadStep } from "./components/Upload/UploadStep";
 import type {
   CellOverridesBySheet,
   ExcludedRowsBySheet,

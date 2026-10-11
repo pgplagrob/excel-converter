@@ -1,7 +1,7 @@
 import type { SheetSummary } from "@/lib/client-types";
 import type { SheetEligibility } from "@/lib/client-types";
 import { TEMPLATE_COLUMNS } from "@/lib/mapping";
-import { statusLabel } from "./display";
+import { statusLabel } from "../display";
 
 interface SheetSummaryPanelProps {
   summary: SheetSummary;

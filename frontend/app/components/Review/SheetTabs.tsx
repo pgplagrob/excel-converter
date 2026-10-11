@@ -1,7 +1,7 @@
 "use client";
 
 import type { SheetData, SheetSummary, ValidationIssue } from "@/lib/client-types";
-import { createRuntimeSheetSummary, statusIcon, summaryText } from "./display";
+import { createRuntimeSheetSummary, statusIcon, summaryText } from "../display";
 
 interface SheetTabsProps {
   sheets: SheetData[];

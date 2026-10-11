@@ -19,7 +19,7 @@ import {
   selectAllConvertibleSheets,
   type SheetSelection,
 } from "@/lib/sheet-selection";
-import { createRuntimeSheetSummary, splitIssuesByReferenceMismatch } from "./display";
+import { createRuntimeSheetSummary, splitIssuesByReferenceMismatch } from "../display";
 import { IssueList } from "./IssueList";
 import { MappingSummary } from "./MappingSummary";
 import { SheetSummaryPanel } from "./SheetSummaryPanel";

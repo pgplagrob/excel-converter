@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { TEMPLATE_COLUMNS } from "@/lib/mapping";
 import type { IssueSummary, ParseResponse, TransformedSheetPreview, ValidationIssue } from "@/lib/client-types";
-import { displayIssueMessage, issueSeverityLabel } from "./display";
+import { displayIssueMessage, issueSeverityLabel } from "../display";
 
 interface DownloadStepProps {
   parsed: ParseResponse;

@@ -9,7 +9,7 @@ import {
   hasManualOverride,
   type ManualMapping,
 } from "@/lib/manual-mapping";
-import { displaySourceColumnLabel, displaySourceColumnWithOriginal } from "./display";
+import { displaySourceColumnLabel, displaySourceColumnWithOriginal } from "../display";
 
 interface MappingSummaryProps {
   sheet: SheetData;
