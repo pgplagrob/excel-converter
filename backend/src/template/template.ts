@@ -1,7 +1,7 @@
 import { readFile } from "fs/promises";
 import path from "path";
 import ExcelJS from "exceljs";
-import { sanitizeWorkbookDataValidations } from "./xlsx-sanitize";
+import { sanitizeWorkbookDataValidations } from "../parse/xlsx-sanitize";
 import { resolveActiveTemplateFilePath } from "./template-store";
 
 export interface TemplateReferenceValues {

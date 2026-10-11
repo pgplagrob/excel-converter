@@ -50,7 +50,7 @@ export function SourcePreviewTable({
                   <div>{displaySourceColumnLabel(column)}</div>
                 </th>
               ))}
-              {onToggleExcludedRow && <th className="row-actions-col">จัดการแถว</th>}
+              {/* {onToggleExcludedRow && <th className="row-actions-col">จัดการแถว</th>} */}
             </tr>
           </thead>
           <tbody>
@@ -93,7 +93,7 @@ export function SourcePreviewTable({
                       </td>
                     );
                   })}
-                  {onToggleExcludedRow && (
+                  {/* {onToggleExcludedRow && (
                     <td className="row-actions">
                       {overrideCount > 0 && <span className="edited-badge">แก้ไข {overrideCount} ช่อง</span>}
                       <button
@@ -105,7 +105,7 @@ export function SourcePreviewTable({
                         {isExcluded ? "คืนแถว" : "ตัดแถวนี้ออก"}
                       </button>
                     </td>
-                  )}
+                  )} */}
                 </tr>
               );
             })}

@@ -1,4 +1,4 @@
-import { getAllKeywords } from "../mapping";
+import { getAllKeywords } from "../mapping/mapping";
 import { cellText, normalizeForScore } from "./text";
 
 const ALL_KEYWORDS: string[] = getAllKeywords();

@@ -1,5 +1,5 @@
-import type { DataSourceWorkbook } from "./datasource";
-import type { WorkbookSheetMatrix } from "./excel";
+import type { DataSourceWorkbook } from "../datasource";
+import type { WorkbookSheetMatrix } from "../parse/excel";
 
 export interface AnalysisRecord {
   id: string;

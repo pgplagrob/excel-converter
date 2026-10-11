@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTemplateStoreStatus, rollbackTemplate } from "@/lib/template-store";
+import { getTemplateStoreStatus, rollbackTemplate } from "@/src/template/template-store";
 
 export const runtime = "nodejs";
 

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { getAnalysis, saveAnalysis } from "../lib/analysis-store";
-import type { DataSourceWorkbook } from "../lib/datasource";
+import { getAnalysis, saveAnalysis } from "../src/review/analysis-store";
+import type { DataSourceWorkbook } from "../src/datasource";
 
 const workbook: DataSourceWorkbook = {
   fileName: "test.xlsx",

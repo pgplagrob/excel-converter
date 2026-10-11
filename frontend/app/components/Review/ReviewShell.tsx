@@ -2,9 +2,17 @@ import type { ReactNode } from "react";
 
 interface ReviewShellProps {
   children: ReactNode;
+  onContinueToDownload: () => void;
+  canContinueToDownload: boolean;
+  loading: boolean;
 }
 
-export function ReviewShell({ children }: ReviewShellProps) {
+export function ReviewShell({
+  children,
+  onContinueToDownload,
+  canContinueToDownload,
+  loading,
+}: ReviewShellProps) {
   return (
     <div className="upload-shell review-ready-shell">
       <header className="upload-topbar">
@@ -24,10 +32,15 @@ export function ReviewShell({ children }: ReviewShellProps) {
           <span>3-Step Process</span>
         </div>
         <nav aria-label="ขั้นตอนการแปลงไฟล์">
-          <div className="upload-sidebar-step done">
+          <button
+            className="upload-sidebar-step review-sidebar-button done"
+            type="button"
+            onClick={onContinueToDownload}
+            disabled={!canContinueToDownload || loading}
+          >
             <span className="upload-sidebar-icon">✓</span>
             <span>อัปโหลด</span>
-          </div>
+          </button>
           <div className="upload-sidebar-step active" aria-current="step">
             <span className="upload-sidebar-icon">✓</span>
             <span>ตรวจสอบ</span>

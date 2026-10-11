@@ -1,11 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
-import { createDataSourceWorkbook } from "../lib/datasource";
-import { readWorkbookBuffer } from "../lib/excel";
-import { mappingSuggestionsToRecord, suggestMapping } from "../lib/mapping";
-import { loadAssetTemplateMetadata } from "../lib/template";
-import { transformRowsToTemplateDataset } from "../lib/transform";
-import { validateMappedRows, validateSheetLevel, type ValidationIssue } from "../lib/validate";
+import { createDataSourceWorkbook } from "../src/datasource";
+import { readWorkbookBuffer } from "../src/parse/excel";
+import { mappingSuggestionsToRecord, suggestMapping } from "../src/mapping/mapping";
+import { loadAssetTemplateMetadata } from "../src/template/template";
+import { transformRowsToTemplateDataset } from "../src/export/transform";
+import { validateMappedRows, validateSheetLevel, type ValidationIssue } from "../src/export/validate";
 
 type AuditStatus = "ready" | "warning" | "review" | "unsupported" | "skipped";
 

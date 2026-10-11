@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { SheetData, SheetOverview } from "../lib/client-types";
-import { createParsedSheetSelection, selectedSheetCount } from "../lib/sheet-selection";
+import type { SheetData, SheetOverview } from "../src/shared/client-types";
+import { createParsedSheetSelection, selectedSheetCount } from "../src/review/sheet-selection";
 
 function parsedSheet(sheetName: string): SheetData {
   return {

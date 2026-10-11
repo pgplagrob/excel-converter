@@ -1,4 +1,4 @@
-import type { SheetData, SheetOverview } from "./client-types";
+import type { SheetData, SheetOverview } from "../shared/client-types";
 
 export type SheetSelection = Record<string, boolean>;
 

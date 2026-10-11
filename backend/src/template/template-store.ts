@@ -2,8 +2,8 @@ import { mkdirSync, readFileSync, writeFileSync, existsSync, unlinkSync } from "
 import { dirname, join } from "node:path";
 import { randomUUID } from "node:crypto";
 import ExcelJS from "exceljs";
-import { sanitizeWorkbookDataValidations } from "./xlsx-sanitize";
-import { TEMPLATE_COLUMNS } from "./mapping";
+import { sanitizeWorkbookDataValidations } from "../parse/xlsx-sanitize";
+import { TEMPLATE_COLUMNS } from "../mapping/mapping";
 
 export interface TemplateVersion {
   id: string;

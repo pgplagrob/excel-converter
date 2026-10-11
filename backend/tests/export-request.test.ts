@@ -4,8 +4,8 @@ import {
   ExportRequestValidationError,
   parseExportRequest,
   validateRowFixRanges,
-} from "../lib/export-request";
-import { TEMPLATE_COLUMNS } from "../lib/mapping";
+} from "../src/export/export-request";
+import { TEMPLATE_COLUMNS } from "../src/mapping/mapping";
 
 test("export request parser accepts and normalizes a valid request", () => {
   const parsed = parseExportRequest({

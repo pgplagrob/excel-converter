@@ -1,4 +1,4 @@
-import type { WorkbookRowMeta } from "../../excel";
+import type { WorkbookRowMeta } from "../../parse/excel";
 import { detectHeaderRow } from "../header-detection";
 import { appendHeaders, buildHeaderKeys, buildRawRow, withCommonMeta } from "../row-builders";
 import { isRowEmpty, isTotalOrSummaryRow } from "../text";

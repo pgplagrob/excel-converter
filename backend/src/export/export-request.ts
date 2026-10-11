@@ -4,8 +4,8 @@ import type {
   ExportRequest,
   ExportSheetInput,
   MappingSuggestion,
-} from "./client-types";
-import { TEMPLATE_COLUMNS } from "./mapping";
+} from "../shared/client-types";
+import { TEMPLATE_COLUMNS } from "../mapping/mapping";
 
 const MAX_SHEETS = 100;
 const MAX_MAPPINGS = TEMPLATE_COLUMNS.length;

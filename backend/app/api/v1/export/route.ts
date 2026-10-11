@@ -1,17 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { ExportMode, ExportRequest, ExportSheetInput } from "@/lib/client-types";
-import { getAnalysis } from "@/lib/analysis-store";
+import type { ExportMode, ExportRequest, ExportSheetInput } from "@/src/shared/client-types";
+import { getAnalysis } from "@/src/review/analysis-store";
 import {
   ExportRequestValidationError,
   parseExportRequest,
   validateRowFixRanges,
-} from "@/lib/export-request";
-import { mappingSuggestionsToRecord, mergeMapping } from "@/lib/mapping";
-import { persistConfirmedMappingProfile } from "@/lib/mapping-profiles";
-import { buildAssetTemplateWorkbookBySheet, loadAssetTemplateMetadata } from "@/lib/template";
-import { transformRowsToTemplateDataset } from "@/lib/transform";
-import { applyRowFixes, enrichFixedRowIssues } from "@/lib/row-fixes";
-import { createSheetSummary, validateMappedRows, validateSheetLevel } from "@/lib/validate";
+} from "@/src/export/export-request";
+import { mappingSuggestionsToRecord, mergeMapping } from "@/src/mapping/mapping";
+import { persistConfirmedMappingProfile } from "@/src/mapping/mapping-profiles";
+import { buildAssetTemplateWorkbookBySheet, loadAssetTemplateMetadata } from "@/src/template/template";
+import { transformRowsToTemplateDataset } from "@/src/export/transform";
+import { applyRowFixes, enrichFixedRowIssues } from "@/src/review/row-fixes";
+import { createSheetSummary, validateMappedRows, validateSheetLevel } from "@/src/export/validate";
 
 export const runtime = "nodejs";
 

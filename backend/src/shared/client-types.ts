@@ -1,7 +1,7 @@
-import type { MappingSuggestion } from "./mapping";
-import type { ManualMapping } from "./manual-mapping";
-import type { SheetEligibility } from "./datasource";
-import type { SheetStatus, SheetSummary, ValidationIssue } from "./validate";
+import type { MappingSuggestion } from "../mapping/mapping";
+import type { ManualMapping } from "../mapping/manual-mapping";
+import type { SheetEligibility } from "../datasource";
+import type { SheetStatus, SheetSummary, ValidationIssue } from "../export/validate";
 
 export type { MappingSuggestion, SheetStatus, SheetSummary, ValidationIssue };
 

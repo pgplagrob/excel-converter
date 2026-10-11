@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { ParseResponse } from "@/lib/client-types";
-import { saveAnalysis } from "@/lib/analysis-store";
-import { buildSheetData } from "@/lib/build-sheet-data";
-import { createDataSourceWorkbook } from "@/lib/datasource";
-import { readWorkbookBuffer, type WorkbookSheetMatrix, WorkbookLimitError } from "@/lib/excel";
-import { computeHeaderSignature, loadMappingProfile } from "@/lib/mapping-profiles";
-import { loadAssetTemplateMetadata } from "@/lib/template";
-import { createSheetSummary } from "@/lib/validate";
+import type { ParseResponse } from "@/src/shared/client-types";
+import { saveAnalysis } from "@/src/review/analysis-store";
+import { buildSheetData } from "@/src/parse/build-sheet-data";
+import { createDataSourceWorkbook } from "@/src/datasource";
+import { readWorkbookBuffer, type WorkbookSheetMatrix, WorkbookLimitError } from "@/src/parse/excel";
+import { computeHeaderSignature, loadMappingProfile } from "@/src/mapping/mapping-profiles";
+import { loadAssetTemplateMetadata } from "@/src/template/template";
+import { createSheetSummary } from "@/src/export/validate";
 
 export const runtime = "nodejs";
 

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { mappingSuggestionsToRecord, suggestMapping } from "../lib/mapping";
-import { transformRowsToTemplateDataset } from "../lib/transform";
+import { mappingSuggestionsToRecord, suggestMapping } from "../src/mapping/mapping";
+import { transformRowsToTemplateDataset } from "../src/export/transform";
 
 // Regression coverage for the Reference double-placement bug (traced on
 // assets/.../แบบฟอร์มกรอก.xlsx and โยธา สำนักงานช่าง.xlsx, ~15k spurious

@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAnalysis } from "@/lib/analysis-store";
-import { buildSheetData } from "@/lib/build-sheet-data";
-import { computeHeaderSignature, loadMappingProfile } from "@/lib/mapping-profiles";
+import { getAnalysis } from "@/src/review/analysis-store";
+import { buildSheetData } from "@/src/parse/build-sheet-data";
+import { computeHeaderSignature, loadMappingProfile } from "@/src/mapping/mapping-profiles";
 import {
   parseReparseSheetRequest,
   ReparseRequestValidationError,
-} from "@/lib/reparse-request";
+} from "@/src/review/reparse-request";
 import {
   reparseStoredAnalysisSheet,
   ReparseSheetOperationError,
-} from "@/lib/reparse-sheet";
-import { loadAssetTemplateMetadata } from "@/lib/template";
+} from "@/src/review/reparse-sheet";
+import { loadAssetTemplateMetadata } from "@/src/template/template";
 
 export const runtime = "nodejs";
 

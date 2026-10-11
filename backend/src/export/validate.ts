@@ -9,9 +9,9 @@ import {
   type SourceProfile,
   looksLikeAssetItemGroup,
   looksLikeAssetTypeGroup,
-} from "./datasource";
-import { TEMPLATE_COLUMNS } from "./mapping";
-import type { TemplateReferenceValues } from "./template";
+} from "../datasource";
+import { TEMPLATE_COLUMNS } from "../mapping/mapping";
+import type { TemplateReferenceValues } from "../template/template";
 
 export interface ValidationIssue {
   sheetName: string;

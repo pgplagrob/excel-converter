@@ -4,7 +4,7 @@ import {
   getTemplateStoreStatus,
   saveTemplateUpload,
   validateTemplateUpload,
-} from "@/lib/template-store";
+} from "@/src/template/template-store";
 
 export const runtime = "nodejs";
 

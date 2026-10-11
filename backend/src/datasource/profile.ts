@@ -1,4 +1,4 @@
-import { detectSheetProfile, type SheetProfileDetection } from "../sheet-profile";
+import { detectSheetProfile, type SheetProfileDetection } from "../review/sheet-profile";
 import { findFlexibleAssetLayout } from "./parsers/flexible";
 import { findTransferHeaderRow } from "./parsers/transfer";
 import { cellText, compactText, looksLikeAssetCode, rowContainsAny } from "./text";

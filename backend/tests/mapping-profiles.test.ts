@@ -3,22 +3,22 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { buildSheetData } from "../lib/build-sheet-data";
-import type { DataSourceSheet } from "../lib/datasource";
+import { buildSheetData } from "../src/parse/build-sheet-data";
+import type { DataSourceSheet } from "../src/datasource";
 import {
   applyMappingProfile,
   AUTHORITATIVE_TEMPLATE_COLUMNS,
   normalizeText,
   suggestMapping,
-} from "../lib/mapping";
+} from "../src/mapping/mapping";
 import {
   computeHeaderSignature,
   loadMappingProfile,
   MAX_PROFILES,
   persistConfirmedMappingProfile,
   saveMappingProfile,
-} from "../lib/mapping-profiles";
-import type { AssetTemplateMetadata, TemplateReferenceValues } from "../lib/template";
+} from "../src/mapping/mapping-profiles";
+import type { AssetTemplateMetadata, TemplateReferenceValues } from "../src/template/template";
 
 function emptyReferences(): TemplateReferenceValues {
   return {

@@ -2,21 +2,21 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import ExcelJS from "exceljs";
 import * as XLSX from "xlsx";
-import { readWorkbookBuffer, safeCellText, WorkbookLimitError } from "../lib/excel";
-import { createDataSourceWorkbook } from "../lib/datasource";
-import { decideProfileEligibility } from "../lib/datasource/eligibility";
-import { detectSourceProfile } from "../lib/datasource/profile";
+import { readWorkbookBuffer, safeCellText, WorkbookLimitError } from "../src/parse/excel";
+import { createDataSourceWorkbook } from "../src/datasource";
+import { decideProfileEligibility } from "../src/datasource/eligibility";
+import { detectSourceProfile } from "../src/datasource/profile";
 import {
   COLUMN_ALIASES,
   TEMPLATE_COLUMNS,
   mappingSuggestionsToRecord,
   mergeMapping,
   suggestMapping,
-} from "../lib/mapping";
-import { buildAssetTemplateWorkbook, buildAssetTemplateWorkbookBySheet, loadAssetTemplateMetadata } from "../lib/template";
-import { transformRowsToTemplateDataset } from "../lib/transform";
-import { shouldValidateSheet, validateMappedRows, validateSheetLevel } from "../lib/validate";
-import { createDefaultSheetSelection, selectedSheetCount } from "../lib/sheet-selection";
+} from "../src/mapping/mapping";
+import { buildAssetTemplateWorkbook, buildAssetTemplateWorkbookBySheet, loadAssetTemplateMetadata } from "../src/template/template";
+import { transformRowsToTemplateDataset } from "../src/export/transform";
+import { shouldValidateSheet, validateMappedRows, validateSheetLevel } from "../src/export/validate";
+import { createDefaultSheetSelection, selectedSheetCount } from "../src/review/sheet-selection";
 
 function worksheetRows(worksheet: ExcelJS.Worksheet): unknown[][] {
   return Array.from({ length: worksheet.actualRowCount }, (_, rowIndex) => {

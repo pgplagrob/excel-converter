@@ -1,6 +1,6 @@
 import ExcelJS from "exceljs";
 import * as XLSX from "xlsx";
-import { sanitizeWorkbookDataValidations } from "./xlsx-sanitize";
+import { sanitizeWorkbookDataValidations } from "../parse/xlsx-sanitize";
 
 export interface WorkbookRowMeta {
   fillColors: string[];

@@ -1,4 +1,4 @@
-import { TEMPLATE_COLUMNS } from "./mapping";
+import { TEMPLATE_COLUMNS } from "../mapping/mapping";
 import {
   INTERNAL,
   SOURCE_ASSET_ITEM_EMIT_ONCE_COLUMN,
@@ -11,7 +11,7 @@ import {
   looksLikeAssetItemGroup,
   looksLikeAssetTypeGroup,
   normalizeThaiDate,
-} from "./datasource";
+} from "../datasource";
 
 export type TemplateMapping = Record<string, string | null | undefined>;
 

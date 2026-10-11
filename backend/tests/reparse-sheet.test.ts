@@ -1,17 +1,17 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { AnalysisRecord } from "../lib/analysis-store";
-import { buildSheetData } from "../lib/build-sheet-data";
-import { INTERNAL, type DataSourceWorkbook } from "../lib/datasource";
-import { parseFlexibleAssetSheet } from "../lib/datasource/parsers/flexible";
-import type { SheetProfileDebug } from "../lib/datasource/types";
+import type { AnalysisRecord } from "../src/review/analysis-store";
+import { buildSheetData } from "../src/parse/build-sheet-data";
+import { INTERNAL, type DataSourceWorkbook } from "../src/datasource";
+import { parseFlexibleAssetSheet } from "../src/datasource/parsers/flexible";
+import type { SheetProfileDebug } from "../src/datasource/types";
 import {
   parseReparseSheetRequest,
   ReparseRequestValidationError,
   validateReparseSheetBounds,
-} from "../lib/reparse-request";
-import { reparseStoredAnalysisSheet } from "../lib/reparse-sheet";
-import type { AssetTemplateMetadata, TemplateReferenceValues } from "../lib/template";
+} from "../src/review/reparse-request";
+import { reparseStoredAnalysisSheet } from "../src/review/reparse-sheet";
+import type { AssetTemplateMetadata, TemplateReferenceValues } from "../src/template/template";
 
 const MATRIX = [
   ["รายงานสินทรัพย์"],

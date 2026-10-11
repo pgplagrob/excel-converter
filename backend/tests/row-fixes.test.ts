@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { TEMPLATE_COLUMNS } from "../lib/mapping";
-import { applyRowFixes, enrichFixedRowIssues } from "../lib/row-fixes";
-import { validateMappedRows, type ValidationIssue } from "../lib/validate";
+import { TEMPLATE_COLUMNS } from "../src/mapping/mapping";
+import { applyRowFixes, enrichFixedRowIssues } from "../src/review/row-fixes";
+import { validateMappedRows, type ValidationIssue } from "../src/export/validate";
 
 test("row fixes apply only the explicit cell override", () => {
   const [firstColumn, secondColumn] = TEMPLATE_COLUMNS;

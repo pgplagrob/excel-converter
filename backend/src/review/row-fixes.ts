@@ -1,6 +1,6 @@
-import type { CellOverrides } from "./client-types";
-import { TEMPLATE_COLUMNS } from "./mapping";
-import type { ValidationIssue } from "./validate";
+import type { CellOverrides } from "../shared/client-types";
+import { TEMPLATE_COLUMNS } from "../mapping/mapping";
+import type { ValidationIssue } from "../export/validate";
 
 const TEMPLATE_COLUMN_SET = new Set(TEMPLATE_COLUMNS);
 

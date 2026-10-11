@@ -436,7 +436,11 @@ export default function Page() {
 
   if (step === 1 && parsed) {
     return (
-      <ReviewShell>
+      <ReviewShell
+        onContinueToDownload={runValidation}
+        canContinueToDownload={selectedCount > 0}
+        loading={loading}
+      >
         {error && <div className="review-ready-error" role="alert">{error}</div>}
         {loading && (
           <div className="review-ready-loading" aria-label="กำลังตรวจสอบข้อมูล">

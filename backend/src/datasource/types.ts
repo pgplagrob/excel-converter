@@ -1,4 +1,4 @@
-import type { SheetProfileDetection } from "../sheet-profile";
+import type { SheetProfileDetection } from "../review/sheet-profile";
 
 export type SourceProfile =
   | "NEW_ASSET_2567"

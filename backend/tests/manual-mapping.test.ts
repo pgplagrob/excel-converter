@@ -5,7 +5,7 @@ import {
   effectiveSourceColumn,
   hasManualOverride,
   setManualMappingOverride,
-} from "../lib/manual-mapping";
+} from "../src/mapping/manual-mapping";
 
 test("manual mapping distinguishes auto, explicit source, and explicit blank", () => {
   let mapping = {};

@@ -1910,6 +1910,23 @@ body:has(.upload-shell) > .settings-link { display: none; }
 
 .review-ready-shell .upload-sidebar-step.done { color: var(--upload-primary); }
 
+.review-sidebar-button {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.review-sidebar-button:hover:not(:disabled) {
+  background: var(--upload-surface-high);
+}
+
+.review-sidebar-button:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
 .upload-error {
   display: grid;
   gap: 3px;

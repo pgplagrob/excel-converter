@@ -1,8 +1,8 @@
 import type { AnalysisRecord } from "./analysis-store";
-import { appendDataQualityWarnings } from "./datasource/data-quality";
-import { parseFlexibleAssetSheet } from "./datasource/parsers/flexible";
-import type { DataSourceSheet, FlexibleAssetLayout, SheetProfileDebug } from "./datasource/types";
-import type { WorkbookSheetMatrix } from "./excel";
+import { appendDataQualityWarnings } from "../datasource/data-quality";
+import { parseFlexibleAssetSheet } from "../datasource/parsers/flexible";
+import type { DataSourceSheet, FlexibleAssetLayout, SheetProfileDebug } from "../datasource/types";
+import type { WorkbookSheetMatrix } from "../parse/excel";
 import {
   type ReparseSheetRequest,
   validateReparseSheetBounds,
