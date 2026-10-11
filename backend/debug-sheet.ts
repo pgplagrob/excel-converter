@@ -6,10 +6,10 @@
  * โชว์ค่า "หลัง transform" (ค่าที่ export ออกจริง) ไม่ใช่ค่าดิบภายใน
  */
 import { readFileSync } from "fs";
-import { readWorkbookBuffer } from "./lib/excel.ts";
-import { createDataSourceWorkbook } from "./lib/datasource.ts";
-import { suggestMapping, mappingSuggestionsToRecord } from "./lib/mapping.ts";
-import { transformRowsToTemplateDataset } from "./lib/transform.ts";
+import { readWorkbookBuffer } from "./src/parse/excel.ts";
+import { createDataSourceWorkbook } from "./src/datasource/index.ts";
+import { suggestMapping, mappingSuggestionsToRecord } from "./src/mapping/mapping.ts";
+import { transformRowsToTemplateDataset } from "./src/export/transform.ts";
 
 const FILE = "ครุภัณฑ์สำนักปลัดเทศบาล67-แบบ-กข-แก้ไข15-11-67.xlsx";
 const TARGET = process.argv[2] ?? "สำนักงาน";

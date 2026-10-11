@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import ExcelJS from "exceljs";
 import * as XLSX from "xlsx";
 import { readWorkbookBuffer, safeCellText, WorkbookLimitError } from "../src/parse/excel";
+import { parseStructuredWorkbookJson } from "../src/parse/python-extractor";
 import { createDataSourceWorkbook } from "../src/datasource";
 import { decideProfileEligibility } from "../src/datasource/eligibility";
 import { detectSourceProfile } from "../src/datasource/profile";
@@ -31,20 +32,56 @@ async function readWorkbook(workbook: ExcelJS.Workbook): Promise<ExcelJS.Workboo
   return output;
 }
 
-test("reads xlsx input and retains cell fill metadata", async () => {
+test("reads a 50-column Thai xlsx input and retains cell fill metadata", async () => {
   const workbook = new ExcelJS.Workbook();
-  const sheet = workbook.addWorksheet("AssetData");
+  const sheet = workbook.addWorksheet("ข้อมูลสินทรัพย์");
   const header = sheet.getCell("A1");
-  header.value = "AssetCode";
+  header.value = "รหัสสินทรัพย์";
   header.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFF0000" } };
-  sheet.getCell("B1").value = "ModelName";
+  for (let columnIndex = 2; columnIndex <= 50; columnIndex += 1) {
+    sheet.getCell(1, columnIndex).value = `คอลัมน์ ${columnIndex}`;
+  }
   sheet.getCell("A2").value = "A-001";
 
   const raw = await readWorkbookBuffer(Buffer.from(await workbook.xlsx.writeBuffer()), "asset-data.xlsx");
 
-  assert.equal(raw.sheets[0].matrix[0][0], "AssetCode");
+  assert.equal(raw.sheets[0].sheetName, "ข้อมูลสินทรัพย์");
+  assert.equal(raw.sheets[0].matrix[0][0], "รหัสสินทรัพย์");
+  assert.equal(raw.sheets[0].matrix[0].length, 50);
+  assert.equal(raw.sheets[0].matrix[0][49], "คอลัมน์ 50");
   assert.equal(raw.sheets[0].matrix[1][0], "A-001");
   assert.equal(raw.sheets[0].rowMeta[0].fillColors[0], "FFFF0000");
+});
+
+test("accepts the Python structured workbook contract and retains metadata", () => {
+  const raw = parseStructuredWorkbookJson(JSON.stringify({
+    fileName: "assets.xlsx",
+    sheets: [{
+      sheetName: "AssetData",
+      matrix: [["AssetCode"], ["A-001"]],
+      rowMeta: [
+        { excelRowNumber: 1, hidden: false, fillColors: ["FFFF0000"] },
+        { excelRowNumber: 2, hidden: true, fillColors: [""] },
+      ],
+      mergedRanges: ["A1:B1"],
+      hiddenColumns: ["C"],
+      formulas: [{ cell: "D2", formula: "=SUM(A2:C2)" }],
+    }],
+  }), "fallback.xlsx");
+
+  assert.equal(raw.fileName, "assets.xlsx");
+  assert.equal(raw.sheets[0].rowMeta[1].excelRowNumber, 2);
+  assert.equal(raw.sheets[0].rowMeta[1].hidden, true);
+  assert.deepEqual(raw.sheets[0].mergedRanges, ["A1:B1"]);
+  assert.deepEqual(raw.sheets[0].hiddenColumns, ["C"]);
+  assert.deepEqual(raw.sheets[0].formulas, [{ cell: "D2", formula: "=SUM(A2:C2)" }]);
+});
+
+test("rejects malformed Python structured workbook output", () => {
+  assert.throws(
+    () => parseStructuredWorkbookJson('{"sheets":[{"sheetName":"Bad","matrix":{}}]}', "bad.xlsx"),
+    /invalid worksheet/,
+  );
 });
 
 test("treats a broken empty merged cell as blank", () => {

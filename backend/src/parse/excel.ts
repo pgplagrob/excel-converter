@@ -1,15 +1,30 @@
 import ExcelJS from "exceljs";
 import * as XLSX from "xlsx";
 import { sanitizeWorkbookDataValidations } from "../parse/xlsx-sanitize";
+import {
+  extractWorkbookWithPython,
+  PythonExtractorLimitError,
+  PythonExtractorUnavailableError,
+} from "./python-extractor";
 
 export interface WorkbookRowMeta {
   fillColors: string[];
+  excelRowNumber?: number;
+  hidden?: boolean;
+}
+
+export interface WorkbookFormulaMeta {
+  cell: string;
+  formula: string;
 }
 
 export interface WorkbookSheetMatrix {
   sheetName: string;
   matrix: any[][];
   rowMeta: WorkbookRowMeta[];
+  mergedRanges?: string[];
+  hiddenColumns?: string[];
+  formulas?: WorkbookFormulaMeta[];
 }
 
 export interface RawWorkbook {
@@ -81,6 +96,19 @@ function validateWorkbookDimensions(workbook: ExcelJS.Workbook): void {
         `Workbook exceeds the ${MAX_CELLS_PER_WORKBOOK.toLocaleString()} cell limit.`,
       );
     }
+  }
+}
+
+function validateRawWorkbookDimensions(workbook: RawWorkbook): void {
+  if (workbook.sheets.length > MAX_WORKSHEETS) {
+    throw new WorkbookLimitError(`Workbook has more than ${MAX_WORKSHEETS} worksheets.`);
+  }
+
+  let totalCells = 0;
+  for (const sheet of workbook.sheets) {
+    const rowCount = sheet.matrix.length;
+    const columnCount = sheet.matrix.reduce((largest, row) => Math.max(largest, row.length), 0);
+    totalCells = validateSheetDimensions(sheet.sheetName, rowCount, columnCount, totalCells);
   }
 }
 
@@ -161,10 +189,10 @@ function readLegacyWorkbookBuffer(buffer: Buffer, fileName: string): RawWorkbook
   return { fileName, sheets };
 }
 
-export async function readWorkbookBuffer(buffer: Buffer, fileName: string): Promise<RawWorkbook> {
-  if (/\.xls$/i.test(fileName)) return readLegacyWorkbookBuffer(buffer, fileName);
-
-  const sanitized = await sanitizeWorkbookDataValidations(buffer, "strip");
+async function readModernWorkbookWithExcelJs(
+  sanitized: Buffer,
+  fileName: string,
+): Promise<RawWorkbook> {
   const workbook = new ExcelJS.Workbook();
   // exceljs defines its own Buffer type in typings; cast to satisfy TypeScript
   await workbook.xlsx.load(sanitized as unknown as ExcelJS.Buffer);
@@ -195,4 +223,37 @@ export async function readWorkbookBuffer(buffer: Buffer, fileName: string): Prom
   });
 
   return { fileName, sheets };
+}
+
+let warnedAboutPythonFallback = false;
+
+export async function readWorkbookBuffer(buffer: Buffer, fileName: string): Promise<RawWorkbook> {
+  if (/\.xls$/i.test(fileName)) return readLegacyWorkbookBuffer(buffer, fileName);
+
+  const sanitized = await sanitizeWorkbookDataValidations(buffer, "strip");
+  const extractorMode = (process.env.WORKBOOK_EXTRACTOR || "auto").toLowerCase();
+  if (!new Set(["auto", "python", "typescript"]).has(extractorMode)) {
+    throw new Error("WORKBOOK_EXTRACTOR must be auto, python, or typescript.");
+  }
+
+  if (extractorMode !== "typescript") {
+    try {
+      const workbook = await extractWorkbookWithPython(sanitized, fileName);
+      validateRawWorkbookDimensions(workbook);
+      return workbook;
+    } catch (error) {
+      if (error instanceof PythonExtractorLimitError) {
+        throw new WorkbookLimitError(error.message);
+      }
+      if (!(error instanceof PythonExtractorUnavailableError) || extractorMode === "python") {
+        throw error;
+      }
+      if (!warnedAboutPythonFallback) {
+        warnedAboutPythonFallback = true;
+        console.warn(`[workbook-extractor] ${error.message} Falling back to TypeScript.`);
+      }
+    }
+  }
+
+  return readModernWorkbookWithExcelJs(sanitized, fileName);
 }

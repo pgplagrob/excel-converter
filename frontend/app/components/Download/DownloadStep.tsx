@@ -97,7 +97,6 @@ export function DownloadStep({
             <a className="active" href="/">Main Converter</a>
             <a href="/settings">ตั้งค่าเทมเพลต</a>
             <span>ช่วยเหลือ</span>
-            <span className="download-avatar" aria-hidden="true">EC</span>
           </nav>
         </div>
       </header>

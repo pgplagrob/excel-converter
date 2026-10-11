@@ -26,6 +26,18 @@ npm install
 npm run dev
 ```
 
+Python 3 with `openpyxl` enables the preferred Structured JSON extractor for
+`.xlsx` files:
+
+```bash
+python -m pip install -r backend/python/requirements.txt
+```
+
+Without Python, the default `WORKBOOK_EXTRACTOR=auto` mode keeps the app
+working through the existing TypeScript reader. Set `WORKBOOK_EXTRACTOR=python`
+in production when Python extraction must be mandatory. See
+`backend/python/README.md` for executable-path configuration.
+
 เปิด [http://localhost:3000](http://localhost:3000)
 
 - Frontend: `http://localhost:3000`
