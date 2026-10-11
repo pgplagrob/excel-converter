@@ -30,3 +30,15 @@ values do not require `PYTHONUTF8` to be configured in the terminal.
 
 The process accepts workbook bytes on stdin and writes one JSON document to
 stdout. Diagnostic messages belong on stderr so they cannot corrupt the JSON.
+
+
+.xlsx
+  -> Python + openpyxl
+  -> Structured JSON
+  -> TypeScript datasource
+  -> mapping
+  -> review / validation
+  -> export
+
+.xls
+  -> SheetJS เดิม
