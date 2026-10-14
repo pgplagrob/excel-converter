@@ -137,8 +137,10 @@ function runExtractor(
       stdio: ["pipe", "pipe", "pipe"],
       windowsHide: true,
     });
-    const stdout: Buffer[] = [];
-    const stderr: Buffer[] = [];
+    // Buffer.concat accepts Uint8Array chunks. Using that interface avoids
+    // Buffer/ArrayBuffer type conflicts between Node typings and newer TS.
+    const stdout: Uint8Array[] = [];
+    const stderr: Uint8Array[] = [];
     let stdoutBytes = 0;
     let stderrBytes = 0;
     let settled = false;
@@ -163,7 +165,7 @@ function runExtractor(
           : error,
       );
     });
-    child.stdout.on("data", (chunk: Buffer) => {
+    child.stdout.on("data", (chunk: Uint8Array) => {
       stdoutBytes += chunk.length;
       if (stdoutBytes > MAX_STDOUT_BYTES) {
         child.kill();
@@ -172,10 +174,11 @@ function runExtractor(
       }
       stdout.push(chunk);
     });
-    child.stderr.on("data", (chunk: Buffer) => {
+    child.stderr.on("data", (chunk: Uint8Array) => {
       if (stderrBytes >= MAX_STDERR_BYTES) return;
-      stderrBytes += chunk.length;
-      stderr.push(chunk.subarray(0, MAX_STDERR_BYTES - (stderrBytes - chunk.length)));
+      const captured = chunk.subarray(0, MAX_STDERR_BYTES - stderrBytes);
+      stderr.push(captured);
+      stderrBytes += captured.length;
     });
     child.on("close", (code) => {
       if (settled) return;

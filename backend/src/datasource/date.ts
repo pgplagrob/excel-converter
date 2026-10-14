@@ -99,7 +99,9 @@ function formatDate(day: number, month: number, year: number): string {
 
 export function normalizeThaiDate(dayOrValue: any, monthValue?: any, yearValue?: any): string {
   if (dayOrValue instanceof Date) {
-    return formatDate(dayOrValue.getDate(), dayOrValue.getMonth() + 1, dayOrValue.getFullYear());
+    // Excel readers represent timezone-free serial dates as UTC Date objects.
+    // Local getters would move late-night/early-morning cells to another day.
+    return formatDate(dayOrValue.getUTCDate(), dayOrValue.getUTCMonth() + 1, dayOrValue.getUTCFullYear());
   }
 
   if (monthValue !== undefined || yearValue !== undefined) {
@@ -129,7 +131,9 @@ export function normalizeThaiDate(dayOrValue: any, monthValue?: any, yearValue?:
     return "";
   }
 
-  const yearFirstDate = text.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})$/);
+  // Preserve the written calendar date from extractor ISO timestamps; parsing
+  // them with new Date() would apply an offset or the server's timezone.
+  const yearFirstDate = text.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})(?:[T ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})?)?$/);
   if (yearFirstDate) {
     const year = normalizeYear(yearFirstDate[1]);
     const month = Number(yearFirstDate[2]);

@@ -65,6 +65,15 @@ function fallbackCellText(value: ExcelJS.CellValue): string {
 
 export function safeCellText(cell: Pick<ExcelJS.Cell, "text" | "value">): string {
   try {
+    const value = cell.value;
+    // ExcelJS cell.text stringifies dates using the host locale/timezone.
+    // Keep actual date cells (including cached formula dates) in ISO instead.
+    if (
+      value instanceof Date ||
+      (value && typeof value === "object" && "result" in value && value.result instanceof Date)
+    ) {
+      return fallbackCellText(value);
+    }
     const text = cell.text || "";
     return text === "[object Object]" ? fallbackCellText(cell.value) : text;
   } catch {
