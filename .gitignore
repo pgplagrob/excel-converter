@@ -19,3 +19,7 @@ backend/assets/*
 /.tmp-chrome-download-profile*/
 /.tmp-download-*.mjs
 coding-agent/.env
+
+# Local generated output and temporary files
+/output/
+/tmp/
