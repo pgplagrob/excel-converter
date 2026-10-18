@@ -1585,9 +1585,9 @@ tr.row-excluded .issue-marker {
 }
 .export-sheet-options {
   display: grid;
-  flex: 1 1 320px;
+  flex: 0 1 auto;
   gap: 8px;
-  min-height: 120px;
+  min-height: 0;
   max-height: 360px;
   overflow: auto;
   padding: 2px;
