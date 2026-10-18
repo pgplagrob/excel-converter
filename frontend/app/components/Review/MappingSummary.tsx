@@ -140,7 +140,7 @@ export function MappingSummary({
         <span>
           จับคู่คอลัมน์อัตโนมัติแล้ว <strong>{mappedCount}/{visibleMappings.length}</strong>
         </span>
-        <button type="button" className="btn secondary" onClick={() => setTableOpen(!tableOpen)}>
+        <button type="button" className="review-ready-button secondary" onClick={() => setTableOpen(!tableOpen)}>
           {tableOpen ? "ซ่อนรายละเอียด mapping" : "ดู mapping ทั้งหมด"}
         </button>
       </div>
@@ -191,7 +191,7 @@ export function MappingSummary({
       )}
 
       <div className="advanced-box mt-6 rounded-lg border p-4">
-        <button className="btn secondary " onClick={() => setAdvancedOpen(!advancedOpen)}>
+        <button className="review-ready-button secondary" onClick={() => setAdvancedOpen(!advancedOpen)}>
           {advancedOpen ? "ซ่อน Advanced Mapping" : "แก้ไขการจับคู่คอลัมน์"}
         </button>
         {advancedOpen && (

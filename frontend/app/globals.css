@@ -670,6 +670,19 @@ button.sheet-tab:hover:not(.active) {
   margin-bottom: 10px;
   font-size: 13px;
 }
+.mapping-toggle {
+  background: transparent;
+  border: none;
+  color: #000;
+  padding: 0;
+  cursor: pointer;
+}
+
+.mapping-toggle:hover {
+  background: transparent;
+  color: #000;
+  text-decoration: underline; /* เอาบรรทัดนี้ออกได้ถ้าไม่อยากให้มีเส้น */
+}
 .mapping-summary-toggle .btn { padding: 7px 14px; font-size: 12.5px; }
 
 .reference-issue-group {
