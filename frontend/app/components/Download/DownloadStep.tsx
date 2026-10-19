@@ -31,6 +31,7 @@ export function DownloadStep({
   const [previewSheetName, setPreviewSheetName] = useState("");
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [exportSelection, setExportSelection] = useState<Record<string, boolean>>({});
+  const [issuesOpen, setIssuesOpen] = useState(false);
 
   const availableSheets = useMemo(() => {
     const sheetsWithErrors = new Set(
@@ -260,18 +261,28 @@ export function DownloadStep({
 
                 {issues && issues.length > 0 && (
                   <section className="download-issues-section">
-                    <h3>รายการที่ควรตรวจสอบ</h3>
-                    <div className="issue-list">
-                      {issues.slice(0, 200).map((issue, idx) => (
-                        <div className={`issue-row ${issue.severity}`} key={idx}>
-                          <span className="tag">{issueSeverityLabel(issue.severity)}</span>
-                          <span>
-                            <strong>{issue.sheetName}</strong> แถวที่ {issue.rowIndex + 1}:{" "}
-                            {displayIssueMessage(issue.message)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                    <button
+                      type="button"
+                      className="mapping-toggle"
+                      aria-expanded={issuesOpen}
+                      aria-controls="download-issues-list"
+                      onClick={() => setIssuesOpen((open) => !open)}
+                    >
+                      {issuesOpen ? "▾" : "▸"} รายการที่ควรตรวจสอบ ({issues.length.toLocaleString("th-TH")})
+                    </button>
+                    {issuesOpen && (
+                      <div id="download-issues-list" className="issue-list">
+                        {issues.slice(0, 200).map((issue, idx) => (
+                          <div className={`issue-row ${issue.severity}`} key={idx}>
+                            <span className="tag">{issueSeverityLabel(issue.severity)}</span>
+                            <span>
+                              <strong>{issue.sheetName}</strong> แถวที่ {issue.rowIndex + 1}:{" "}
+                              {displayIssueMessage(issue.message)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </section>
                 )}
               </div>
