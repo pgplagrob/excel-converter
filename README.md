@@ -1,160 +1,182 @@
-# Latest Excel Converter
+# Excel Template Converter
 
-เว็บแอปสำหรับแปลงข้อมูลจากไฟล์ Excel หลายรูปแบบให้เป็นไฟล์ตามเทมเพลตมาตรฐานของบริษัทVizzel Intel Access พร้อมตรวจสอบข้อมูล แนะนำการจับคู่คอลัมน์ และดาวน์โหลดผลลัพธ์เป็นไฟล์ `.xlsx` โดยแยก Next.js frontend และ API backend เป็นคนละ process
+เว็บสำหรับแปลงข้อมูลจากไฟล์ Excel หลายรูปแบบให้เป็นไฟล์ Excel ตาม
+Template ของบริษัท โดยช่วยอ่านชีต แนะนำการจับคู่คอลัมน์ ตรวจหาข้อมูลที่
+ต้องแก้ และสร้างไฟล์ `.xlsx` สำหรับดาวน์โหลด
 
-## ความสามารถหลัก
+## ทำอะไรได้บ้าง
 
-- รองรับไฟล์ `.xlsx` และ `.xls` ขนาดไม่เกิน 20 MB
-- ตรวจทุกชีตและแปลงเฉพาะตารางข้อมูลรายสินทรัพย์ที่เข้ากับ Template
-- ชีตสรุปที่อ้างอิงยอดจากชีตอื่น เช่น `แบบกข.` จะไม่แปลงซ้ำ และจะไม่ถูกคัดลอกเป็นชีตต้นฉบับในไฟล์ผลลัพธ์
-- ตรวจจับรูปแบบชีตจากชื่อชีต header และ keyword
-- รองรับ AssetData, ข้อมูลสินทรัพย์ใหม่, ทะเบียนครุภัณฑ์หลายแถว, ข้อมูลโอน/ย้าย และตารางรูปแบบยืดหยุ่น
-- อ่านตารางที่ไม่มี header, header สองแถว และรหัสสินทรัพย์ที่แยกอยู่หลายคอลัมน์
-- แปลงข้อมูลเป็นโครงสร้างกลาง พร้อม carry-forward หมวดหมู่จากแถวหัวกลุ่ม
-- แนะนำ mapping ไปยังคอลัมน์ของเทมเพลตเฉพาะชื่อหัวคอลัมน์ที่ตรงกันหรือ alias ที่ระบุไว้อย่างชัดเจน ไม่เดาจากคำบางส่วนหรือ fuzzy matching
-- แสดงทุกชีตพร้อม profile, eligibility, เหตุผล และจำนวนแถว/error/warning; ชีตที่ผ่านนโยบาย export ถูกเลือกโดยอัตโนมัติ ไม่มี checkbox ให้ผู้ใช้ปิด/เปิดเอง
-- Advanced Mapping: override การจับคู่คอลัมน์เป็นรายคอลัมน์ต่อชีต, บังคับให้ช่องว่าง หรือคืนค่า auto ได้
-- แก้ไขข้อมูลเฉพาะจุดจาก validation issue ได้ (แก้ค่าเซลล์ หรือตัดทั้งแถวออกจาก export) โดยไม่ต้องแก้ไฟล์ต้นฉบับ
-- ตรวจ required fields, วันที่, ตัวเลข, สถานะ และรายการซ้ำ
-- เมื่อแก้ mapping/เซลล์/ตัดแถวหลังตรวจสอบไปแล้ว ระบบจะแจ้งว่าเป็นผลลัพธ์เก่า (stale) จนกว่าจะกดตรวจสอบซ้ำ
-- Export เป็นไฟล์ Excel ที่มีเฉพาะชีต Template ที่ผ่านการตรวจสอบ พร้อมเพิ่ม `Reference`
+- รับไฟล์ `.xlsx` และ `.xls` ขนาดไม่เกิน 20 MB
+- อ่านทุกชีตและระบุว่าชีตใดเหมาะสำหรับแปลงข้อมูล
+- แนะนำการจับคู่คอลัมน์ต้นทางกับคอลัมน์ใน Template
+- ให้ผู้ใช้แก้ mapping, แก้ค่าเซลล์ หรือไม่ส่งออกบางแถวได้
+- ตรวจข้อมูลสำคัญ เช่น ช่องบังคับ วันที่ ตัวเลข สถานะ และข้อมูลซ้ำ
+- สร้างไฟล์ Excel ใหม่โดยมีเฉพาะชีตที่ผ่านการตรวจสอบ
 
-## การติดตั้งและรัน
+## ใช้งานแบบย่อ
+
+1. เปิดหน้าเว็บ แล้วอัปโหลดหรือลากไฟล์ Excel ลงมา
+2. ระบบอ่านไฟล์และเลือกชีตที่มีข้อมูลให้ตรวจสอบ
+3. ดูตัวอย่างข้อมูลและคำเตือน แล้วแก้เฉพาะจุดที่จำเป็น
+4. กดตรวจสอบอีกครั้ง
+5. เมื่อไม่มีข้อผิดพลาด กดดาวน์โหลดไฟล์ที่แปลงแล้ว
+
+ชื่อไฟล์ที่ได้จะอยู่ในรูปแบบ `converted_template_<ชื่อไฟล์ต้นทาง>.xlsx`
+
+## การไหลของข้อมูล
+
+### ภาพรวมสำหรับผู้ใช้
+
+```text
+ไฟล์ Excel ต้นทาง
+    |
+    v
+อัปโหลดในหน้าเว็บ
+    |
+    v
+ระบบอ่านชีต + หา header + แนะนำการจับคู่คอลัมน์
+    |
+    v
+ผู้ใช้ตรวจตัวอย่างข้อมูล / แก้ mapping / แก้เซลล์ / ตัดแถวออก
+    |
+    v
+ตรวจสอบข้อมูลอีกครั้ง
+    |
+    v
+สร้างไฟล์ตาม Template แล้วดาวน์โหลด .xlsx
+```
+
+### ภาพรวมระหว่าง Frontend และ Backend
+
+```text
+Browser (Frontend :3000)
+  |
+  |  POST /api/v1/parse  [ส่งไฟล์ Excel]
+  v
+Backend API (:3001)
+  |
+  |-- อ่าน workbook
+  |     |- .xlsx: Python + openpyxl เป็นตัวเลือกหลัก
+  |     `- .xls / กรณี fallback: TypeScript reader
+  |
+  |-- แยกข้อมูลเป็นโครงสร้างกลาง
+  |-- ตรวจรูปแบบชีตและแนะนำ mapping
+  `-- เก็บข้อมูลการตรวจชั่วคราว แล้วตอบ analysisId + preview กลับไป
+  |
+  v
+Browser แสดงชีต, mapping, preview และ validation issues
+  |
+  |  POST /api/v1/export (mode: validate)
+  v
+Backend แปลงข้อมูลและตอบผลตรวจล่าสุด
+  |
+  |  POST /api/v1/export (mode: download)
+  v
+Backend สร้างไฟล์ Template .xlsx --> Browser ดาวน์โหลดไฟล์
+```
+
+`analysisId` คือรหัสอ้างอิงข้อมูลที่อัปโหลดสำหรับรอบการทำงานนั้น ใช้เมื่อ
+ตรวจสอบซ้ำหรือดาวน์โหลด ข้อมูลนี้เก็บในหน่วยความจำของ Backend ชั่วคราว:
+หลังรีสตาร์ตเซิร์ฟเวอร์หรือหมดอายุ ต้องอัปโหลดไฟล์ใหม่
+
+### เมื่อผู้ใช้แก้ข้อมูล
+
+หลังแก้ mapping, ค่าเซลล์ หรือเลือกตัดแถวออก ผลตรวจเดิมจะไม่ใช่ผลล่าสุด
+(stale) จึงต้องส่ง `mode: validate` อีกครั้งก่อนดาวน์โหลด ระบบจะใช้ค่าแก้ไข
+เหล่านี้ร่วมกับข้อมูลต้นทาง ไม่ได้แก้ไฟล์ Excel ต้นฉบับบนเครื่องของผู้ใช้
+
+## API หลัก
+
+| Endpoint | ใช้เมื่อ | ผลลัพธ์ |
+| --- | --- | --- |
+| `POST /api/v1/parse` | อัปโหลดไฟล์ | รายละเอียดทุกชีต, preview, mapping ที่แนะนำ และ `analysisId` |
+| `POST /api/v1/reparse-sheet` | ต้องกำหนดแถว header/ช่วงข้อมูลใหม่ | วิเคราะห์ชีตเดิมใหม่ |
+| `POST /api/v1/export` (`validate`) | ตรวจข้อมูลก่อนดาวน์โหลด | ข้อมูลที่แปลงแล้วและรายการปัญหา |
+| `POST /api/v1/export` (`download`) | สร้างไฟล์ผลลัพธ์ | ไฟล์ `.xlsx` สำหรับดาวน์โหลด |
+| `GET/POST /api/v1/admin/template` | ดูหรือเปลี่ยน Template ที่ `/settings` | สถานะหรือ Template เวอร์ชันใหม่ |
+
+## เริ่มต้นใช้งานสำหรับนักพัฒนา
+
+ติดตั้ง dependencies ที่โฟลเดอร์หลัก:
 
 ```bash
 npm install
-npm run dev
 ```
 
-Python 3 with `openpyxl` enables the preferred Structured JSON extractor for
-`.xlsx` files:
+ติดตั้ง Python extractor สำหรับไฟล์ `.xlsx` (แนะนำ):
 
 ```bash
 python -m pip install -r backend/python/requirements.txt
 ```
 
-Without Python, the default `WORKBOOK_EXTRACTOR=auto` mode keeps the app
-working through the existing TypeScript reader. Set `WORKBOOK_EXTRACTOR=python`
-in production when Python extraction must be mandatory. See
-`backend/python/README.md` for executable-path configuration.
+รัน Frontend และ Backend พร้อมกัน:
 
-เปิด [http://localhost:3000](http://localhost:3000)
+```bash
+npm run dev
+```
+
+เปิด <http://localhost:3000>
 
 - Frontend: `http://localhost:3000`
 - Backend API: `http://localhost:3001`
-- Frontend จะ proxy request `/api/*` ไป backend อัตโนมัติ
+- Frontend ส่ง request ที่ `/api/*` ไปยัง Backend โดยอัตโนมัติ
 
-ถ้า backend อยู่คนละ URL ให้กำหนด `BACKEND_URL` ก่อน build/run frontend เช่น PowerShell:
+ถ้า Backend อยู่คนละ URL ให้กำหนด `BACKEND_URL` ก่อนรันหรือ build Frontend:
 
 ```powershell
 $env:BACKEND_URL = "https://api.example.com"
 npm.cmd run build
 ```
 
-สำหรับ production:
+### โหมดตัวอ่าน Excel
+
+ตัวแปร `WORKBOOK_EXTRACTOR` เลือกวิธีอ่านไฟล์ได้:
+
+| ค่า | พฤติกรรม |
+| --- | --- |
+| `auto` (ค่าเริ่มต้น) | ใช้ Python กับ `.xlsx` ก่อน แล้ว fallback ไป TypeScript หาก Python ใช้ไม่ได้ |
+| `python` | บังคับใช้ Python extractor |
+| `typescript` | ใช้ TypeScript reader โดยไม่เรียก Python |
+
+ดูการตั้งค่า path ของ Python เพิ่มเติมที่ [backend/python/README.md](backend/python/README.md)
+
+## คำสั่งที่ใช้บ่อย
 
 ```bash
-npm run build
-npm start
+npm run dev          # รันทั้งสอง service สำหรับพัฒนา
+npm run build        # build Backend แล้วตามด้วย Frontend
+npm run typecheck    # ตรวจ TypeScript ทุก workspace ที่รองรับ
+npm test             # รันทดสอบ Backend
+npm run audit:assets # ตรวจไฟล์ Excel ตัวอย่างและสร้างรายงาน
+npm start            # เปิดทั้งสอง service จาก production build
 ```
 
-รันชุดทดสอบ:
-
-```bash
-npm test
-```
-
-Audit ไฟล์จริงทั้งหมดใต้ `backend/assets/เทศบาลนครลำปาง/`:
-
-```bash
-npm run audit:assets
-```
-
-ผลแบบ machine-readable จะอยู่ที่ `backend/reports/asset-audit.json` และมีสรุปรายไฟล์/รายชีต, profile, eligibility, row/error/warning count และเหตุผลที่ไม่ export
-
-## วิธีใช้งาน
-
-1. อัปโหลดหรือลากไฟล์ Excel เข้าหน้าเว็บ ระบบจะอ่านไฟล์และตรวจสอบทุกชีตให้อัตโนมัติ
-2. เลือกชีตจากแถบ "เลือกชีตเพื่อตรวจสอบ" เพื่อดู preview, mapping และผล validation ของแต่ละชีต (ชีตที่เก็บต้นฉบับ/ข้ามจะแยกกลุ่มไว้ต่างหาก)
-3. แก้ไขได้ตามจำเป็น: เปิด Advanced Mapping เพื่อจับคู่คอลัมน์เอง, แก้ค่าเซลล์ที่มีปัญหา หรือตัดแถวที่ไม่ต้องการออก
-4. กด "ตรวจสอบชีตที่เลือกและไป Export" เพื่อตรวจสอบล่าสุดอีกครั้ง แล้วดาวน์โหลดไฟล์ผลลัพธ์
-
-ไฟล์ที่ดาวน์โหลดจะใช้ชื่อรูปแบบ `converted_template_<ชื่อไฟล์ต้นทาง>.xlsx`
-
-## Flow การทำงาน
-
-```text
-Upload Excel
-  -> POST /api/v1/parse
-  -> อ่าน workbook และตรวจจับรูปแบบชีต
-  -> Normalize ข้อมูลต้นทาง
-  -> แนะนำ mapping ตามคอลัมน์ของ template
-  -> Preview และ validate
-  -> POST /api/v1/export (mode=validate)
-  -> ผู้ใช้แก้ mapping/เซลล์/ตัดแถวได้ตามต้องการ (ผลตรวจสอบเดิมจะถูกทำเครื่องหมายว่า stale)
-  -> POST /api/v1/export (mode=validate) ซ้ำเพื่ออัปเดตผล
-  -> POST /api/v1/export (mode=download)
-  -> Download converted_template_<source>.xlsx
-```
-
-## API
-
-### `POST /api/v1/parse`
-
-รับ `multipart/form-data` โดยมี field ชื่อ `file` เป็นไฟล์ Excel และส่งกลับ `sheetOverview` ของทุกชีต พร้อม preview/mapping ของชีตที่มีข้อมูลรายสินทรัพย์สำหรับแปลงเป็น Template
-
-### `POST /api/v1/export`
-
-รับ JSON payload จากขั้นตอน parse โดยกำหนด `mode` ได้ 2 แบบ:
-
-- `validate` แปลงข้อมูลและส่ง validation issues กลับเป็น JSON
-- `download` แปลงข้อมูลและส่งไฟล์ `.xlsx` กลับให้ดาวน์โหลด
-
-ทั้งสอง mode ตรวจและแปลงเฉพาะชีตที่ระบุใน `sheets` ของ request; ในโหมด `download` จะไม่คัดลอกชีตต้นฉบับที่ไม่ได้แปลงไปยังไฟล์ผลลัพธ์
-
-### `POST /api/v1/reparse-sheet`
-
-รับ `analysisId`, `sheetName` และ `headerRow` (พร้อม `dataStartRow`/`dataEndRow` ถ้าต้องระบุ) เพื่อวิเคราะห์ชีตเดิมใหม่โดยใช้แถวหัวตารางที่กำหนดเอง แล้วส่ง `sheet` ที่ parse ใหม่กลับมา
-
-### `GET/POST /api/v1/admin/template`
-
-`GET` ส่งสถานะ template ปัจจุบัน (ค่าเริ่มต้นหรือไฟล์ที่อัปโหลด, รายชื่อคอลัมน์, ความต่างจาก `TEMPLATE_COLUMNS`) พร้อมประวัติเวอร์ชัน
-
-`POST` รับ `multipart/form-data` field `file` เพื่ออัปโหลด template ใหม่ ระบบตรวจว่าไฟล์เปิดได้, มีชีต `Sheet1`/`Reference` และแถวหัวตารางไม่ว่าง ก่อนสลับไปใช้ไฟล์นี้ทันที — คอลัมน์ที่ไม่ตรงกับ `TEMPLATE_COLUMNS` จะขึ้นเป็นคำเตือนแต่ไม่บล็อกการสลับ
-
-### `POST /api/v1/admin/template/rollback`
-
-รับ `{ versionId }` เพื่อย้อนกลับไปใช้ template เวอร์ชันก่อนหน้าที่ยังเก็บไว้ (สูงสุด 5 เวอร์ชันล่าสุด)
-
-## ตั้งค่า Template (`/settings`)
-
-บริษัทเปลี่ยนไฟล์ template บ่อย หน้า `/settings` (ลิงก์ "⚙ ตั้งค่า Template" มุมขวาบนของทุกหน้า) ให้สลับไฟล์ template ที่ระบบใช้สร้างผลลัพธ์ export ได้เองโดยไม่ต้องแก้โค้ดหรือ deploy ใหม่
-
-- ไฟล์ที่อัปโหลดเก็บไว้ที่ `backend/data/templates/` (อยู่นอก git, ไม่ถูกลบเวลา restart server ต่างจาก `analysis-store` ที่เก็บในหน่วยความจำ) เก็บย้อนหลังสูงสุด 5 เวอร์ชัน กดย้อนกลับได้จากหน้า settings
-- ตรวจสอบก่อนสลับเฉพาะสิ่งที่ทำให้แอปพังจริง: ไฟล์เปิดได้, มีชีต `Sheet1`/`Reference`, แถวหัวตารางไม่ว่าง — ไฟล์ที่มี data validation แบบเต็มคอลัมน์ (เช่น dropdown ที่ลากยาวทั้งคอลัมน์ใน Excel) จะถูก sanitize อัตโนมัติเหมือนไฟล์ที่ผู้ใช้อัปโหลดในหน้าแปลงไฟล์ปกติ ป้องกันปัญหาเซิร์ฟเวอร์ค้างที่เคยเกิดขึ้น
-- ถ้าคอลัมน์ในไฟล์ใหม่ไม่ตรงกับ `TEMPLATE_COLUMNS` ใน `backend/lib/mapping.ts` (รายชื่อคอลัมน์ที่ระบบใช้แนะนำ mapping อัตโนมัติ) หน้า settings จะเตือนคอลัมน์ที่ขาด/เพิ่มมาให้เห็น แต่ยังให้สลับไฟล์ได้ตามปกติ — คอลัมน์ที่ต่างไปจะต้องจับคู่ mapping มือในหน้าแปลงไฟล์
-- ไม่มีระบบ authentication/สิทธิ์การเข้าถึงหน้านี้ เช่นเดียวกับส่วนอื่นของแอป (เครื่องมือใช้ภายในทีมที่ไว้ใจเครือข่ายที่เข้าถึงได้)
+รายงานจาก `npm run audit:assets` จะถูกสร้างที่
+`backend/reports/asset-audit.json`
 
 ## โครงสร้างโปรเจกต์
 
 ```text
-package.json                   npm workspace และคำสั่งรวมสำหรับรันสอง service
-run-apps.mjs                   เปิด/หยุด frontend กับ backend พร้อมกัน
-frontend/app/                  หน้าเว็บหลัก, settings และ UI components
-frontend/lib/                  type contract และ helper ที่ใช้เฉพาะใน browser
-frontend/next.config.js        proxy /api/* ไป BACKEND_URL (ค่าเริ่มต้นพอร์ต 3001)
-backend/app/api/v1/            route ของ parse, export, reparse และ admin template
-backend/lib/                   Excel parsing, datasource, mapping, validation และ export logic
-backend/assets/                factory template และไฟล์ต้นทางสำหรับ audit
-backend/data/templates/        template ที่อัปโหลดผ่านหน้า settings (ไม่เก็บใน git)
-backend/tests/                 ชุดทดสอบ backend และ conversion logic
-backend/scripts/audit-assets.ts  audit ไฟล์ Excel จริงและสร้าง JSON report
-backend/reports/asset-audit.json รายงาน audit ล่าสุด
+.
+├─ frontend/                    หน้าเว็บ Next.js และ UI components
+│  ├─ app/                      หน้าอัปโหลด, ตรวจสอบ และ settings
+│  └─ next.config.js            proxy /api/* ไปยัง Backend
+├─ backend/                     Next.js API และ logic แปลงข้อมูล
+│  ├─ app/api/v1/               parse, export, reparse และ template routes
+│  ├─ python/                   Python + openpyxl extractor
+│  ├─ src/parse/                อ่านและ normalize workbook
+│  ├─ src/mapping/              แนะนำและตรวจ mapping
+│  ├─ src/review/               เก็บ/วิเคราะห์ข้อมูลระหว่างการตรวจ
+│  └─ src/export/               สร้างข้อมูลและไฟล์ผลลัพธ์
+├─ run-apps.mjs                 เปิดหรือหยุด Frontend และ Backend พร้อมกัน
+└─ package.json                 workspace และคำสั่งรวมของโปรเจกต์
 ```
 
-## หมายเหตุ
+## ข้อควรรู้
 
-- ใช้ `npm run build` เพื่อตรวจสอบ TypeScript และ production build
-- จำกัดสูงสุด 100 ชีต, 50,000 แถวต่อชีต, 256 คอลัมน์ต่อชีต และ 1,000,000 เซลล์ต่อ workbook
-- ชื่อชีตในไฟล์ export จะอ้างอิงชื่อชีตต้นทางและถูกตัดให้ไม่เกินข้อจำกัดของ Excel
-- รายการที่มีรหัสสินทรัพย์ซ้ำยัง export ได้ หากข้อมูลคอลัมน์อื่นแตกต่างกัน ระบบจะแจ้งเตือนเฉพาะรายการที่ซ้ำแบบ exact duplicate
+- ระบบรองรับสูงสุด 100 ชีต, 50,000 แถวต่อชีต, 256 คอลัมน์ต่อชีต และ
+  1,000,000 เซลล์ต่อ workbook
+- ไฟล์ที่ดาวน์โหลดจะไม่คัดลอกชีตต้นฉบับที่ไม่ได้เลือกแปลงไปด้วย
+- หน้า `/settings` ใช้เปลี่ยน Template ได้ โดยไฟล์ที่อัปโหลดเก็บอยู่ที่
+  `backend/data/templates/` และไม่อยู่ใน Git
+- ปัจจุบันยังไม่มีระบบยืนยันตัวตน จึงควรวางระบบนี้ในเครือข่ายที่เหมาะสม
